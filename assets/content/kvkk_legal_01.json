@@ -1,0 +1,25 @@
+{
+  "kvkk_metni": {
+    "id": "legal_01",
+    "translations": {
+      "tr": {
+        "baslik": "Kişisel Verilerin Korunması ve İşlenmesi Aydınlatma Metni",
+        "icerik": "Bu anket aracılığıyla paylaştığınız tercihleriniz, size en uygun parfüm önerilerini sunabilmek amacıyla işlenmektedir. Verileriniz, 6698 sayılı KVKK kapsamında korunmakta olup üçüncü taraflarla paylaşılmamaktadır.",
+        "onay_metni": "Kişisel verilerimin işlenmesini ve gizlilik politikasını kabul ediyorum.",
+        "buton_metni": "Okudum, Onaylıyorum"
+      },
+      "en": {
+        "baslik": "Clarification Text on Personal Data Protection and Processing",
+        "icerik": "The preferences you share through this survey are processed to provide the most suitable perfume recommendations for you. Your data is protected under the GDPR/relevant data protection laws and is not shared with third parties.",
+        "onay_metni": "I accept the processing of my personal data and the privacy policy.",
+        "buton_metni": "I Read and Approve"
+      },
+      "ar": {
+        "baslik": "نص توضيحي بشأن حماية ومعالجة البيانات الشخصية",
+        "icerik": "يتم معالجة التفضيلات التي تشاركها من خلال هذا الاستطلاع لتقديم توصيات العطور الأكثر ملاءمة لك. بياناتك محمية بموجب قانون حماية البيانات الشخصية ولا يتم مشاركتها مع أطراف ثالثة.",
+        "onay_metni": "أوافق على معالجة بياناتي الشخصية وسياسة الخصوصية.",
+        "buton_metni": "لقد قرأت وأوافق"
+      }
+    }
+  }
+}
