@@ -242,7 +242,7 @@
       "id": 15,
       "translations": {
         "tr": {
-          "soru": "Size kendinizi iyi hissettiren doğal koku hangisine daha yakın?",
+          "soru": "Kendinizi iyi hissettiren doğal koku, hangisine daha yakın?",
           "secenekler": ["Deniz / yağmur / Tuz", "Orman / ağaç", "Çiçek bahçesi", "Meyve bahçesi", "Kahve", "Vanilya / tatlı", "Deri"]
         },
         "en": {

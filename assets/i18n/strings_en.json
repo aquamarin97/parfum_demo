@@ -1,1 +1,15 @@
-{}
+{
+  "brand_name": "Ventusé",
+  "idle_title_1": "Hello,",
+  "idle_title_2": "I am ",
+  "idle_subtitle": "Let's Get Started",
+  "start": "Start",
+  "cancel": "Cancel",
+  "back": "Back",
+  "loading": "Preparing the best options for you...",
+  "result_title": "Your Recommendations",
+  "recommendation_label": "Perfume ID",
+  "back_to_start": "Back to Start",
+  "error_title": "Something went wrong",
+  "error_body": "Data could not be loaded. Please try again."
+}

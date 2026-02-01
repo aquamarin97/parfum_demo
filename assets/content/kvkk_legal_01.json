@@ -3,22 +3,22 @@
     "id": "legal_01",
     "translations": {
       "tr": {
-        "baslik": "Kişisel Verilerin Korunması ve İşlenmesi Aydınlatma Metni",
-        "icerik": "Bu anket aracılığıyla paylaştığınız tercihleriniz, size en uygun parfüm önerilerini sunabilmek amacıyla işlenmektedir. Verileriniz, 6698 sayılı KVKK kapsamında korunmakta olup üçüncü taraflarla paylaşılmamaktadır.",
-        "onay_metni": "Kişisel verilerimin işlenmesini ve gizlilik politikasını kabul ediyorum.",
-        "buton_metni": "Okudum, Onaylıyorum"
+        "baslik": "Kişisel Verilerin Korunması ve İşlenmesine İlişkin Aydınlatma Metni",
+        "icerik": "6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca, veri sorumlusu sıfatıyla Ventusé® tarafından hazırlanan bu metinle, kiosk cihazımız üzerinden gerçekleştirilen anket süreci hakkında sizleri bilgilendirmeyi amaçlıyoruz.\n\n1. Veri İşleme Amacı: Bu anket kapsamında paylaştığınız koku tercihleri ve demografik nitelikteki veriler; tamamen size özel koku profili oluşturmak ve en uygun ürün önerilerini sunabilmek amacıyla işlenmektedir.\n\n2. Verilerin Saklanması ve Güvenliği: Sistemimiz 'Geçici Oturum' (Session-based) prensibiyle çalışmaktadır. Paylaşılan veriler herhangi bir veri tabanında depolanmamakta, sunucularımıza kaydedilmemekte ve anket süreci tamamlandığında sistemden kalıcı olarak silinmektedir.\n\n3. Veri Aktarımı: Kimliğinizi belirleyici hiçbir veri (ad-soyad, e-posta, telefon vb.) talep edilmediğinden, 'kişisel veri' niteliği taşımayan anonim bilgileriniz hiçbir üçüncü kurum veya kuruluşla paylaşılmamaktadır.\n\n4. Haklarınız: KVKK’nın 11. maddesi uyarınca veri sahibi olarak haklarınız saklıdır; ancak sistemimizde hiçbir veri kayıt altında tutulmadığı için geçmişe dönük veri sorgulama veya silme talebi gerçekleştirilemeyecektir.\n\nAnketimize devam ederek bu aydınlatma metnini okuduğunuzu ve anonim veri işleme süreçlerini kabul ettiğinizi beyan etmiş sayılırsınız.",
+        "onay_metni": "Aydınlatma metnini okudum, anladım ve verilerimin belirtilen amaçlar doğrultusunda işlenmesini kabul ediyorum.",
+        "buton_metni": "Onayla"
       },
       "en": {
-        "baslik": "Clarification Text on Personal Data Protection and Processing",
-        "icerik": "The preferences you share through this survey are processed to provide the most suitable perfume recommendations for you. Your data is protected under the GDPR/relevant data protection laws and is not shared with third parties.",
-        "onay_metni": "I accept the processing of my personal data and the privacy policy.",
-        "buton_metni": "I Read and Approve"
+        "baslik": "Privacy Notice on the Protection and Processing of Personal Data",
+        "icerik": "In accordance with the Turkish Personal Data Protection Law No. 6698 (“KVKK”), this notice has been prepared by Ventusé® in its capacity as data controller to inform you about the survey process conducted via our kiosk device.\n\n1. Purpose of Data Processing: The fragrance preferences and demographic information you share within the scope of this survey are processed solely for the purpose of creating a personalized fragrance profile for you and providing the most suitable product recommendations.\n\n2. Data Storage and Security: Our system operates on a 'Session-based' principle. The data shared is not stored in any database, is not recorded on our servers, and is permanently deleted from the system once the survey process is completed.\n\n3. Data Transfer: As no identity-identifying information (such as name, surname, email address, or phone number) is requested, your anonymous data that does not qualify as personal data is not shared with any third parties.\n\n4. Your Rights: Pursuant to Article 11 of the KVKK, your rights as a data subject are reserved; however, since no data is retained in our system, it will not be possible to submit retrospective data access or deletion requests.\n\nBy continuing with the survey, you are deemed to have read and accepted this privacy notice and the anonymous data processing procedures described herein.",
+        "onay_metni": "I have read and understood the privacy notice and agree to the processing of my data for the purposes stated above.",
+        "buton_metni": "Approve"
       },
       "ar": {
         "baslik": "نص توضيحي بشأن حماية ومعالجة البيانات الشخصية",
-        "icerik": "يتم معالجة التفضيلات التي تشاركها من خلال هذا الاستطلاع لتقديم توصيات العطور الأكثر ملاءمة لك. بياناتك محمية بموجب قانون حماية البيانات الشخصية ولا يتم مشاركتها مع أطراف ثالثة.",
-        "onay_metni": "أوافق على معالجة بياناتي الشخصية وسياسة الخصوصية.",
-        "buton_metni": "لقد قرأت وأوافق"
+        "icerik": "عملاً بقانون حماية البيانات الشخصية التركي رقم 6698 («KVKK»)، تم إعداد هذا النص من قبل Ventusé® بصفتها الجهة المسؤولة عن معالجة البيانات، وذلك بهدف إعلامكم بعملية الاستبيان التي تتم عبر جهاز الكشك الخاص بنا.\n\n١. غرض معالجة البيانات: يتم معالجة تفضيلات الروائح والبيانات ذات الطابع الديموغرافي التي تشاركونها ضمن هذا الاستبيان حصراً من أجل إنشاء ملف عطري مخصص لكم وتقديم أنسب توصيات المنتجات.\n\n٢. تخزين البيانات وأمنها: يعمل نظامنا وفق مبدأ «الجلسة المؤقتة» (Session-based). لا يتم تخزين البيانات التي تتم مشاركتها في أي قاعدة بيانات، ولا يتم تسجيلها على خوادمنا، ويتم حذفها نهائياً من النظام عند اكتمال عملية الاستبيان.\n\n٣. نقل البيانات: نظراً لعدم طلب أي معلومات تعريفية بالهوية (مثل الاسم أو البريد الإلكتروني أو رقم الهاتف)، فإن بياناتكم المجهولة التي لا تُعد بيانات شخصية لا يتم مشاركتها مع أي جهة أو طرف ثالث.\n\n٤. حقوقكم: وفقاً للمادة 11 من قانون KVKK، فإن حقوقكم بصفتكم أصحاب بيانات محفوظة؛ إلا أنه وبما أن النظام لا يحتفظ بأي بيانات، فلن يكون من الممكن تقديم طلبات لاحقة للاستعلام عن البيانات أو حذفها.\n\nبمواصلة الاستبيان، يُعتبر أنكم قد اطلعتم على هذا النص التوضيحي ووافقتم على إجراءات معالجة البيانات المجهولة الموضحة فيه.",
+        "onay_metni": "قرأت النص التوضيحي وفهمته وأوافق على معالجة بياناتي للأغراض المذكورة أعلاه.",
+        "buton_metni": "موافقة"
       }
     }
   }

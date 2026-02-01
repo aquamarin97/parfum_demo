@@ -1,1 +1,15 @@
-{}
+{
+  "brand_name": "Ventusé",
+  "idle_title_1": "مرحباً،",
+  "idle_title_2": "أنا ",
+  "idle_subtitle": "لنبدأ الآن",
+  "start": "ابدأ",
+  "cancel": "إلغاء",
+  "back": "رجوع",
+  "loading": "جارٍ تحضير أفضل الخيارات لك...",
+  "result_title": "ترشيحاتك",
+  "recommendation_label": "معرف العطر",
+  "back_to_start": "العودة للبداية",
+  "error_title": "حدث خطأ ما",
+  "error_body": "تعذر تحميل البيانات. يرجى المحاولة مرة أخرى."
+}

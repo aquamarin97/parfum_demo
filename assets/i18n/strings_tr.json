@@ -1,1 +1,15 @@
-{}
+{
+  "brand_name": "Ventusé",
+  "idle_title_1": "Merhaba,",
+  "idle_title_2": "Ben ",
+  "idle_subtitle": "Hadi Başlayalım",
+  "start": "Başla",
+  "cancel": "Vazgeç",
+  "back": "Geri",
+  "loading": "Sizin için en iyi seçenekler hazırlanıyor...",
+  "result_title": "Önerileriniz",
+  "recommendation_label": "Parfüm ID",
+  "back_to_start": "Başa Dön",
+  "error_title": "Bir şeyler ters gitti",
+  "error_body": "Veriler yüklenemedi. Lütfen tekrar deneyin."
+}
