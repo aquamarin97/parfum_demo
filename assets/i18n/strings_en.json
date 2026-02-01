@@ -8,8 +8,31 @@
   "back": "Back",
   "loading": "Preparing the best options for you...",
   "result_title": "Your Recommendations",
-  "recommendation_label": "Perfume ID",
+  "recommendation_label": "Fragrance ID",
   "back_to_start": "Back to Start",
   "error_title": "Something went wrong",
-  "error_body": "Data could not be loaded. Please try again."
+  "error_body": "Data could not be loaded. Please try again.",
+  
+  "fragrance_recommendations_selected": "We've selected three personalized fragrances for you",
+  "testers_preparing": "Preparing testers",
+  "testers_prepared": "Testers are ready",
+  "customer_choice": "Your choice: No. ",
+  "payment_waiting": "Awaiting payment",
+  "payment_completed": "Payment completed",
+  "payment_failed": "Payment failed",
+  "fragrance_preparing": "Preparing your personalized fragrance",
+  "fragrance_prepared": "Your personalized fragrance is ready",
+  "gift_card_not_created": "Gift card not created",
+  
+  "please_select": "Please make your selection",
+  "no_price_difference": "There is no price difference between selections",
+  "price_label": "Price: 490 TL",
+  "retry_or_cancel": "Please try again or cancel",
+  "retry_payment": "Try Again",
+  "cancel_payment": "Cancel",
+  "gift_card_question": "Would you like to create a gift card?",
+  "yes": "Yes",
+  "no": "No",
+  "thank_you_message": "Enjoy your fragrance",
+  "goodbye_message": "Your custom fragrance is ready!\nHave a wonderful day..."
 }

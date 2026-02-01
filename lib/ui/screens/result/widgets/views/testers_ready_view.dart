@@ -13,36 +13,40 @@ class TestersReadyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topIds = viewModel.topIds;
-
-    if (topIds.isEmpty) {
-      return Center(
-        child: Text("Öneri bulunamadı", style: AppTextStyles.title),
-      );
-    }
+    final strings = viewModel.strings; // ✅
+    
+    // Eğer topIds boşsa, placeholder mock data kullan
+    final topIds = viewModel.topIds.isEmpty 
+        ? [101, 202, 303]
+        : viewModel.topIds;
 
     final displayCount = topIds.length > 3 ? 3 : topIds.length;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        const SizedBox(height: 40),
+        
         Text(
-          "Lütfen seçiminizi belirtin",
+          strings.pleaseSelect, // ✅
           style: AppTextStyles.title.copyWith(
             fontFamily: 'NotoSans',
             fontWeight: FontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),
+        
         const SizedBox(height: 16),
+        
         Text(
-          "Seçimler arasında fiyat farkı yoktur",
+          strings.noPriceDifference, // ✅
           style: AppTextStyles.body.copyWith(
             fontFamily: 'NotoSans',
             color: AppColors.textSecondary,
           ),
           textAlign: TextAlign.center,
         ),
+        
         const SizedBox(height: 32),
 
         CountdownTimer(timerNotifier: viewModel.timerNotifier),

@@ -12,27 +12,27 @@ class WaitingPaymentView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = viewModel.strings; // ✅
+
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        const SizedBox(height: 40),
+        
         Text(
-          "Fiyat: 490 TL",
-          style: AppTextStyles.headline.copyWith(
-            fontFamily: 'NotoSans',
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
+          strings.priceLabel, // ✅
+          style: AppTextStyles.body,
           textAlign: TextAlign.center,
         ),
+        
         const SizedBox(height: 32),
 
         CountdownTimer(timerNotifier: viewModel.timerNotifier),
 
         const SizedBox(height: 48),
 
-        // Test butonları (DEBUG MODE)
-        if (true) // Production'da false yapın
+        // Test butonları (DEBUG MODE - Production'da kaldır)
+        if (true)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -44,7 +44,7 @@ class WaitingPaymentView extends StatelessWidget {
                     vertical: 16,
                   ),
                 ),
-                child: const Text("TEST:Ödeme Tamam", style: TextStyle(fontSize: 50),),
+                child: const Text("TEST: Ödeme Tamam", style: TextStyle(fontSize: 50),),
               ),
               const SizedBox(width: 16),
               ElevatedButton(
@@ -56,7 +56,7 @@ class WaitingPaymentView extends StatelessWidget {
                     vertical: 16,
                   ),
                 ),
-                child: const Text("TEST:Ödeme Hata", style: TextStyle(fontSize: 50)),
+                child: const Text("TEST: Ödeme Hata",style: TextStyle(fontSize: 50),),
               ),
             ],
           ),

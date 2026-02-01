@@ -26,7 +26,7 @@ class AppStrings {
   final String localeCode;
   final Map<String, String> values;
 
-  // Tüm getter'lar artık doğrudan JSON anahtarlarına bakıyor
+  // Mevcut getter'lar
   String get brandName => _value('brand_name');
   String get idleTitle_1 => _value('idle_title_1');
   String get idleTitle_2 => _value('idle_title_2');
@@ -41,12 +41,34 @@ class AppStrings {
   String get errorTitle => _value('error_title');
   String get errorBody => _value('error_body');
 
-  // Varsayılan değer atamıyoruz, JSON'da yoksa anahtar ismini basıyoruz ki eksik çeviriyi anlayalım
+  // ✅ Result ekranı için yeni getter'lar
+  String get fragranceRecommendationsSelected => _value('fragrance_recommendations_selected');
+  String get testersPreparing => _value('testers_preparing');
+  String get testersPrepared => _value('testers_prepared');
+  String get customerChoice => _value('customer_choice');
+  String get paymentWaiting => _value('payment_waiting');
+  String get paymentCompleted => _value('payment_completed');
+  String get paymentFailed => _value('payment_failed');
+  String get fragrancePreparing => _value('fragrance_preparing');
+  String get fragrancePrepared => _value('fragrance_prepared');
+  String get giftCardNotCreated => _value('gift_card_not_created');
+  
+  String get pleaseSelect => _value('please_select');
+  String get noPriceDifference => _value('no_price_difference');
+  String get priceLabel => _value('price_label');
+  String get retryOrCancel => _value('retry_or_cancel');
+  String get retryPayment => _value('retry_payment');
+  String get cancelPayment => _value('cancel_payment');
+  String get giftCardQuestion => _value('gift_card_question');
+  String get yes => _value('yes');
+  String get no => _value('no');
+  String get thankYouMessage => _value('thank_you_message');
+  String get goodbyeMessage => _value('goodbye_message');
+
   String _value(String key) {
     return values[key] ?? '[MISSING: $key]';
   }
 }
-
 class AppViewModel extends ChangeNotifier {
   AppViewModel({
     required SurveyRepository surveyRepository,
@@ -123,7 +145,7 @@ class AppViewModel extends ChangeNotifier {
     _setup();
   }
 
-    // app_view_model.dart içinde güncelleme
+  // app_view_model.dart içinde güncelleme
   void goToResult() {
     // Geçici: Statik recommendation
     _recommendation = Recommendation.mock();
@@ -132,9 +154,8 @@ class AppViewModel extends ChangeNotifier {
     // _state = AppState.result; // Bu değişken muhtemelen sende yok ve notifyListeners() doğrudan state machine'i güncellemez.
 
     // DOĞRU KISIM:
-    _setState(ResultState(_recommendation)); 
+    _setState(ResultState(_recommendation));
   }
-
 
   Future<void> _setup() async {
     try {
@@ -249,6 +270,4 @@ class AppViewModel extends ChangeNotifier {
     _logger.log('State -> ${next.runtimeType}');
     notifyListeners();
   }
-
-
 }

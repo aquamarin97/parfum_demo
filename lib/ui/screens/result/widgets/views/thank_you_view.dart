@@ -1,20 +1,26 @@
-// thank_you_view.dart
 import 'package:flutter/material.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
+import '../../result_view_model.dart';
 
 class ThankYouView extends StatelessWidget {
-  const ThankYouView({super.key});
+  const ThankYouView({super.key, required this.viewModel}); // ✅ ViewModel ekle
+
+  final ResultViewModel viewModel; // ✅
 
   @override
   Widget build(BuildContext context) {
+    final strings = viewModel.strings; // ✅
+
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        const SizedBox(height: 40),
+        
         TweenAnimationBuilder<double>(
           tween: Tween(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 1000),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
           builder: (context, value, child) {
             return Opacity(
@@ -23,7 +29,6 @@ class ThankYouView extends StatelessWidget {
                 offset: Offset(0, 20 * (1 - value)),
                 child: Column(
                   children: [
-                    // Başarı ikonu
                     TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0.0, end: 1.0),
                       duration: const Duration(milliseconds: 1200),
@@ -34,7 +39,7 @@ class ThankYouView extends StatelessWidget {
                           child: Icon(
                             Icons.favorite,
                             size: 100,
-                            color: AppColors.primary.withOpacity(0.85),
+                            color: const Color.fromARGB(255, 31, 207, 40).withOpacity(0.85),
                           ),
                         );
                       },
@@ -42,13 +47,12 @@ class ThankYouView extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    // Ana mesaj
                     Text(
-                      "Güzel günlerde kullanın",
+                      strings.thankYouMessage, // ✅
                       style: AppTextStyles.title.copyWith(
                         fontFamily: 'NotoSans',
                         fontWeight: FontWeight.bold,
-                        fontSize: 36,
+                        fontSize: 50,
                         color: AppColors.textPrimary,
                       ),
                       textAlign: TextAlign.center,
@@ -56,28 +60,15 @@ class ThankYouView extends StatelessWidget {
 
                     const SizedBox(height: 24),
 
-                    // Alt mesaj
                     Text(
-                      "Size özel kokunuz hazır!\nİyi günler dileriz...",
+                      strings.goodbyeMessage, // ✅
                       style: AppTextStyles.body.copyWith(
                         fontFamily: 'NotoSans',
-                        fontSize: 20,
+                        fontSize: 40,
                         height: 1.4,
                         color: AppColors.textSecondary,
                       ),
                       textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 48),
-
-                    // Küçük not / teşvik (isteğe bağlı)
-                    Opacity(
-                      opacity: 0.7,
-                      child: Text(
-                        "Kokunuzu en kısa sürede teslim alabilirsiniz",
-
-                        textAlign: TextAlign.center,
-                      ),
                     ),
                   ],
                 ),

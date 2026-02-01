@@ -25,9 +25,14 @@ class TimelineItem extends StatelessWidget {
           child: Transform.translate(
             offset: Offset(0, 10 * (1 - value)),
             child: Container(
-              // ✅ Sabit yükseklik: 100px
-              constraints: const BoxConstraints(minHeight: 100, maxHeight: 100),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              // ✅ Minimum yükseklik 100px, ama uzun metinler için genişleyebilir
+              constraints: const BoxConstraints(
+                minHeight: 100,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
                 color: message.status == TimelineMessageStatus.active
@@ -51,37 +56,30 @@ class TimelineItem extends StatelessWidget {
 
                   // Mesaj
                   Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          message.text,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.body.copyWith(
-                            fontFamily: 'NotoSans',
-                            fontSize: 40, // 50 → 40 (daha kompakt)
-                            height: 1.2,
-                            fontWeight:
-                                message.status == TimelineMessageStatus.active
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: statusColor,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      message.text,
+                      maxLines: 3, // ✅ 2 → 3 satır (daha uzun metinler için)
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.body.copyWith(
+                        fontFamily: 'NotoSans',
+                        fontSize: 40,
+                        height: 1.3, // ✅ 1.2 → 1.3 (satır arası boşluk)
+                        fontWeight: message.status == TimelineMessageStatus.active
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: statusColor,
+                      ),
                     ),
                   ),
 
                   const SizedBox(width: 12),
 
-                  // Zaman damgası (opsiyonel, istemezsen kaldır)
+                  // Zaman damgası
                   Text(
                     _formatTime(message.timestamp),
                     style: TextStyle(
-                      fontSize: 28,
-                      color: AppColors.textSecondary.withOpacity(0.6),
+                      fontSize: 32, // ✅ 40 → 32 (daha küçük)
+                      color: statusColor.withOpacity(0.7),
                       fontFamily: 'NotoSans',
                     ),
                   ),
@@ -99,7 +97,10 @@ class TimelineItem extends StatelessWidget {
       return SizedBox(
         width: 48,
         height: 48,
-        child: CircularProgressIndicator(strokeWidth: 3.5, color: color),
+        child: CircularProgressIndicator(
+          strokeWidth: 3.5,
+          color: color,
+        ),
       );
     }
 

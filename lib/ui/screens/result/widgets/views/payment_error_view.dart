@@ -5,7 +5,6 @@ import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
 import '../../result_view_model.dart';
 
-
 class PaymentErrorView extends StatelessWidget {
   const PaymentErrorView({super.key, required this.viewModel});
 
@@ -13,39 +12,52 @@ class PaymentErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = viewModel.strings; // ✅
+
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        const SizedBox(height: 30),
+
         const Icon(Icons.error_outline, size: 80, color: AppColors.error),
-        const SizedBox(height: 32),
+
+        const SizedBox(height: 10),
+
         Text(
-          "Lütfen tekrar deneyin veya iptal edin",
+          strings.retryOrCancel, // ✅
           style: AppTextStyles.title.copyWith(
             fontFamily: 'NotoSans',
             fontWeight: FontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 48),
+
+        const SizedBox(height: 24),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             PrimaryButton(
-              label: "Tekrar Deneyin",
+              label: strings.retryPayment, // ✅
               onPressed: viewModel.retryPayment,
+              fontSize: 50,
+              paddingHorizontal: 48,
+              paddingvertical: 24,
             ),
-            const SizedBox(width: 24),
+
+            const SizedBox(width: 32),
+
             OutlinedButton(
               onPressed: viewModel.cancelToIdle,
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 48,
+                  horizontal: 148,
                   vertical: 24,
                 ),
                 side: const BorderSide(color: AppColors.border, width: 2),
               ),
               child: Text(
-                "İptal Et",
+                strings.cancelPayment, // ✅
                 style: AppTextStyles.body.copyWith(
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.w600,

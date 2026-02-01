@@ -37,7 +37,7 @@ class CountdownTimer extends StatelessWidget {
             style: AppTextStyles.headline.copyWith(
               fontFamily: 'NotoSans',
               fontWeight: FontWeight.bold,
-              fontSize: 28,
+              fontSize: 50,
               color: isUrgent ? AppColors.error : AppColors.primary,
             ),
           ),

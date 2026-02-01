@@ -2,15 +2,15 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// Parfüm şişesi ile animasyonlu loader widget'ı.
-/// 
+///
 /// GPU'suz kiosk sistemler için optimize edilmiştir (A83T ARM CPU).
-/// 
+///
 /// Özellikler:
 /// - Renkli koku molekülleri (CPU friendly)
 /// - Çift yönlü organik dalgalar
 /// - Gerçekçi sprey efekti (blur'suz)
 /// - 60 FPS hedefi (ARM CPU'da test edilmeli)
-/// 
+///
 /// Örnek kullanım:
 /// ```dart
 /// ScentWavesLoader(
@@ -215,19 +215,6 @@ class _ScentWavesPainter extends CustomPainter {
             baseOpacity,
           );
           break;
-
-        default:
-          // Diğer gradient tipleri için solid kullan (performans)
-          _drawSolidWave(
-            canvas,
-            center,
-            radius,
-            rotation,
-            phase,
-            segments,
-            strokeWidth,
-            baseOpacity,
-          );
       }
     }
   }
@@ -251,8 +238,7 @@ class _ScentWavesPainter extends CustomPainter {
 
       final wave1 =
           math.sin(finalAngle * 3 + phase * math.pi * 2) * (size * 0.012);
-      final wave2 =
-          math.sin(finalAngle * 5 - phase * math.pi) * (size * 0.008);
+      final wave2 = math.sin(finalAngle * 5 - phase * math.pi) * (size * 0.008);
       final wave3 =
           math.sin(finalAngle * 7 + phase * math.pi * 3) * (size * 0.005);
 
@@ -295,7 +281,8 @@ class _ScentWavesPainter extends CustomPainter {
 
     for (int g = 0; g < gradientSegments; g++) {
       final gradProgress = g / gradientSegments;
-      final colorPhase = (gradProgress + rotation / (math.pi * 2) + phase) % 1.0;
+      final colorPhase =
+          (gradProgress + rotation / (math.pi * 2) + phase) % 1.0;
       final colorFactor = (math.sin(colorPhase * math.pi * 2) + 1.0) / 2.0;
 
       final segmentColor = Color.lerp(
@@ -366,8 +353,7 @@ class _ScentWavesPainter extends CustomPainter {
           center.dx +
           math.cos(angle) * distance * (0.6 + smoothLife * 0.4) +
           horizontalWave;
-      final y =
-          center.dy - distance * 0.85 + math.sin(angle) * distance * 0.25;
+      final y = center.dy - distance * 0.85 + math.sin(angle) * distance * 0.25;
 
       final fadeIn = math.min(smoothLife * 3, 1.0);
       final fadeOut = math.min((1.0 - smoothLife) * 3, 1.0);
@@ -497,22 +483,23 @@ class _ScentWavesPainter extends CustomPainter {
     // Şişe gövdesi
     final bottlePaint = Paint()
       ..style = PaintingStyle.fill
-      ..shader = LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [
-          primaryColor.withOpacity(0.7),
-          primaryColor.withOpacity(0.95),
-          primaryColor.withOpacity(0.7),
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(
-        Rect.fromCenter(
-          center: center,
-          width: bottleWidth,
-          height: bottleHeight,
-        ),
-      );
+      ..shader =
+          LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              primaryColor.withOpacity(0.7),
+              primaryColor.withOpacity(0.95),
+              primaryColor.withOpacity(0.7),
+            ],
+            stops: const [0.0, 0.5, 1.0],
+          ).createShader(
+            Rect.fromCenter(
+              center: center,
+              width: bottleWidth,
+              height: bottleHeight,
+            ),
+          );
 
     canvas.drawPath(bottlePath, bottlePaint);
 
@@ -545,20 +532,21 @@ class _ScentWavesPainter extends CustomPainter {
 
     final highlightPaint = Paint()
       ..style = PaintingStyle.fill
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.white.withOpacity(0.5),
-          Colors.white.withOpacity(0.1),
-        ],
-      ).createShader(
-        Rect.fromCenter(
-          center: Offset(center.dx - baseWidth / 3, center.dy),
-          width: baseWidth * 0.2,
-          height: baseHeight * 0.6,
-        ),
-      );
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white.withOpacity(0.5),
+              Colors.white.withOpacity(0.1),
+            ],
+          ).createShader(
+            Rect.fromCenter(
+              center: Offset(center.dx - baseWidth / 3, center.dy),
+              width: baseWidth * 0.2,
+              height: baseHeight * 0.6,
+            ),
+          );
 
     canvas.drawPath(highlightPath, highlightPaint);
 
@@ -733,7 +721,7 @@ void drawSprayEffect({
 
     final double wobble =
         math.sin(t * math.pi * config.wobbleFreq + seed2 * math.pi * 2.0) *
-            config.wobbleAmp;
+        config.wobbleAmp;
 
     final double angle = baseAngle + wobble;
     final double distJ = 1.0 + (seed2 - 0.5) * 2.0 * config.distJitter;
@@ -744,10 +732,12 @@ void drawSprayEffect({
     final double y =
         origin.dy + math.sin(angle) * distance - smoothLife * size * 0.015;
 
-    final double fadeIn =
-        _smoothStep(math.min(smoothLife * config.fadeInGain, 1.0));
-    final double fadeOut =
-        _smoothStep(math.min((1.0 - smoothLife) * config.fadeOutGain, 1.0));
+    final double fadeIn = _smoothStep(
+      math.min(smoothLife * config.fadeInGain, 1.0),
+    );
+    final double fadeOut = _smoothStep(
+      math.min((1.0 - smoothLife) * config.fadeOutGain, 1.0),
+    );
 
     double opacity = math.min(fadeIn, fadeOut) * config.maxOpacity;
     final double opJ = 1.0 + (seed3 - 0.5) * 2.0 * config.opacityJitter;

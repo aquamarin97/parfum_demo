@@ -78,10 +78,10 @@ class _TimelineContainerState extends State<TimelineContainer>
   double _calculateHeight(int messageCount) {
     if (messageCount == 0) return 0;
 
-    const double itemHeight = 108.0; // 100px item + 8px margin
-    const double padding = 32.0; // Container padding (16*2)
+    const double itemHeight = 116.0; // ✅ 108 → 116 (2-3 satır için)
+    const double padding = 32.0;
     const double minHeight = 120.0;
-    const double maxHeight = 800.0; // 600 → 800 (daha fazla mesaj)
+    const double maxHeight = 800.0;
 
     final calculatedHeight = (messageCount * itemHeight) + padding;
 

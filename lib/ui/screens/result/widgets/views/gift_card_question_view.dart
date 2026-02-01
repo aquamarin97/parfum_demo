@@ -12,42 +12,51 @@ class GiftCardQuestionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = viewModel.strings; // ✅
+
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        const SizedBox(height: 40),
+        
         Text(
-          "Hediye kartı oluşturmak ister misiniz?",
+          strings.giftCardQuestion, // ✅
           style: AppTextStyles.title.copyWith(
             fontFamily: 'NotoSans',
             fontWeight: FontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),
+        
         const SizedBox(height: 48),
+        
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             PrimaryButton(
-              label: "Evet",
-              fontSize: 50,
+              label: strings.yes, // ✅
               onPressed: () => viewModel.onGiftCardAnswer(true),
+              fontSize: 50,
+              paddingHorizontal: 120,
+              paddingvertical: 24,
             ),
+            
             const SizedBox(width: 24),
+            
             OutlinedButton(
               onPressed: () => viewModel.onGiftCardAnswer(false),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 48,
+                  horizontal: 100,
                   vertical: 24,
                 ),
                 side: const BorderSide(color: AppColors.border, width: 2),
               ),
               child: Text(
-                "Hayır",
+                strings.no, // ✅
                 style: AppTextStyles.body.copyWith(
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.w600,
-                  fontSize: 50
                 ),
               ),
             ),
