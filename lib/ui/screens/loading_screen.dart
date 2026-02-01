@@ -19,15 +19,15 @@ class LoadingScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const ScentWavesLoader(
-              size: 1000,
-              primaryColor: Color(0xFFF18142),
-              waveGradientType: WaveGradientType.solid, // En hızlı
-              sprayConfig: KioskOptimizedConfig.sprayConfig,
-              waveColor: Color.fromARGB(255, 60, 15, 119),
+            // const ScentWavesLoader(
+            //   size: 1000,
+            //   primaryColor: Color(0xFFF18142),
+            //   waveGradientType: WaveGradientType.solid, // En hızlı
+            //   sprayConfig: KioskOptimizedConfig.sprayConfig,
+            //   waveColor: Color.fromARGB(255, 60, 15, 119),
 
-              useOptimizedSettings: true, // ÖNEMLİ!
-            ),
+            //   useOptimizedSettings: true, // ÖNEMLİ!
+            // ),
             const SizedBox(height: 28),
             Text(
               viewModel.strings.loading,

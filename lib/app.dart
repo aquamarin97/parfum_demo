@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:parfume_app/ui/screens/error_screen.dart';
 import 'package:parfume_app/ui/screens/loading_indicator.dart';
 import 'package:parfume_app/ui/screens/loading_screen.dart';
-import 'package:parfume_app/ui/screens/result_screen.dart';
+import 'package:parfume_app/ui/screens/result/result_screen.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 

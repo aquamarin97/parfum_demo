@@ -23,7 +23,7 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen>
     with SingleTickerProviderStateMixin {
-  late AnimationController _fadeController;
+  late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
@@ -34,30 +34,32 @@ class _ResultScreenState extends State<ResultScreen>
   }
 
   void _setupAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
+      begin: const Offset(0, 0.05), // Hafif yukarıdan
       end: Offset.zero,
     ).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
 
-    // İlk animasyon başlasın
-    _fadeController.forward();
+    // İlk animasyon
+    _controller.forward();
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -71,10 +73,11 @@ class _ResultScreenState extends State<ResultScreen>
           if (viewModel.shouldAnimate) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
-                _fadeController.reverse().then((_) {
+                // Animasyonu sıfırla ve tekrar başlat (TEK YÖNLÜ)
+                _controller.reset();
+                _controller.forward().then((_) {
+                  // Animasyon bittikten sonra flag'i temizle
                   if (mounted) {
-                    _fadeController.forward();
-                    // Animasyon bittikten sonra flag'i temizle
                     viewModel.clearAnimationFlag();
                   }
                 });

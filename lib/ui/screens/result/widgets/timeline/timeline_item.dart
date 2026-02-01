@@ -5,11 +5,7 @@ import 'package:parfume_app/ui/theme/app_text_styles.dart';
 import '../../models/timeline_message.dart';
 
 class TimelineItem extends StatelessWidget {
-  const TimelineItem({
-    super.key,
-    required this.message,
-    required this.index,
-  });
+  const TimelineItem({super.key, required this.message, required this.index});
 
   final TimelineMessage message;
   final int index;
@@ -28,35 +24,65 @@ class TimelineItem extends StatelessWidget {
           opacity: value,
           child: Transform.translate(
             offset: Offset(0, 10 * (1 - value)),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Container(
+              // ✅ Sabit yükseklik: 100px
+              constraints: const BoxConstraints(minHeight: 100, maxHeight: 100),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: message.status == TimelineMessageStatus.active
+                    ? statusColor.withOpacity(0.05)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                border: message.status == TimelineMessageStatus.active
+                    ? Border.all(
+                        color: statusColor.withOpacity(0.2),
+                        width: 1.5,
+                      )
+                    : null,
+              ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // İkon
                   _buildIcon(statusColor, statusIcon),
 
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
 
                   // Mesaj
                   Expanded(
-                    child: Text(
-                      message.text,
-                      style: AppTextStyles.body.copyWith(
-                        fontFamily: 'NotoSans',
-                        fontWeight: message.status == TimelineMessageStatus.active
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: statusColor,
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          message.text,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.body.copyWith(
+                            fontFamily: 'NotoSans',
+                            fontSize: 40, // 50 → 40 (daha kompakt)
+                            height: 1.2,
+                            fontWeight:
+                                message.status == TimelineMessageStatus.active
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
-                  // Zaman
+                  const SizedBox(width: 12),
+
+                  // Zaman damgası (opsiyonel, istemezsen kaldır)
                   Text(
                     _formatTime(message.timestamp),
-                    style: AppTextStyles.body.copyWith(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      fontSize: 28,
+                      color: AppColors.textSecondary.withOpacity(0.6),
+                      fontFamily: 'NotoSans',
                     ),
                   ),
                 ],
@@ -71,16 +97,13 @@ class TimelineItem extends StatelessWidget {
   Widget _buildIcon(Color color, IconData icon) {
     if (message.status == TimelineMessageStatus.active) {
       return SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          color: color,
-        ),
+        width: 48,
+        height: 48,
+        child: CircularProgressIndicator(strokeWidth: 3.5, color: color),
       );
     }
 
-    return Icon(icon, color: color, size: 24);
+    return Icon(icon, color: color, size: 48);
   }
 
   Color _getStatusColor() {

@@ -1,6 +1,5 @@
 // app_router.dart file
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/screens/result/result_screen.dart';
 
 import '../../domain/state/app_state.dart';
 import '../../viewmodel/app_view_model.dart';
@@ -9,6 +8,7 @@ import '../screens/idle_screen.dart';
 import '../screens/kvkk_screen/kvkk_screen.dart';
 import '../screens/loading_screen.dart';
 import '../screens/question_screen.dart';
+import '../screens/result/result_screen.dart'; // ✅ YENİ PATH
 
 class AppRouter {
   const AppRouter();
@@ -28,7 +28,7 @@ class AppRouter {
       return LoadingScreen(viewModel: viewModel);
     }
     if (state is ResultState) {
-      return ResultScreen(viewModel: viewModel);
+      return ResultScreen(viewModel: viewModel); // ✅ Artık doğru dosyayı kullanıyor
     }
     if (state is ErrorState) {
       return ErrorScreen(viewModel: viewModel);

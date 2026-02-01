@@ -44,7 +44,7 @@ class WaitingPaymentView extends StatelessWidget {
                     vertical: 16,
                   ),
                 ),
-                child: const Text("TEST:Ödeme Tamam"),
+                child: const Text("TEST:Ödeme Tamam", style: TextStyle(fontSize: 50),),
               ),
               const SizedBox(width: 16),
               ElevatedButton(
@@ -56,7 +56,7 @@ class WaitingPaymentView extends StatelessWidget {
                     vertical: 16,
                   ),
                 ),
-                child: const Text("TEST:Ödeme Hata"),
+                child: const Text("TEST:Ödeme Hata", style: TextStyle(fontSize: 50)),
               ),
             ],
           ),

@@ -16,11 +16,9 @@ class ResultViewModel extends ChangeNotifier {
   int? _selectedTester;
   Timer? _timer;
   final List<TimelineMessage> _messages = [];
-  
-  // Timer için ayrı ValueNotifier
+
   final ValueNotifier<int> timerNotifier = ValueNotifier<int>(300);
-  
-  // Animasyon tetikleyici - SADECE state değişiminde true olur
+
   bool _shouldAnimate = false;
 
   // Getters
@@ -30,25 +28,21 @@ class ResultViewModel extends ChangeNotifier {
   List<int> get topIds => appViewModel.recommendation.topIds;
   bool get shouldAnimate => _shouldAnimate;
 
-  // Public methods
   void onTesterSelected(int index) {
     _selectedTester = index;
-    _notifyWithoutAnimation(); // Seçim animasyon tetiklemesin
+    // ❌ ANIMASYON TETİKLEME
+    _shouldAnimate = false;
+    notifyListeners();
 
     Future.delayed(const Duration(milliseconds: 500), () {
       _addMessage(
         "Seçiminiz: No. ${topIds[index]}",
         TimelineMessageStatus.completed,
-        animate: false, // Mesaj ekleme animasyon tetiklemesin
       );
 
       Future.delayed(const Duration(milliseconds: 300), () {
-        _addMessage(
-          "Ödeme bekleniyor",
-          TimelineMessageStatus.active,
-          animate: false,
-        );
-        _transitionToState(ResultFlowState.waitingPayment); // BU animasyon tetikler
+        _addMessage("Ödeme bekleniyor", TimelineMessageStatus.active);
+        _transitionToState(ResultFlowState.waitingPayment); // ✅ BURADA TETİKLE
         _startTimer(300);
       });
     });
@@ -56,19 +50,14 @@ class ResultViewModel extends ChangeNotifier {
 
   void onPaymentComplete() {
     _timer?.cancel();
-    _updateLastMessage(
-      "Ödeme tamamlandı",
-      TimelineMessageStatus.completed,
-      animate: false,
-    );
+    _updateLastMessage("Ödeme tamamlandı", TimelineMessageStatus.completed);
 
     Future.delayed(const Duration(milliseconds: 500), () {
       _addMessage(
         "Size özel kokunuz hazırlanıyor",
         TimelineMessageStatus.active,
-        animate: false,
       );
-      _transitionToState(ResultFlowState.preparingPerfume);
+      _transitionToState(ResultFlowState.preparingPerfume); // ✅ TETİKLE
 
       Future.delayed(const Duration(seconds: 8), () {
         _onPerfumeReady();
@@ -78,12 +67,8 @@ class ResultViewModel extends ChangeNotifier {
 
   void onPaymentError() {
     _timer?.cancel();
-    _updateLastMessage(
-      "Ödeme başarısız oldu",
-      TimelineMessageStatus.error,
-      animate: false,
-    );
-    _transitionToState(ResultFlowState.paymentError);
+    _updateLastMessage("Ödeme başarısız oldu", TimelineMessageStatus.error);
+    _transitionToState(ResultFlowState.paymentError); // ✅ TETİKLE
   }
 
   void retryPayment() {
@@ -92,12 +77,8 @@ class ResultViewModel extends ChangeNotifier {
     if (isPaid) {
       onPaymentComplete();
     } else {
-      _updateLastMessage(
-        "Ödeme bekleniyor",
-        TimelineMessageStatus.active,
-        animate: false,
-      );
-      _transitionToState(ResultFlowState.waitingPayment);
+      _updateLastMessage("Ödeme bekleniyor", TimelineMessageStatus.active);
+      _transitionToState(ResultFlowState.waitingPayment); // ✅ TETİKLE
       _startTimer(300);
     }
   }
@@ -107,7 +88,6 @@ class ResultViewModel extends ChangeNotifier {
       _addMessage(
         "Hediye kartı oluşturulmadı",
         TimelineMessageStatus.completed,
-        animate: false,
       );
     }
     _showThankYou();
@@ -126,7 +106,6 @@ class ResultViewModel extends ChangeNotifier {
     _addMessage(
       "Size özel üç koku önerisi belirlendi",
       TimelineMessageStatus.completed,
-      animate: false, // İlk mesaj animasyon tetiklemesin
     );
 
     Future.delayed(const Duration(seconds: 2), () {
@@ -141,12 +120,8 @@ class ResultViewModel extends ChangeNotifier {
   }
 
   void _onTestersPreparing() {
-    _addMessage(
-      "Testerlar hazırlanıyor",
-      TimelineMessageStatus.active,
-      animate: false,
-    );
-    _transitionToState(ResultFlowState.preparingTesters);
+    _addMessage("Testerlar hazırlanıyor", TimelineMessageStatus.active);
+    _transitionToState(ResultFlowState.preparingTesters); // ✅ TETİKLE
 
     Future.delayed(const Duration(seconds: 5), () {
       _onTestersReady();
@@ -154,12 +129,8 @@ class ResultViewModel extends ChangeNotifier {
   }
 
   void _onTestersReady() {
-    _updateLastMessage(
-      "Testerlar hazırlandı",
-      TimelineMessageStatus.completed,
-      animate: false,
-    );
-    _transitionToState(ResultFlowState.testersReady);
+    _updateLastMessage("Testerlar hazırlandı", TimelineMessageStatus.completed);
+    _transitionToState(ResultFlowState.testersReady); // ✅ TETİKLE
     _startTimer(300);
   }
 
@@ -167,17 +138,16 @@ class ResultViewModel extends ChangeNotifier {
     _updateLastMessage(
       "Size özel kokunuz hazırlandı",
       TimelineMessageStatus.completed,
-      animate: false,
     );
-    _transitionToState(ResultFlowState.perfumeReady);
+    _transitionToState(ResultFlowState.perfumeReady); // ✅ TETİKLE
 
     Future.delayed(const Duration(seconds: 2), () {
-      _transitionToState(ResultFlowState.giftCardQuestion);
+      _transitionToState(ResultFlowState.giftCardQuestion); // ✅ TETİKLE
     });
   }
 
   void _showThankYou() {
-    _transitionToState(ResultFlowState.thankYou);
+    _transitionToState(ResultFlowState.thankYou); // ✅ TETİKLE
 
     Future.delayed(const Duration(seconds: 4), () {
       appViewModel.resetToIdle();
@@ -186,27 +156,18 @@ class ResultViewModel extends ChangeNotifier {
 
   void _transitionToState(ResultFlowState newState) {
     _currentState = newState;
-    _shouldAnimate = true; // SADECE state değişiminde true
+    _shouldAnimate = true; // ✅ SADECE BURADA TRUE
     notifyListeners();
   }
 
-  void _addMessage(
-    String text,
-    TimelineMessageStatus status, {
-    bool animate = false,
-  }) {
+  void _addMessage(String text, TimelineMessageStatus status) {
     _messages.add(TimelineMessage(text: text, status: status));
-    if (animate) {
-      _shouldAnimate = true;
-    }
+    // ❌ ANIMASYON TETİKLEME
+    _shouldAnimate = false;
     notifyListeners();
   }
 
-  void _updateLastMessage(
-    String text,
-    TimelineMessageStatus status, {
-    bool animate = false,
-  }) {
+  void _updateLastMessage(String text, TimelineMessageStatus status) {
     if (_messages.isEmpty) return;
 
     final lastIndex = _messages.length - 1;
@@ -214,13 +175,7 @@ class ResultViewModel extends ChangeNotifier {
       text: text,
       status: status,
     );
-    if (animate) {
-      _shouldAnimate = true;
-    }
-    notifyListeners();
-  }
-
-  void _notifyWithoutAnimation() {
+    // ❌ ANIMASYON TETİKLEME
     _shouldAnimate = false;
     notifyListeners();
   }

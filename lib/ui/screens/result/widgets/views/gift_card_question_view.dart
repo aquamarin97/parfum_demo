@@ -29,6 +29,7 @@ class GiftCardQuestionView extends StatelessWidget {
           children: [
             PrimaryButton(
               label: "Evet",
+              fontSize: 50,
               onPressed: () => viewModel.onGiftCardAnswer(true),
             ),
             const SizedBox(width: 24),
@@ -46,6 +47,7 @@ class GiftCardQuestionView extends StatelessWidget {
                 style: AppTextStyles.body.copyWith(
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.w600,
+                  fontSize: 50
                 ),
               ),
             ),
