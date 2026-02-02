@@ -1,4 +1,6 @@
 // app_state.dart file
+import 'package:parfume_app/plc/error/plc_error_codes.dart';
+
 import '../../data/models/recommendation.dart';
 
 sealed class AppState {
@@ -33,4 +35,9 @@ class ErrorState extends AppState {
   const ErrorState(this.message);
 
   final String message;
+}
+
+class PLCErrorState extends AppState {
+  const PLCErrorState(this.exception);
+  final PLCException exception;
 }

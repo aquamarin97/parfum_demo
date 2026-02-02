@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/plc/result_view_model_with_plc.dart';
 import 'package:parfume_app/ui/screens/loading_indicator.dart';
 import 'package:provider/provider.dart';
 
 import '../../../viewmodel/app_view_model.dart';
 import '../../../common/widgets/logo_painter_widget.dart';
-import 'result_view_model.dart';
 import 'models/result_flow_state.dart';
 import 'widgets/timeline/timeline_container.dart';
 import 'widgets/views/testers_ready_view.dart';
@@ -31,7 +31,7 @@ class _ResultScreenState extends State<ResultScreen>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _logoAnimation;
 
-  static bool _isFirstLoad = true; // ✅ İlk yükleme kontrolü
+  static bool _isFirstLoad = true;
 
   @override
   void initState() {
@@ -40,7 +40,6 @@ class _ResultScreenState extends State<ResultScreen>
   }
 
   void _setupAnimations() {
-    // Content animasyonu
     _controller = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -56,7 +55,6 @@ class _ResultScreenState extends State<ResultScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    // Logo animasyonu (sadece ilk yüklemede)
     _logoController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -67,12 +65,10 @@ class _ResultScreenState extends State<ResultScreen>
       curve: Curves.easeInOut,
     );
 
-    // İlk yüklemede logo animasyonlu başla
     if (_isFirstLoad) {
       _logoController.forward();
       _isFirstLoad = false;
     } else {
-      // Sonraki yüklemelerde logo direkt tam
       _logoController.value = 1.0;
     }
 
@@ -89,10 +85,13 @@ class _ResultScreenState extends State<ResultScreen>
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ResultViewModel(appViewModel: widget.viewModel),
-      child: Consumer<ResultViewModel>(
+      // ✅ PLC inject
+      create: (_) => ResultViewModelWithPLC(
+        appViewModel: widget.viewModel,
+        plcService: widget.viewModel.plcService,
+      ),
+      child: Consumer<ResultViewModelWithPLC>(
         builder: (context, viewModel, _) {
-          // Sadece shouldAnimate flag true ise animasyon tetikle
           if (viewModel.shouldAnimate) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {
@@ -108,7 +107,6 @@ class _ResultScreenState extends State<ResultScreen>
 
           return Stack(
             children: [
-              // ✅ Arka planda animasyonlu logo
               Positioned.fill(
                 child: AnimatedBuilder(
                   animation: _logoAnimation,
@@ -121,8 +119,6 @@ class _ResultScreenState extends State<ResultScreen>
                   },
                 ),
               ),
-
-              // ✅ Üstte içerik
               Padding(
                 padding: const EdgeInsets.only(top: 100, left: 100, right: 100),
                 child: Column(
@@ -148,10 +144,10 @@ class _ResultScreenState extends State<ResultScreen>
                   child: const ScentWavesLoader(
                     size: 600,
                     primaryColor: Color(0xFFF18142),
-                    waveGradientType: WaveGradientType.solid, // En hızlı
+                    waveGradientType: WaveGradientType.solid,
                     waveColor: Color.fromARGB(255, 60, 15, 119),
                     sprayConfig: KioskOptimizedConfig.sprayConfig,
-                    useOptimizedSettings: true, // ÖNEMLİ!
+                    useOptimizedSettings: true,
                   ),
                 ),
               ),
@@ -162,7 +158,8 @@ class _ResultScreenState extends State<ResultScreen>
     );
   }
 
-  Widget _buildContent(ResultViewModel viewModel) {
+  // ✅ Tip güncellendi
+  Widget _buildContent(ResultViewModelWithPLC viewModel) {
     Widget content;
 
     switch (viewModel.currentState) {
@@ -193,15 +190,17 @@ class _ResultScreenState extends State<ResultScreen>
         break;
 
       case ResultFlowState.thankYou:
-        content = ThankYouView(viewModel: viewModel); // ✅ viewModel ekle
+        content = ThankYouView(viewModel: viewModel);
         break;
     }
 
-    // ✅ Tüm içeriği üstten hizala
     return Align(
       alignment: Alignment.topCenter,
       child: SingleChildScrollView(
-        child: Padding(padding: const EdgeInsets.only(top: 40), child: content),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: content,
+        ),
       ),
     );
   }

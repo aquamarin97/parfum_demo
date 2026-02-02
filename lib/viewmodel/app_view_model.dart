@@ -2,6 +2,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:parfume_app/plc/error/plc_error_codes.dart';
+import 'package:parfume_app/plc/plc_service_manager.dart';
 
 import '../core/constants/app_constants.dart';
 import '../core/logging/app_logger.dart';
@@ -78,14 +80,16 @@ class AppViewModel extends ChangeNotifier {
     required SessionManager sessionManager,
     required RecommendationEngine scoringEngine,
     required AppLogger logger,
-  }) : _surveyRepository = surveyRepository,
-       _kvkkRepository = kvkkRepository,
-       _i18nRepository = i18nRepository,
-       _preferencesStore = preferencesStore,
-       _sessionManager = sessionManager,
-       _scoringEngine = scoringEngine,
-       _logger = logger,
-       _stateMachine = AppStateMachine();
+  })  : _surveyRepository = surveyRepository,
+        _kvkkRepository = kvkkRepository,
+        _i18nRepository = i18nRepository,
+        _preferencesStore = preferencesStore,
+        _sessionManager = sessionManager,
+        _scoringEngine = scoringEngine,
+        _logger = logger,
+        _stateMachine = AppStateMachine() {
+    _initializePLC();
+  }
 
   final SurveyRepository _surveyRepository;
   final KvkkRepository _kvkkRepository;
@@ -95,6 +99,10 @@ class AppViewModel extends ChangeNotifier {
   final RecommendationEngine _scoringEngine;
   final AppLogger _logger;
   final AppStateMachine _stateMachine;
+
+  // ✅ PLC
+  late final PLCServiceManager _plcService;
+  PLCServiceManager get plcService => _plcService;
 
   Survey? _survey;
   KvkkText? _kvkkText;
@@ -111,10 +119,29 @@ class AppViewModel extends ChangeNotifier {
   AppState get state => _stateMachine.state;
   Language get language => _language;
   bool get initialized => _initialized;
+
   AppStrings get strings => AppStrings(
-    localeCode: _language.code,
-    values: _stringMap[_language] ?? {},
-  );
+        localeCode: _language.code,
+        values: _stringMap[_language] ?? {},
+      );
+
+  // --- PLC init + error handling ---
+  Future<void> _initializePLC() async {
+    _plcService = PLCServiceManager(
+      autoConnect: true,
+      onError: _handlePLCError,
+    );
+  }
+
+  void _handlePLCError(PLCException error) {
+    _logger.log('PLC Error: ${error.errorCode} - ${error.message}');
+
+    // Critical error'larda error state'e geç
+    if (error.errorCode == PLCErrorCodes.connectionFailed ||
+        error.errorCode == PLCErrorCodes.connectionLost) {
+      _setState(PLCErrorState(error));
+    }
+  }
 
   QuestionTranslation get currentQuestion => _survey!
       .questions[(state as QuestionsState).index]
@@ -136,7 +163,6 @@ class AppViewModel extends ChangeNotifier {
   KvkkTranslation get kvkkText => _kvkkText!.translationFor(_language);
 
   Recommendation get recommendation => _recommendation;
-
   Language get currentLanguage => _language;
 
   void initialize() {
@@ -147,13 +173,7 @@ class AppViewModel extends ChangeNotifier {
 
   // app_view_model.dart içinde güncelleme
   void goToResult() {
-    // Geçici: Statik recommendation
     _recommendation = Recommendation.mock();
-
-    // HATALI KISIM:
-    // _state = AppState.result; // Bu değişken muhtemelen sende yok ve notifyListeners() doğrudan state machine'i güncellemez.
-
-    // DOĞRU KISIM:
     _setState(ResultState(_recommendation));
   }
 
@@ -269,5 +289,18 @@ class AppViewModel extends ChangeNotifier {
     _stateMachine.transition(next);
     _logger.log('State -> ${next.runtimeType}');
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _loadingTimer?.cancel();
+    _resultTimer?.cancel();
+    _timeoutWatcher?.stop();
+
+    // PLC tarafında dispose/close varsa çağır (sende hangi isim varsa ona göre düzenle)
+    // _plcService.dispose();
+    // veya: _plcService.close();
+
+    super.dispose();
   }
 }
