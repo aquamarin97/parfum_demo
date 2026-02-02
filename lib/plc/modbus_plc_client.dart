@@ -1,9 +1,8 @@
-// modbus_plc_client.dart
+// modbus_plc_client.dart - COMPLETE FIXED VERSION
 import 'dart:async';
 import 'dart:io';
 import 'package:modbus/modbus.dart' as modbus;
 import 'package:parfume_app/plc/error/plc_error_codes.dart';
-
 import 'plc_client.dart';
 
 /// Modbus TCP üzerinden PLC ile iletişim kuran servis
@@ -28,44 +27,45 @@ class ModbusPLCClient implements PlcClient {
   bool _isConnected = false;
   Timer? _healthCheckTimer;
 
-  // Register adresleri (ModRSsim2 ile uyumlu)
-  static const int regRecommendation1 = 0; // İlk öneri ID
-  static const int regRecommendation2 = 1; // İkinci öneri ID
-  static const int regRecommendation3 = 2; // Üçüncü öneri ID
-  static const int regTesterReady = 10; // Testerlar hazır mı? (1=evet, 0=hayır)
-  static const int regSelectedTester = 11; // Seçilen tester (1-3)
-  static const int regPaymentStatus =
-      20; // Ödeme durumu (0=bekliyor, 1=tamam, 2=hata)
-  static const int regPerfumeReady = 30; // Parfüm hazır mı? (1=evet, 0=hayır)
-  static const int regHeartbeat = 100; // Heartbeat (PLC canlılık kontrolü)
+  // Register adresleri
+  static const int regRecommendation1 = 0;
+  static const int regRecommendation2 = 1;
+  static const int regRecommendation3 = 2;
+  static const int regTesterReady = 10;
+  static const int regSelectedTester = 11;
+  static const int regPaymentStatus = 20;
+  static const int regPerfumeReady = 30;
+  static const int regHeartbeat = 100;
 
   @override
   Future<void> connect() async {
     try {
       _log('Bağlantı kuruluyor: $host:$port');
 
-      // Timeout ile bağlantı dene
+      // ✅ Bağlantıyı kur
       await _connectWithTimeout();
 
       _isConnected = true;
       _log('✓ Bağlantı başarılı');
 
-      // Health check başlat
       _startHealthCheck();
     } on SocketException catch (e) {
-      _log('✗ Socket hatası: $e');
+      _client = null;
+      _log('✗ Socket hatası: ${e.message}');
       throw PLCException(
         errorCode: PLCErrorCodes.connectionFailed,
         message: 'PLC bağlantısı kurulamadı',
-        technicalDetail: 'SocketException: ${e.message}',
+        technicalDetail: 'SocketException: ${e.message}\nHost: $host:$port',
       );
     } on TimeoutException {
+      _client = null;
       _log('✗ Bağlantı timeout');
       throw PLCException(
         errorCode: PLCErrorCodes.connectionTimeout,
         message: 'Bağlantı zaman aşımına uğradı',
       );
     } catch (e) {
+      _client = null;
       _log('✗ Beklenmeyen hata: $e');
       throw PLCException(
         errorCode: PLCErrorCodes.unknownError,
@@ -77,17 +77,30 @@ class ModbusPLCClient implements PlcClient {
 
   Future<void> _connectWithTimeout() async {
     try {
-      // Timeout parametresini buradan kaldırıyoruz
-      _client = modbus.createTcpClient(host, port: port);
+      // ✅ 1. Client'ı oluştur
+      final client = modbus.createTcpClient(host, port: port);
 
-      // Bağlantıyı test eden okuma işlemini timeout ile sarmalıyoruz
-      await readRegister(regHeartbeat).timeout(connectionTimeout);
-    } on TimeoutException {
-      _client = null;
-      rethrow;
+      // ✅ 2. Null check
+      if (client == null) {
+        throw PLCException(
+          errorCode: PLCErrorCodes.connectionFailed,
+          message: 'Modbus client oluşturulamadı',
+          technicalDetail: 'createTcpClient returned null for $host:$port',
+        );
+      }
+
+      // ✅ 3. Client'ı set et
+      _client = client;
+
+      // ✅ 4. Bağlantı testi yap
+      await client
+          .readHoldingRegisters(regHeartbeat, 1)
+          .timeout(connectionTimeout);
     } catch (e) {
+      // Hata durumunda cleanup
       _client = null;
-      print("Bağlantı hatası: $e");
+      _log('Bağlantı testi hatası: $e');
+      rethrow; // Exception'ı üst katmana fırlat
     }
   }
 
@@ -96,7 +109,7 @@ class ModbusPLCClient implements PlcClient {
     _log('Bağlantı kapatılıyor...');
     _stopHealthCheck();
     _isConnected = false;
-    _client = null; // ✅ Explicit null assignment
+    _client = null;
     _log('✓ Bağlantı kapatıldı');
   }
 
@@ -115,7 +128,6 @@ class ModbusPLCClient implements PlcClient {
         );
       }
 
-      // 3 öneriyi sırayla yaz
       await writeRegister(regRecommendation1, ids[0]);
       await writeRegister(regRecommendation2, ids[1]);
       await writeRegister(regRecommendation3, ids[2]);
@@ -133,7 +145,7 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Testerların hazır olup olmadığını kontrol et
+  @override
   Future<bool> checkTestersReady() async {
     _ensureConnected();
 
@@ -151,7 +163,7 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Seçilen tester numarasını PLC'ye gönder
+  @override
   Future<void> sendSelectedTester(int testerNumber) async {
     _ensureConnected();
 
@@ -175,8 +187,7 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Ödeme durumunu kontrol et
-  /// Returns: 0=bekliyor, 1=tamam, 2=hata
+  @override
   Future<int> checkPaymentStatus() async {
     _ensureConnected();
 
@@ -193,7 +204,7 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Parfümün hazır olup olmadığını kontrol et
+  @override
   Future<bool> checkPerfumeReady() async {
     _ensureConnected();
 
@@ -210,10 +221,9 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Stream: Testerların hazır olmasını bekle
+  @override
   Stream<bool> watchTestersReady() async* {
     while (_isConnected && _client != null) {
-      // ✅ Null check
       try {
         final ready = await checkTestersReady();
         yield ready;
@@ -225,13 +235,13 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Stream: Ödeme durumunu izle
+  @override
   Stream<int> watchPaymentStatus() async* {
-    while (_isConnected) {
+    while (_isConnected && _client != null) {
       try {
         final status = await checkPaymentStatus();
         yield status;
-        if (status != 0) break; // 0 dışında bir değer gelirse dur
+        if (status != 0) break;
       } catch (e) {
         _log('✗ Ödeme polling hatası: $e');
       }
@@ -239,9 +249,9 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Stream: Parfüm hazır olmasını bekle
+  @override
   Stream<bool> watchPerfumeReady() async* {
-    while (_isConnected) {
+    while (_isConnected && _client != null) {
       try {
         final ready = await checkPerfumeReady();
         yield ready;
@@ -253,13 +263,13 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Tek bir register oku (Holding Register)
   Future<int> readRegister(int address) async {
     final client = _client;
     if (client == null) {
       throw PLCException(
         errorCode: PLCErrorCodes.connectionLost,
         message: 'PLC bağlantısı yok',
+        technicalDetail: 'Client is null in readRegister',
       );
     }
 
@@ -276,13 +286,13 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Tek bir register'a yaz
   Future<void> writeRegister(int address, int value) async {
     final client = _client;
     if (client == null) {
       throw PLCException(
         errorCode: PLCErrorCodes.connectionLost,
         message: 'PLC bağlantısı yok',
+        technicalDetail: 'Client is null in writeRegister',
       );
     }
 
@@ -296,11 +306,10 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// PLC bağlantısının sağlıklı olup olmadığını kontrol et
+  @override
   Future<bool> healthCheck() async {
     if (!_isConnected) return false;
 
-    // ✅ Null check ekle
     if (_client == null) {
       _log('⚠ Health check: Client is null');
       _isConnected = false;
@@ -317,14 +326,17 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// Periyodik health check başlat
   void _startHealthCheck() {
     _healthCheckTimer?.cancel();
     _healthCheckTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
       final healthy = await healthCheck();
       if (!healthy) {
         _log('⚠ Bağlantı kesildi, yeniden bağlanılıyor...');
-        await _reconnect();
+        try {
+          await _reconnect();
+        } catch (e) {
+          _log('✗ Yeniden bağlanma başarısız: $e');
+        }
       }
     });
   }
@@ -334,21 +346,14 @@ class ModbusPLCClient implements PlcClient {
     _healthCheckTimer = null;
   }
 
-  /// Bağlantıyı yeniden kur
   Future<void> _reconnect() async {
-    // ✅ Önce disconnect et
     await disconnect();
 
     for (int i = 0; i < reconnectAttempts; i++) {
       try {
         _log('Yeniden bağlanma denemesi ${i + 1}/$reconnectAttempts');
-
-        // Kısa bekleme
         await Future.delayed(reconnectDelay);
-
-        // Yeniden bağlan
         await connect();
-
         _log('✓ Yeniden bağlantı başarılı');
         return;
       } catch (e) {
@@ -366,7 +371,6 @@ class ModbusPLCClient implements PlcClient {
   }
 
   void _ensureConnected() {
-    // ✅ Hem _isConnected hem _client kontrolü
     if (!_isConnected) {
       throw PLCException(
         errorCode: PLCErrorCodes.connectionLost,
@@ -387,5 +391,6 @@ class ModbusPLCClient implements PlcClient {
     print('[ModbusPLC] $message');
   }
 
-  bool get isConnected => _isConnected;
+  @override
+  bool get isConnected => _isConnected && _client != null;
 }

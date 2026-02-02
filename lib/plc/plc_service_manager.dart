@@ -120,7 +120,7 @@ class PLCServiceManager extends ChangeNotifier {
 
     try {
       if (_client is ModbusPLCClient) {
-        yield* (_client as ModbusPLCClient).watchTestersReady();
+        yield* _client.watchTestersReady();
       } else {
         // Mock client için fallback
         await Future.delayed(const Duration(seconds: 3));
@@ -135,13 +135,11 @@ class PLCServiceManager extends ChangeNotifier {
   /// Seçilen tester'ı PLC'ye gönder
   Future<void> sendSelectedTester(int testerNumber) async {
     _ensureConnected();
-
     try {
       debugPrint('[PLCService] Seçilen tester gönderiliyor: $testerNumber');
 
-      if (_client is ModbusPLCClient) {
-        await (_client as ModbusPLCClient).sendSelectedTester(testerNumber);
-      }
+      // ✅ Direkt interface'den çağır (cast yok)
+      await _client.sendSelectedTester(testerNumber);
 
       debugPrint('[PLCService] ✓ Tester seçimi gönderildi');
     } on PLCException catch (e) {
@@ -156,7 +154,7 @@ class PLCServiceManager extends ChangeNotifier {
 
     try {
       if (_client is ModbusPLCClient) {
-        yield* (_client as ModbusPLCClient).watchPaymentStatus();
+        yield* _client.watchPaymentStatus();
       } else {
         // Mock client
         await Future.delayed(const Duration(seconds: 5));
@@ -174,7 +172,7 @@ class PLCServiceManager extends ChangeNotifier {
 
     try {
       if (_client is ModbusPLCClient) {
-        yield* (_client as ModbusPLCClient).watchPerfumeReady();
+        yield* _client.watchPerfumeReady();
       } else {
         await Future.delayed(const Duration(seconds: 8));
         yield true;
@@ -191,7 +189,7 @@ class PLCServiceManager extends ChangeNotifier {
 
     try {
       if (_client is ModbusPLCClient) {
-        return await (_client as ModbusPLCClient).healthCheck();
+        return await _client.healthCheck();
       }
       return true;
     } catch (e) {
