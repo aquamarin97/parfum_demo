@@ -12,15 +12,15 @@
   "back_to_start": "Başa Dön",
   "error_title": "Bir şeyler ters gitti",
   "error_body": "Veriler yüklenemedi. Lütfen tekrar deneyin.",
-  "fragrance_recommendations_selected": "Size özel üç koku önerisi belirlendi",
+  "fragrance_recommendations_selected": "Size özel üç esans önerisi belirlendi",
   "testers_preparing": "Testerlar hazırlanıyor",
   "testers_prepared": "Testerlar hazırlandı",
   "customer_choice": "Seçiminiz: No. ",
   "payment_waiting": "Ödeme bekleniyor",
   "payment_completed": "Ödeme tamamlandı",
   "payment_failed": "Ödeme başarısız oldu",
-  "fragrance_preparing": "Size özel kokunuz hazırlanıyor",
-  "fragrance_prepared": "Size özel kokunuz hazırlandı",
+  "fragrance_preparing": "Size özel esans hazırlanıyor",
+  "fragrance_prepared": "Size özel esans hazırlandı",
   "gift_card_not_created": "Hediye kartı oluşturulmadı",
   "please_select": "Lütfen seçiminizi belirtin",
   "no_price_difference": "Seçimler arasında fiyat farkı yoktur",
@@ -32,5 +32,5 @@
   "yes": "Evet",
   "no": "Hayır",
   "thank_you_message": "Güzel günlerde kullanın",
-  "goodbye_message": "Size özel kokunuz hazır!\nİyi günler dileriz..."
+  "goodbye_message": "Size özel esans hazır!\nİyi günler dileriz..."
 }

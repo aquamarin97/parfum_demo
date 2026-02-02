@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:parfume_app/common/widgets/logo_painter_widget.dart';
 import 'package:parfume_app/ui/components/top_nav_bar.dart';
+import 'package:parfume_app/ui/screens/loading_indicator.dart';
 
 import '../../viewmodel/app_view_model.dart';
 import '../components/radio_option_list.dart';
@@ -69,7 +70,7 @@ class _QuestionScreenState extends State<QuestionScreen>
     final newQuestionText = widget.viewModel.currentQuestion.text;
     if (_currentQuestionText != newQuestionText) {
       _currentQuestionText = newQuestionText;
-      
+
       // Animasyonu sıfırla ve tekrar başlat
       _questionController.reset();
       _questionController.forward();
@@ -119,9 +120,7 @@ class _QuestionScreenState extends State<QuestionScreen>
           // Sonraki sorularda statik logo
           Positioned.fill(
             child: CustomPaint(
-              painter: AnimatedLogoPainter(
-                animationValue: 1.0,
-              ),
+              painter: AnimatedLogoPainter(animationValue: 1.0),
             ),
           ),
 
@@ -138,8 +137,10 @@ class _QuestionScreenState extends State<QuestionScreen>
             ),
             Expanded(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 100, vertical: 25),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 100,
+                  vertical: 25,
+                ),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,6 +164,21 @@ class _QuestionScreenState extends State<QuestionScreen>
                         options: question.options,
                         selectedIndex: selection,
                         onSelect: widget.viewModel.answerCurrentQuestion,
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 0),
+                          child: const ScentWavesLoader(
+                            size: 600,
+                            primaryColor: Color(0xFFF18142),
+                            waveGradientType:
+                                WaveGradientType.solid, // En hızlı
+                            waveColor: Color.fromARGB(255, 60, 15, 119),
+                            sprayConfig: KioskOptimizedConfig.sprayConfig,
+                            useOptimizedSettings: true, // ÖNEMLİ!
+                          ),
+                        ),
                       ),
                     ],
                   ),

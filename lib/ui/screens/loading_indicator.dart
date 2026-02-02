@@ -74,7 +74,7 @@ class _ScentWavesLoaderState extends State<ScentWavesLoader>
     final baseColor =
         widget.primaryColor ?? Theme.of(context).colorScheme.primary;
 
-    final sprayColor = widget.sprayColor ?? Colors.white;
+    final sprayColor = widget.sprayColor ?? const Color.fromARGB(255, 70, 190, 34);
     final waveColor = widget.waveColor ?? baseColor;
     final moleculeColors =
         widget.moleculeColors ?? _createHarmonicPalette(baseColor);

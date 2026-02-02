@@ -1,7 +1,5 @@
 // loading_screen.dart
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/screens/loading_indicator.dart';
-import 'package:parfume_app/ui/theme/app_colors.dart';
 
 import '../../viewmodel/app_view_model.dart';
 import '../theme/app_text_styles.dart';

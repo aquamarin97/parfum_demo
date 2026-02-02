@@ -16,6 +16,261 @@
           "secenekler": ["الحمضيات", "نوتات زهرية", "العنبر / الراتنجات", "التوابل", "لا، ليس لدي حساسية معروفة"]
         }
       }
+    },
+    {
+      "id": 2,
+      "translations": {
+        "tr": {
+          "soru": "Bu Parfüm Kimin için?",
+          "secenekler": ["Kendim için", "Hediye"]
+        },
+        "en": {
+          "soru": "Who is this perfume for?",
+          "secenekler": ["For myself", "A gift"]
+        },
+        "ar": {
+          "soru": "لمن هذا العطر؟",
+          "secenekler": ["لنفسي", "هدية"]
+        }
+      }
+    },
+    {
+      "id": 3,
+      "translations": {
+        "tr": {
+          "soru": "Cinsiyetinizi nasıl tanımlarsınız?",
+          "secenekler": ["Erkek", "Kadın"]
+        },
+        "en": {
+          "soru": "How do you identify your gender?",
+          "secenekler": ["Male", "Female"]
+        },
+        "ar": {
+          "soru": "كيف تحدد جنسك؟",
+          "secenekler": ["ذكر", "أنثى"]
+        }
+      }
+    },
+    {
+      "id": 4,
+      "translations": {
+        "tr": {
+          "soru": "Yaş aralığınız?",
+          "secenekler": ["15–20", "20–30", "30–40", "40–50", "50+"]
+        },
+        "en": {
+          "soru": "What is your age range?",
+          "secenekler": ["15–20", "20–30", "30–40", "40–50", "50+"]
+        },
+        "ar": {
+          "soru": "ما هي فئتك العمرية؟",
+          "secenekler": ["١٥–٢٠", "٢٠–٣٠", "٣٠–٤٠", "٤٠–٥٠", "٥٠+"]
+        }
+      }
+    },
+    {
+      "id": 5,
+      "translations": {
+        "tr": {
+          "soru": "Günlük hayatınızda kendinizi daha çok nasıl tanımlarsınız?",
+          "secenekler": ["Öğrenci", "Çalışan", "Kendi işini yapan / işveren"]
+        },
+        "en": {
+          "soru": "How do you define yourself in your daily life?",
+          "secenekler": ["Student", "Employee", "Self-employed / Employer"]
+        },
+        "ar": {
+          "soru": "كيف تصف نفسك في حياتك اليومية؟",
+          "secenekler": ["طالب", "موظف", "صاحب عمل حر / صاحب عمل"]
+        }
+      }
+    },
+    {
+      "id": 6,
+      "translations": {
+        "tr": {
+          "soru": "Cilt tonunuz hangisine daha yakın?",
+          "secenekler": ["Açık", "Orta / Buğday", "Esmer", "Koyu"]
+        },
+        "en": {
+          "soru": "Which is closer to your skin tone?",
+          "secenekler": ["Fair", "Medium / Wheat", "Tan", "Dark"]
+        },
+        "ar": {
+          "soru": "ما هو لون بشرتك الأقرب؟",
+          "secenekler": ["فاتح", "متوسط / حنطي", "أسمر", "داكن"]
+        }
+      }
+    },
+    {
+      "id": 7,
+      "translations": {
+        "tr": {
+          "soru": "Cilt yapınız nasıl?",
+          "secenekler": ["Yağlı", "Kuru", "Normal", "Karma"]
+        },
+        "en": {
+          "soru": "What is your skin type?",
+          "secenekler": ["Oily", "Dry", "Normal", "Combination"]
+        },
+        "ar": {
+          "soru": "ما هي طبيعة بشرتك؟",
+          "secenekler": ["دهنية", "جافة", "عادية", "مختلطة"]
+        }
+      }
+    },
+    {
+      "id": 8,
+      "translations": {
+        "tr": {
+          "soru": "Sizi hayatta daha çok hangisi tanımlar?",
+          "secenekler": ["Güvende ve kontrollü hissetmek", "Yeni şeyler keşfetmek / maceraperest"]
+        },
+        "en": {
+          "soru": "Which describes you better in life?",
+          "secenekler": ["Feeling safe and in control", "Exploring new things / Adventurous"]
+        },
+        "ar": {
+          "soru": "أي منهما يصفك أكثر في الحياة؟",
+          "secenekler": ["الشعور بالأمان والسيطرة", "استكشاف أشياء جديدة / مغامر"]
+        }
+      }
+    },
+    {
+      "id": 9,
+      "translations": {
+        "tr": {
+          "soru": "Sizi hangisi daha motive eder?",
+          "secenekler": ["Keyifli vakit geçirmek, anın tadını çıkarmak", "Başarmak, ilerlemek, hedef koymak, planlı yaşamak"]
+        },
+        "en": {
+          "soru": "What motivates you more?",
+          "secenekler": ["Having a good time, enjoying the moment", "Achieving, progressing, setting goals, living planned"]
+        },
+        "ar": {
+          "soru": "ما الذي يحفزك أكثر؟",
+          "secenekler": ["قضاء وقت ممتع والاستمتاع باللحظة", "الإنجاز والتقدم ووضع الأهداف والعيش المخطط"]
+        }
+      }
+    },
+    {
+      "id": 10,
+      "translations": {
+        "tr": {
+          "soru": "Kendinizi daha çok hangisine yakın hissedersiniz?",
+          "secenekler": ["Değerleri ve geleneği sürdürmek", "Yeni yollar denemek, sınırları zorlamak"]
+        },
+        "en": {
+          "soru": "Which do you feel closer to?",
+          "secenekler": ["Maintaining values and tradition", "Trying new ways, pushing boundaries"]
+        },
+        "ar": {
+          "soru": "إلى أي منهما تشعر أنك أقرب؟",
+          "secenekler": ["الحفاظ على القيم والتقاليد", "تجربة طرق جديدة وتجاوز الحدود"]
+        }
+      }
+    },
+    {
+      "id": 11,
+      "translations": {
+        "tr": {
+          "soru": "Koku sizde hangi duyguyu uyandırmalı?",
+          "secenekler": ["Mutlu", "Enerjik", "Huzurlu", "Gizemli", "Romantik / Aşk"]
+        },
+        "en": {
+          "soru": "What emotion should the scent evoke in you?",
+          "secenekler": ["Happy", "Energetic", "Peaceful", "Mysterious", "Romantic / Love"]
+        },
+        "ar": {
+          "soru": "ما الشعور الذي يجب أن يثيره العطر فيك؟",
+          "secenekler": ["سعيد", "نشيط", "هادئ", "غامض", "رومانسي / حب"]
+        }
+      }
+    },
+    {
+      "id": 12,
+      "translations": {
+        "tr": {
+          "soru": "Parfümünüz nasıl fark edilmeli?",
+          "secenekler": ["Hafif", "Dengeli", "Güçlü"]
+        },
+        "en": {
+          "soru": "How should your perfume be noticed?",
+          "secenekler": ["Light", "Balanced", "Strong"]
+        },
+        "ar": {
+          "soru": "كيف يجب أن يلاحظ الآخرون عطرك؟",
+          "secenekler": ["خفيف", "متوازن", "قوي"]
+        }
+      }
+    },
+    {
+      "id": 13,
+      "translations": {
+        "tr": {
+          "soru": "Bu parfümü en çok nerede kullanmayı düşünüyorsunuz?",
+          "secenekler": ["Günlük kullanım", "Ofis / iş ortamı", "Akşam / sosyal ortam", "Özel anlar"]
+        },
+        "en": {
+          "soru": "Where do you plan to use this perfume most?",
+          "secenekler": ["Daily use", "Office / Work environment", "Evening / Social environment", "Special moments"]
+        },
+        "ar": {
+          "soru": "أين تنوي استخدام هذا العطر أكثر؟",
+          "secenekler": ["استخدام يومي", "المكتب / بيئة العمل", "المساء / بيئة اجتماعية", "لحظات خاصة"]
+        }
+      }
+    },
+    {
+      "id": 14,
+      "translations": {
+        "tr": {
+          "soru": "Hangi mevsimde daha çok kullanacaksınız?",
+          "secenekler": ["İlkbahar", "Yaz", "Sonbahar", "Kış"]
+        },
+        "en": {
+          "soru": "In which season will you use it most?",
+          "secenekler": ["Spring", "Summer", "Autumn", "Winter"]
+        },
+        "ar": {
+          "soru": "في أي فصل ستستخدمه أكثر؟",
+          "secenekler": ["الربيع", "الصيف", "الخريف", "الشتاء"]
+        }
+      }
+    },
+    {
+      "id": 15,
+      "translations": {
+        "tr": {
+          "soru": "Kendinizi iyi hissettiren doğal koku, hangisine daha yakın?",
+          "secenekler": ["Deniz / yağmur / Tuz", "Orman / ağaç", "Çiçek bahçesi", "Meyve bahçesi", "Kahve", "Vanilya / tatlı", "Deri"]
+        },
+        "en": {
+          "soru": "Which natural scent makes you feel good?",
+          "secenekler": ["Sea / Rain", "Forest / Wood", "Flower garden", "Orchard", "Coffee", "Vanilla / Sweet", "Leather"]
+        },
+        "ar": {
+          "soru": "أي رائحة طبيعية تجعلك تشعر بالراحة؟",
+          "secenekler": ["البحر / المطر", "الغابة / الخشب", "حديقة الزهور", "بستان الفواكه", "القهوة", "الفانيليا / حلو", "جلدي"]
+        }
+      }
+    },
+    {
+      "id": 16,
+      "translations": {
+        "tr": {
+          "soru": "Özellikle hoşlanmadığınız koku türleri var mı?",
+          "secenekler": ["Narenciye", "Çiçeksi", "Odunsu", "Baharatlı", "Oryantal / amber", "Tatlı (gourmand)", "Yok"]
+        },
+        "en": {
+          "soru": "Are there any types of scents you particularly dislike?",
+          "secenekler": ["Citrus", "Floral", "Woody", "Spicy", "Oriental / Amber", "Sweet (gourmand)", "None"]
+        },
+        "ar": {
+          "soru": "هل هناك أنواع روائح لا تحبها بشكل خاص؟",
+          "secenekler": ["الحمضيات", "زهري", "خشبي", "توابل", "شرقي / عنبر", "حلو (غورماند)", "لا يوجد"]
+        }
+      }
     }
   ]
 }
