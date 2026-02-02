@@ -165,23 +165,22 @@ class _QuestionScreenState extends State<QuestionScreen>
                         selectedIndex: selection,
                         onSelect: widget.viewModel.answerCurrentQuestion,
                       ),
-                      Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 0),
-                          child: const ScentWavesLoader(
-                            size: 600,
-                            primaryColor: Color(0xFFF18142),
-                            waveGradientType:
-                                WaveGradientType.solid, // En hızlı
-                            waveColor: Color.fromARGB(255, 60, 15, 119),
-                            sprayConfig: KioskOptimizedConfig.sprayConfig,
-                            useOptimizedSettings: true, // ÖNEMLİ!
-                          ),
-                        ),
-                      ),
                     ],
                   ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 0),
+                child: const ScentWavesLoader(
+                  size: 600,
+                  primaryColor: Color(0xFFF18142),
+                  waveGradientType: WaveGradientType.solid, // En hızlı
+                  waveColor: Color.fromARGB(255, 60, 15, 119),
+                  sprayConfig: KioskOptimizedConfig.sprayConfig,
+                  useOptimizedSettings: true, // ÖNEMLİ!
                 ),
               ),
             ),
