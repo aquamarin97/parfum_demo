@@ -96,7 +96,7 @@ class ModbusPLCClient implements PlcClient {
     _log('Bağlantı kapatılıyor...');
     _stopHealthCheck();
     _isConnected = false;
-    _client = null;
+    _client = null; // ✅ Explicit null assignment
     _log('✓ Bağlantı kapatıldı');
   }
 
@@ -212,14 +212,14 @@ class ModbusPLCClient implements PlcClient {
 
   /// Stream: Testerların hazır olmasını bekle
   Stream<bool> watchTestersReady() async* {
-    while (_isConnected) {
+    while (_isConnected && _client != null) {
+      // ✅ Null check
       try {
         final ready = await checkTestersReady();
         yield ready;
         if (ready) break;
       } catch (e) {
         _log('✗ Tester polling hatası: $e');
-        // Hata durumunda yine de devam et
       }
       await Future.delayed(const Duration(seconds: 1));
     }
@@ -255,11 +255,18 @@ class ModbusPLCClient implements PlcClient {
 
   /// Tek bir register oku (Holding Register)
   Future<int> readRegister(int address) async {
+    final client = _client;
+    if (client == null) {
+      throw PLCException(
+        errorCode: PLCErrorCodes.connectionLost,
+        message: 'PLC bağlantısı yok',
+      );
+    }
+
     try {
-      final response = await _client!
+      final response = await client
           .readHoldingRegisters(address, 1)
           .timeout(responseTimeout);
-
       return response[0];
     } on TimeoutException {
       throw PLCException(
@@ -271,10 +278,16 @@ class ModbusPLCClient implements PlcClient {
 
   /// Tek bir register'a yaz
   Future<void> writeRegister(int address, int value) async {
+    final client = _client;
+    if (client == null) {
+      throw PLCException(
+        errorCode: PLCErrorCodes.connectionLost,
+        message: 'PLC bağlantısı yok',
+      );
+    }
+
     try {
-      await _client!
-          .writeSingleRegister(address, value)
-          .timeout(responseTimeout);
+      await client.writeSingleRegister(address, value).timeout(responseTimeout);
     } on TimeoutException {
       throw PLCException(
         errorCode: PLCErrorCodes.responseTimeout,
@@ -287,8 +300,14 @@ class ModbusPLCClient implements PlcClient {
   Future<bool> healthCheck() async {
     if (!_isConnected) return false;
 
+    // ✅ Null check ekle
+    if (_client == null) {
+      _log('⚠ Health check: Client is null');
+      _isConnected = false;
+      return false;
+    }
+
     try {
-      // Heartbeat register'ını oku
       await readRegister(regHeartbeat);
       return true;
     } catch (e) {
@@ -317,10 +336,19 @@ class ModbusPLCClient implements PlcClient {
 
   /// Bağlantıyı yeniden kur
   Future<void> _reconnect() async {
+    // ✅ Önce disconnect et
+    await disconnect();
+
     for (int i = 0; i < reconnectAttempts; i++) {
       try {
         _log('Yeniden bağlanma denemesi ${i + 1}/$reconnectAttempts');
+
+        // Kısa bekleme
+        await Future.delayed(reconnectDelay);
+
+        // Yeniden bağlan
         await connect();
+
         _log('✓ Yeniden bağlantı başarılı');
         return;
       } catch (e) {
@@ -338,10 +366,19 @@ class ModbusPLCClient implements PlcClient {
   }
 
   void _ensureConnected() {
-    if (!_isConnected || _client == null) {
+    // ✅ Hem _isConnected hem _client kontrolü
+    if (!_isConnected) {
+      throw PLCException(
+        errorCode: PLCErrorCodes.connectionLost,
+        message: 'PLC bağlantısı kesildi',
+      );
+    }
+
+    if (_client == null) {
       throw PLCException(
         errorCode: PLCErrorCodes.connectionLost,
         message: 'PLC bağlantısı yok',
+        technicalDetail: 'Client instance is null',
       );
     }
   }

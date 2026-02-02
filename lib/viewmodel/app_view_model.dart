@@ -295,7 +295,7 @@ class AppViewModel extends ChangeNotifier {
   void dispose() {
     _loadingTimer?.cancel();
     _resultTimer?.cancel();
-    _timeoutWatcher?.stop();
+    _timeoutWatcher?.stop();  
 
     // PLC tarafında dispose/close varsa çağır (sende hangi isim varsa ona göre düzenle)
     // _plcService.dispose();

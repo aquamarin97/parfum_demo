@@ -4,7 +4,7 @@ import 'package:parfume_app/ui/screens/result/widgets/components/tester_button.d
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
-import '../../result_view_model.dart';
+import '../../result_view_model_refactored.dart';
 
 class TestersReadyView extends StatelessWidget {
   const TestersReadyView({super.key, required this.viewModel});

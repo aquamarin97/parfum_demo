@@ -3,7 +3,7 @@ import 'package:parfume_app/ui/screens/result/widgets/components/countdown_timer
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
-import '../../result_view_model.dart';
+import '../../result_view_model_refactored.dart';
 
 class WaitingPaymentView extends StatelessWidget {
   const WaitingPaymentView({super.key, required this.viewModel});

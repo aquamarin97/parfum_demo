@@ -85,12 +85,12 @@ class _ResultScreenState extends State<ResultScreen>
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      // ✅ PLC inject
       create: (_) => ResultViewModelWithPLC(
         appViewModel: widget.viewModel,
         plcService: widget.viewModel.plcService,
       ),
       child: Consumer<ResultViewModelWithPLC>(
+        // ✅ Tip değişti
         builder: (context, viewModel, _) {
           if (viewModel.shouldAnimate) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -160,6 +160,7 @@ class _ResultScreenState extends State<ResultScreen>
 
   // ✅ Tip güncellendi
   Widget _buildContent(ResultViewModelWithPLC viewModel) {
+    // ✅ Tip değişti
     Widget content;
 
     switch (viewModel.currentState) {
@@ -197,10 +198,7 @@ class _ResultScreenState extends State<ResultScreen>
     return Align(
       alignment: Alignment.topCenter,
       child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 40),
-          child: content,
-        ),
+        child: Padding(padding: const EdgeInsets.only(top: 40), child: content),
       ),
     );
   }
