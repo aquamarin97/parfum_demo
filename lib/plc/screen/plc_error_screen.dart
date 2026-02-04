@@ -1,4 +1,4 @@
-// plc_error_screen.dart
+// plc_error_screen.dart - FIXED LAYOUT
 import 'package:flutter/material.dart';
 import 'package:parfume_app/plc/error/plc_error_codes.dart';
 import 'package:parfume_app/ui/components/primary_button.dart';
@@ -121,39 +121,51 @@ class PLCErrorScreen extends StatelessWidget {
 
               const SizedBox(height: 48),
 
-              // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (onRetry != null) ...[
-                    PrimaryButton(
-                      label: 'Tekrar Dene',
-                      onPressed: onRetry,
-                      fontSize: 50,
-                      paddingHorizontal: 80,
-                      paddingvertical: 24,
+              // ✅ Action buttons - FIXED LAYOUT
+              // Ekranın %80'ini kullan, butonları Flexible/Expanded yap
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: Row(
+                  children: [
+                    if (onRetry != null) ...[
+                      Flexible(
+                        child: PrimaryButton(
+                          label: 'Tekrar Dene',
+                          onPressed: onRetry,
+                          fontSize: 45, // 50 → 45 (biraz küçült)
+                          paddingHorizontal: 60, // 80 → 60
+                          paddingvertical: 20, // 24 → 20
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                    ],
+                    Flexible(
+                      child: OutlinedButton(
+                        onPressed: viewModel.resetToIdle,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 60, // 80 → 60
+                            vertical: 20, // 24 → 20
+                          ),
+                          side: const BorderSide(
+                            color: AppColors.border,
+                            width: 2,
+                          ),
+                        ),
+                        child: Text(
+                          strings.backToStart,
+                          style: AppTextStyles.body.copyWith(
+                            fontFamily: 'NotoSans',
+                            fontSize: 45, // 50 → 45
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 24),
                   ],
-                  OutlinedButton(
-                    onPressed: viewModel.resetToIdle,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 80,
-                        vertical: 24,
-                      ),
-                      side: const BorderSide(color: AppColors.border, width: 2),
-                    ),
-                    child: Text(
-                      strings.backToStart,
-                      style: AppTextStyles.body.copyWith(
-                        fontFamily: 'NotoSans',
-                        fontSize: 50,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
@@ -228,7 +240,6 @@ class PLCErrorScreen extends StatelessWidget {
 
   bool _shouldShowTechnicalDetails() {
     // Production'da false, debug modda true
-    // Veya admin şifresi ile açılabilir bir sistem kurulabilir
     return true; // Şimdilik her zaman göster
   }
 }

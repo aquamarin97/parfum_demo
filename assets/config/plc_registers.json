@@ -1,0 +1,205 @@
+{
+  "version": "1.0.0",
+  "description": "Parfüm Kiosk PLC Register Haritası",
+  "last_updated": "2026-02-04",
+  "connection": {
+    "host": "10.0.2.2",
+    "port": 502,
+    "slave_id": 1,
+    "timeout_ms": 3000,
+    "retry_count": 3
+  },
+  "registers": {
+    "recommendations": {
+      "description": "Kullanıcıya önerilen parfüm ID'leri (1-999)",
+      "type": "write",
+      "addresses": {
+        "first": 0,
+        "second": 1,
+        "third": 2
+      },
+      "data_type": "uint16",
+      "min_value": 1,
+      "max_value": 999
+    },
+    "tester_control": {
+      "description": "Tester hazırlık ve seçim kontrolleri",
+      "type": "read_write",
+      "addresses": {
+        "testers_ready": 10,
+        "selected_tester": 11,
+        "tester_1_status": 12,
+        "tester_2_status": 13,
+        "tester_3_status": 14
+      },
+      "data_type": "uint16",
+      "values": {
+        "testers_ready": {
+          "0": "Hazır değil",
+          "1": "Hazır"
+        },
+        "selected_tester": {
+          "0": "Seçim yok",
+          "1": "Tester 1",
+          "2": "Tester 2",
+          "3": "Tester 3"
+        },
+        "tester_status": {
+          "0": "Boş",
+          "1": "Hazırlanıyor",
+          "2": "Hazır",
+          "3": "Hata"
+        }
+      }
+    },
+    "payment": {
+      "description": "Ödeme sistemi kontrolleri",
+      "type": "read_write",
+      "addresses": {
+        "status": 20,
+        "amount": 21,
+        "transaction_id": 22,
+        "error_code": 23
+      },
+      "data_type": "uint16",
+      "values": {
+        "status": {
+          "0": "Bekliyor",
+          "1": "Onaylandı",
+          "2": "Reddedildi",
+          "3": "İptal edildi",
+          "4": "Timeout"
+        }
+      }
+    },
+    "perfume_dispenser": {
+      "description": "Parfüm dağıtım sistemi",
+      "type": "read_write",
+      "addresses": {
+        "ready": 30,
+        "dispensing": 31,
+        "completed": 32,
+        "error": 33,
+        "bottle_level": 34
+      },
+      "data_type": "uint16",
+      "values": {
+        "ready": {
+          "0": "Hazır değil",
+          "1": "Hazır"
+        },
+        "dispensing": {
+          "0": "Dağıtım yok",
+          "1": "Dağıtım yapılıyor"
+        },
+        "completed": {
+          "0": "Devam ediyor",
+          "1": "Tamamlandı"
+        },
+        "error": {
+          "0": "Hata yok",
+          "1": "Motor hatası",
+          "2": "Sensör hatası",
+          "3": "Şişe boş",
+          "4": "Timeout"
+        }
+      }
+    },
+    "gift_card": {
+      "description": "Hediye kartı yazıcı kontrolleri",
+      "type": "read_write",
+      "addresses": {
+        "printer_ready": 40,
+        "print_request": 41,
+        "print_completed": 42,
+        "printer_error": 43
+      },
+      "data_type": "uint16",
+      "values": {
+        "printer_ready": {
+          "0": "Hazır değil",
+          "1": "Hazır"
+        },
+        "print_request": {
+          "0": "İstek yok",
+          "1": "Kart yazdır"
+        },
+        "printer_error": {
+          "0": "Hata yok",
+          "1": "Kağıt yok",
+          "2": "Sıkışma",
+          "3": "Bağlantı hatası"
+        }
+      }
+    },
+    "system": {
+      "description": "Genel sistem kontrolleri",
+      "type": "read_write",
+      "addresses": {
+        "heartbeat": 100,
+        "emergency_stop": 101,
+        "system_mode": 102,
+        "error_flags": 103,
+        "reset": 104
+      },
+      "data_type": "uint16",
+      "values": {
+        "emergency_stop": {
+          "0": "Normal",
+          "1": "E-STOP aktif"
+        },
+        "system_mode": {
+          "0": "Idle",
+          "1": "Çalışıyor",
+          "2": "Bakım modu",
+          "3": "Hata durumu"
+        }
+      }
+    },
+    "sensors": {
+      "description": "Sensör okumaları (sadece okunabilir)",
+      "type": "read",
+      "addresses": {
+        "door_sensor": 110,
+        "perfume_level_1": 111,
+        "perfume_level_2": 112,
+        "perfume_level_3": 113,
+        "temperature": 114
+      },
+      "data_type": "uint16"
+    }
+  },
+  "workflows": {
+    "tester_preparation": [
+      "recommendations.first",
+      "recommendations.second",
+      "recommendations.third",
+      "tester_control.testers_ready"
+    ],
+    "payment_flow": [
+      "tester_control.selected_tester",
+      "payment.status",
+      "payment.amount"
+    ],
+    "dispense_perfume": [
+      "perfume_dispenser.ready",
+      "perfume_dispenser.dispensing",
+      "perfume_dispenser.completed"
+    ]
+  },
+  "validation": {
+    "required_registers": [
+      "recommendations.first",
+      "tester_control.testers_ready",
+      "payment.status",
+      "perfume_dispenser.ready",
+      "system.heartbeat"
+    ],
+    "critical_errors": [
+      "system.emergency_stop",
+      "system.error_flags",
+      "perfume_dispenser.error",
+      "payment.error_code"
+    ]
+  }
+}

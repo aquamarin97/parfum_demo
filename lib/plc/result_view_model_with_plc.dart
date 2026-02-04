@@ -1,4 +1,4 @@
-// result_view_model_with_plc.dart
+// result_view_model_with_plc.dart - IMPROVED ERROR HANDLING
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:parfume_app/plc/error/plc_error_codes.dart';
@@ -11,32 +11,36 @@ import '../ui/screens/result/models/result_flow_state.dart';
 import '../ui/screens/result/models/timeline_message.dart';
 
 /// PLC-entegre ResultViewModel
-/// ResultViewModel'i extend eder, böylece tüm view'lar ile uyumludur
 class ResultViewModelWithPLC extends ResultViewModel {
   ResultViewModelWithPLC({
     required AppViewModel appViewModel,
     required this.plcService,
   }) : super(appViewModel: appViewModel) {
-    // Parent constructor çağrıldıktan sonra PLC flow'u başlat
     _initializePLCFlow();
   }
 
   final PLCServiceManager plcService;
   StreamSubscription? _plcSubscription;
 
-  /// PLC flow'unu başlat (parent'ın _startFlow yerine)
+  /// PLC flow'unu başlat
   void _initializePLCFlow() {
-    // PLC bağlantısını kontrol et
+    // ✅ PLC bağlantısını kontrol et
     if (!plcService.isConnected) {
-      _handlePLCError(
-        PLCException(
-          errorCode: PLCErrorCodes.connectionLost,
-          message: 'PLC bağlantısı yok',
-        ),
+      debugPrint('[ResultVM] ⚠ PLC bağlı değil, mock flow kullanılıyor');
+      
+      // Mock flow (PLC olmadan test için)
+      addMessage(
+        '${strings.fragranceRecommendationsSelected} (Mock Mode)',
+        TimelineMessageStatus.completed,
       );
+
+      Future.delayed(const Duration(seconds: 2), () {
+        _onTestersPreparing();
+      });
       return;
     }
 
+    // Normal PLC flow
     addMessage(
       strings.fragranceRecommendationsSelected,
       TimelineMessageStatus.completed,
@@ -59,19 +63,23 @@ class ResultViewModelWithPLC extends ResultViewModel {
         TimelineMessageStatus.completed,
       );
 
-      // ✅ PLC'ye seçimi gönder
-      try {
-        await plcService.sendSelectedTester(index + 1); // 1-based index
-        
-        Future.delayed(const Duration(milliseconds: 300), () {
-          addMessage(strings.paymentWaiting, TimelineMessageStatus.active);
-          transitionToState(ResultFlowState.waitingPayment);
-          startTimer(300);
-          _watchPaymentStatus();
-        });
-      } on PLCException catch (e) {
-        _handlePLCError(e);
+      // ✅ PLC'ye seçimi gönder (sadece bağlıysa)
+      if (plcService.isConnected) {
+        try {
+          await plcService.sendSelectedTester(index + 1);
+          debugPrint('[ResultVM] ✓ Tester seçimi PLC\'ye gönderildi');
+        } on PLCException catch (e) {
+          debugPrint('[ResultVM] ⚠ PLC hatası: ${e.message}');
+          // Hata olsa bile flow devam etsin (fallback)
+        }
       }
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        addMessage(strings.paymentWaiting, TimelineMessageStatus.active);
+        transitionToState(ResultFlowState.waitingPayment);
+        startTimer(300);
+        _watchPaymentStatus();
+      });
     });
   }
 
@@ -98,9 +106,15 @@ class ResultViewModelWithPLC extends ResultViewModel {
   // ===== PLC-Specific Methods =====
 
   void _sendToPLC() async {
+    if (!plcService.isConnected) {
+      debugPrint('[ResultVM] PLC bağlı değil, mock flow devam ediyor');
+      Future.delayed(const Duration(seconds: 1), _onTestersPreparing);
+      return;
+    }
+
     try {
-      // Önerileri PLC'ye gönder
       await plcService.sendRecommendations(topIds);
+      debugPrint('[ResultVM] ✓ Öneriler PLC\'ye gönderildi');
       
       Future.delayed(const Duration(seconds: 1), () {
         _onTestersPreparing();
@@ -114,11 +128,18 @@ class ResultViewModelWithPLC extends ResultViewModel {
     addMessage(strings.testersPreparing, TimelineMessageStatus.active);
     transitionToState(ResultFlowState.preparingTesters);
 
-    // PLC'den tester hazır sinyali bekle
+    // PLC'den tester hazır sinyali bekle (veya mock)
     _watchTestersReady();
   }
 
   void _watchTestersReady() {
+    if (!plcService.isConnected) {
+      // Mock: 5 saniye sonra hazır
+      debugPrint('[ResultVM] Mock: Testerlar 5 saniye sonra hazır olacak');
+      Future.delayed(const Duration(seconds: 5), _onTestersReady);
+      return;
+    }
+
     _plcSubscription?.cancel();
     _plcSubscription = plcService.watchTestersReady().listen(
       (ready) {
@@ -142,17 +163,20 @@ class ResultViewModelWithPLC extends ResultViewModel {
   }
 
   void _watchPaymentStatus() {
+    if (!plcService.isConnected) {
+      // Mock: Manuel test butonları ile kontrol
+      debugPrint('[ResultVM] Mock: Manuel ödeme kontrolü (TEST butonları)');
+      return;
+    }
+
     _plcSubscription?.cancel();
     _plcSubscription = plcService.watchPaymentStatus().listen(
       (status) {
         if (status == 1) {
-          // Ödeme başarılı
           onPaymentComplete();
         } else if (status == 2) {
-          // Ödeme hatası
           onPaymentError();
         }
-        // status == 0: Bekliyor, hiçbir şey yapma
       },
       onError: (error) {
         if (error is PLCException) {
@@ -163,6 +187,13 @@ class ResultViewModelWithPLC extends ResultViewModel {
   }
 
   void _watchPerfumeReady() {
+    if (!plcService.isConnected) {
+      // Mock: 8 saniye sonra hazır
+      debugPrint('[ResultVM] Mock: Parfüm 8 saniye sonra hazır olacak');
+      Future.delayed(const Duration(seconds: 8), _onPerfumeReady);
+      return;
+    }
+
     _plcSubscription?.cancel();
     _plcSubscription = plcService.watchPerfumeReady().listen(
       (ready) {
@@ -191,19 +222,23 @@ class ResultViewModelWithPLC extends ResultViewModel {
   void _handlePLCError(PLCException error) {
     debugPrint('[ResultVM] PLC Hatası: ${error.errorCode} - ${error.message}');
     
-    // Timeline'a hata mesajı ekle
+    // ✅ Critical error'larda app-level error state'e geç
+    if (error.errorCode == PLCErrorCodes.connectionLost ||
+        error.errorCode == PLCErrorCodes.connectionFailed) {
+      
+      debugPrint('[ResultVM] Critical PLC hatası, ana hata ekranına yönlendiriliyor');
+      appViewModel.resetToIdle(); // veya PLCErrorState'e geç
+      return;
+    }
+
+    // ✅ Minor error'larda timeline'a ekle ama devam et
     addMessage(
-      error.getUserMessage(appViewModel.language.code),
+      '⚠ ${error.getUserMessage(appViewModel.language.code)}',
       TimelineMessageStatus.error,
     );
 
-    // Error durumunda ne yapılacak?
-    // Seçenek 1: Retry modu
-    // Seçenek 2: Error state
-    // Seçenek 3: Idle'a dön
-    
-    // Şimdilik error mesajı gösterip devam ediyoruz
-    debugPrint('[ResultVM] PLC hatası yakalandı ama flow devam ediyor');
+    // Mock flow'a geç
+    debugPrint('[ResultVM] PLC hatası, mock flow\'a geçiliyor');
   }
 
   @override

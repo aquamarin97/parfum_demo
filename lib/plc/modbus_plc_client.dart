@@ -1,4 +1,4 @@
-// modbus_plc_client.dart - COMPLETE FIXED VERSION
+// modbus_plc_client.dart - FIXED VERSION
 import 'dart:async';
 import 'dart:io';
 import 'package:modbus/modbus.dart' as modbus;
@@ -8,7 +8,7 @@ import 'plc_client.dart';
 /// Modbus TCP üzerinden PLC ile iletişim kuran servis
 class ModbusPLCClient implements PlcClient {
   ModbusPLCClient({
-    this.host = '127.0.0.1',
+    this.host = '10.0.2.2',
     this.port = 502,
     this.connectionTimeout = const Duration(seconds: 3),
     this.responseTimeout = const Duration(seconds: 2),
@@ -77,7 +77,8 @@ class ModbusPLCClient implements PlcClient {
 
   Future<void> _connectWithTimeout() async {
     try {
-      // ✅ 1. Client'ı oluştur
+      // ✅ 1. Client'ı oluştur (createTcpClient SENKRON - await yok!)
+      _log('Creating Modbus TCP client...');
       final client = modbus.createTcpClient(host, port: port);
 
       // ✅ 2. Null check
@@ -89,17 +90,25 @@ class ModbusPLCClient implements PlcClient {
         );
       }
 
+      _log('Client created, connecting...');
+      
       // ✅ 3. Client'ı set et
       _client = client;
 
-      // ✅ 4. Bağlantı testi yap
+      // ✅ 4. Bağlantıyı başlat (connect() ASENKRON - await gerekli!)
+      await client.connect().timeout(connectionTimeout);
+      _log('Connected, testing communication...');
+
+      // ✅ 5. Bağlantı testi yap
       await client
           .readHoldingRegisters(regHeartbeat, 1)
           .timeout(connectionTimeout);
+          
+      _log('✓ Bağlantı testi başarılı');
     } catch (e) {
       // Hata durumunda cleanup
       _client = null;
-      _log('Bağlantı testi hatası: $e');
+      _log('Bağlantı hatası: $e');
       rethrow; // Exception'ı üst katmana fırlat
     }
   }
@@ -108,6 +117,15 @@ class ModbusPLCClient implements PlcClient {
   Future<void> disconnect() async {
     _log('Bağlantı kapatılıyor...');
     _stopHealthCheck();
+    
+    try {
+      if (_client != null) {
+        await _client!.close();
+      }
+    } catch (e) {
+      _log('Disconnect hatası (görmezden geliniyor): $e');
+    }
+    
     _isConnected = false;
     _client = null;
     _log('✓ Bağlantı kapatıldı');
