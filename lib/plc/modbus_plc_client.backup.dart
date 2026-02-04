@@ -1,25 +1,23 @@
-// modbus_plc_client.dart - CONFIG-BASED VERSION
+// modbus_plc_client.dart - FIXED VERSION
 import 'dart:async';
 import 'dart:io';
 import 'package:modbus/modbus.dart' as modbus;
 import 'package:parfume_app/plc/error/plc_error_codes.dart';
-import 'package:parfume_app/plc/config/register_loader.dart';
-import 'package:parfume_app/plc/config/register_config.dart';
 import 'plc_client.dart';
-import 'package:parfume_app/plc/admin/models/plc_event.dart';
 
-/// ✅ Config-based Modbus TCP PLC Client
-///
-/// Register adresleri artık JSON'dan yükleniyor.
-/// Yeni register eklemek için sadece JSON'ı güncelle!
+/// Modbus TCP üzerinden PLC ile iletişim kuran servis
 class ModbusPLCClient implements PlcClient {
   ModbusPLCClient({
+    this.host = '10.0.2.2',
+    this.port = 502,
     this.connectionTimeout = const Duration(seconds: 3),
     this.responseTimeout = const Duration(seconds: 2),
     this.reconnectAttempts = 3,
     this.reconnectDelay = const Duration(seconds: 2),
   });
 
+  final String host;
+  final int port;
   final Duration connectionTimeout;
   final Duration responseTimeout;
   final int reconnectAttempts;
@@ -29,82 +27,39 @@ class ModbusPLCClient implements PlcClient {
   bool _isConnected = false;
   Timer? _healthCheckTimer;
 
-  // ✅ Config yükleyici
-  final RegisterLoader _configLoader = RegisterLoader();
-  PLCRegisterConfig? _config;
-
-  // ✅ Register adreslerine erişim metodları (lazy load)
-  int get _regRecommendation1 => _getAddress('recommendations.first');
-  int get _regRecommendation2 => _getAddress('recommendations.second');
-  int get _regRecommendation3 => _getAddress('recommendations.third');
-  int get _regTesterReady => _getAddress('tester_control.testers_ready');
-  int get _regSelectedTester => _getAddress('tester_control.selected_tester');
-  int get _regPaymentStatus => _getAddress('payment.status');
-  int get _regPerfumeReady => _getAddress('perfume_dispenser.ready');
-  int get _regHeartbeat => _getAddress('system.heartbeat');
-
-  // ✅ Config'den adres al (cache'li)
-  int _getAddress(String path) {
-    if (_config == null) {
-      throw PLCException(
-        errorCode: PLCErrorCodes.configurationError,
-        message: 'PLC config yüklenmemiş',
-        technicalDetail: 'Config must be loaded before accessing registers',
-      );
-    }
-
-    try {
-      return _config!.getAddress(path);
-    } catch (e) {
-      throw PLCException(
-        errorCode: PLCErrorCodes.invalidRegisterAddress,
-        message: 'Geçersiz register path: $path',
-        technicalDetail: e.toString(),
-      );
-    }
-  }
+  // Register adresleri
+  static const int regRecommendation1 = 0;
+  static const int regRecommendation2 = 1;
+  static const int regRecommendation3 = 2;
+  static const int regTesterReady = 10;
+  static const int regSelectedTester = 11;
+  static const int regPaymentStatus = 20;
+  static const int regPerfumeReady = 30;
+  static const int regHeartbeat = 100;
 
   @override
   Future<void> connect() async {
     try {
-      // ✅ 1. Config'i yükle
-      await _loadConfig();
+      _log('Bağlantı kuruluyor: $host:$port');
 
-      // ✅ 2. Connection parametrelerini config'den al
-      final host = _config!.connection.host;
-      final port = _config!.connection.port;
-
-      _log('Bağlantı kuruluyor: $host:$port (config-based)');
-
-      // ✅ 3. Bağlantıyı kur
-      await _connectWithTimeout(host, port);
+      // ✅ Bağlantıyı kur
+      await _connectWithTimeout();
 
       _isConnected = true;
       _log('✓ Bağlantı başarılı');
-
-      // EKLE: Bağlantı başarılı logu
-      PLCEventLogger.instance.logConnection('PLC bağlantısı başarılı');
 
       _startHealthCheck();
     } on SocketException catch (e) {
       _client = null;
       _log('✗ Socket hatası: ${e.message}');
-
-      // EKLE: Hata logu
-      PLCEventLogger.instance.logError('Bağlantı hatası', error: e.toString());
-
       throw PLCException(
         errorCode: PLCErrorCodes.connectionFailed,
         message: 'PLC bağlantısı kurulamadı',
-        technicalDetail: 'SocketException: ${e.message}',
+        technicalDetail: 'SocketException: ${e.message}\nHost: $host:$port',
       );
     } on TimeoutException {
       _client = null;
       _log('✗ Bağlantı timeout');
-
-      // EKLE: Hata logu
-      PLCEventLogger.instance.logError('Bağlantı hatası', error: 'Timeout');
-
       throw PLCException(
         errorCode: PLCErrorCodes.connectionTimeout,
         message: 'Bağlantı zaman aşımına uğradı',
@@ -112,10 +67,6 @@ class ModbusPLCClient implements PlcClient {
     } catch (e) {
       _client = null;
       _log('✗ Beklenmeyen hata: $e');
-
-      // EKLE: Hata logu
-      PLCEventLogger.instance.logError('Bağlantı hatası', error: e.toString());
-
       throw PLCException(
         errorCode: PLCErrorCodes.unknownError,
         message: 'Bağlantı hatası',
@@ -124,31 +75,13 @@ class ModbusPLCClient implements PlcClient {
     }
   }
 
-  /// ✅ Config yükle
-  Future<void> _loadConfig() async {
+  Future<void> _connectWithTimeout() async {
     try {
-      _log('Config yükleniyor...');
-      _config = await _configLoader.load();
-
-      _log('✓ Config yüklendi: v${_config!.version}');
-      _log('  Total registers: ${_config!.registers.getAllAddresses().length}');
-      _log(
-        '  Connection: ${_config!.connection.host}:${_config!.connection.port}',
-      );
-    } catch (e) {
-      throw PLCException(
-        errorCode: PLCErrorCodes.configurationError,
-        message: 'Config yüklenemedi',
-        technicalDetail: e.toString(),
-      );
-    }
-  }
-
-  Future<void> _connectWithTimeout(String host, int port) async {
-    try {
+      // ✅ 1. Client'ı oluştur (createTcpClient SENKRON - await yok!)
       _log('Creating Modbus TCP client...');
       final client = modbus.createTcpClient(host, port: port);
 
+      // ✅ 2. Null check
       if (client == null) {
         throw PLCException(
           errorCode: PLCErrorCodes.connectionFailed,
@@ -158,21 +91,25 @@ class ModbusPLCClient implements PlcClient {
       }
 
       _log('Client created, connecting...');
+      
+      // ✅ 3. Client'ı set et
       _client = client;
 
+      // ✅ 4. Bağlantıyı başlat (connect() ASENKRON - await gerekli!)
       await client.connect().timeout(connectionTimeout);
       _log('Connected, testing communication...');
 
-      // ✅ Config'den heartbeat adresini al
+      // ✅ 5. Bağlantı testi yap
       await client
-          .readHoldingRegisters(_regHeartbeat, 1)
+          .readHoldingRegisters(regHeartbeat, 1)
           .timeout(connectionTimeout);
-
+          
       _log('✓ Bağlantı testi başarılı');
     } catch (e) {
+      // Hata durumunda cleanup
       _client = null;
       _log('Bağlantı hatası: $e');
-      rethrow;
+      rethrow; // Exception'ı üst katmana fırlat
     }
   }
 
@@ -180,7 +117,7 @@ class ModbusPLCClient implements PlcClient {
   Future<void> disconnect() async {
     _log('Bağlantı kapatılıyor...');
     _stopHealthCheck();
-
+    
     try {
       if (_client != null) {
         await _client!.close();
@@ -188,7 +125,7 @@ class ModbusPLCClient implements PlcClient {
     } catch (e) {
       _log('Disconnect hatası (görmezden geliniyor): $e');
     }
-
+    
     _isConnected = false;
     _client = null;
     _log('✓ Bağlantı kapatıldı');
@@ -209,10 +146,9 @@ class ModbusPLCClient implements PlcClient {
         );
       }
 
-      // ✅ Config-based register yazma
-      await writeRegister(_regRecommendation1, ids[0]);
-      await writeRegister(_regRecommendation2, ids[1]);
-      await writeRegister(_regRecommendation3, ids[2]);
+      await writeRegister(regRecommendation1, ids[0]);
+      await writeRegister(regRecommendation2, ids[1]);
+      await writeRegister(regRecommendation3, ids[2]);
 
       _log('✓ Öneriler başarıyla gönderildi');
     } catch (e) {
@@ -232,7 +168,7 @@ class ModbusPLCClient implements PlcClient {
     _ensureConnected();
 
     try {
-      final value = await readRegister(_regTesterReady);
+      final value = await readRegister(regTesterReady);
       _log('Tester durumu: ${value == 1 ? "HAZIR" : "HAZIR DEĞİL"}');
       return value == 1;
     } catch (e) {
@@ -258,7 +194,7 @@ class ModbusPLCClient implements PlcClient {
     }
 
     try {
-      await writeRegister(_regSelectedTester, testerNumber);
+      await writeRegister(regSelectedTester, testerNumber);
       _log('✓ Seçilen tester gönderildi: $testerNumber');
     } catch (e) {
       throw PLCException(
@@ -274,16 +210,8 @@ class ModbusPLCClient implements PlcClient {
     _ensureConnected();
 
     try {
-      final status = await readRegister(_regPaymentStatus);
-
-      // ✅ Config'den değer açıklamasını al
-      final description = _config!.registers
-          .getGroup('payment')
-          ?.getValueDescription('status', status);
-
-      _log(
-        'Ödeme durumu: $status${description != null ? " ($description)" : ""}',
-      );
+      final status = await readRegister(regPaymentStatus);
+      _log('Ödeme durumu: $status (0=bekliyor, 1=tamam, 2=hata)');
       return status;
     } catch (e) {
       throw PLCException(
@@ -299,7 +227,7 @@ class ModbusPLCClient implements PlcClient {
     _ensureConnected();
 
     try {
-      final value = await readRegister(_regPerfumeReady);
+      final value = await readRegister(regPerfumeReady);
       _log('Parfüm durumu: ${value == 1 ? "HAZIR" : "HAZIRLANMIYOR"}');
       return value == 1;
     } catch (e) {
@@ -367,31 +295,12 @@ class ModbusPLCClient implements PlcClient {
       final response = await client
           .readHoldingRegisters(address, 1)
           .timeout(responseTimeout);
-      final value = response[0];
-
-      // EKLE: Okuma başarılı logu
-      PLCEventLogger.instance.logRead(address, value);
-
-      return value;
+      return response[0];
     } on TimeoutException {
-      // EKLE: Hata logu
-      PLCEventLogger.instance.logError(
-        'Register $address okuma hatası',
-        error: 'Timeout',
-      );
-
       throw PLCException(
         errorCode: PLCErrorCodes.responseTimeout,
         message: 'PLC yanıt vermedi',
       );
-    } catch (e) {
-      // EKLE: Hata logu
-      PLCEventLogger.instance.logError(
-        'Register $address okuma hatası',
-        error: e.toString(),
-      );
-
-      rethrow;
     }
   }
 
@@ -407,28 +316,11 @@ class ModbusPLCClient implements PlcClient {
 
     try {
       await client.writeSingleRegister(address, value).timeout(responseTimeout);
-
-      // EKLE: Yazma başarılı logu
-      PLCEventLogger.instance.logWrite(address, value);
     } on TimeoutException {
-      // EKLE: Hata logu
-      PLCEventLogger.instance.logError(
-        'Register $address yazma hatası',
-        error: 'Timeout',
-      );
-
       throw PLCException(
         errorCode: PLCErrorCodes.responseTimeout,
         message: 'Yazma işlemi zaman aşımına uğradı',
       );
-    } catch (e) {
-      // EKLE: Hata logu
-      PLCEventLogger.instance.logError(
-        'Register $address yazma hatası',
-        error: e.toString(),
-      );
-
-      rethrow;
     }
   }
 
@@ -443,7 +335,7 @@ class ModbusPLCClient implements PlcClient {
     }
 
     try {
-      await readRegister(_regHeartbeat);
+      await readRegister(regHeartbeat);
       return true;
     } catch (e) {
       _log('⚠ Health check başarısız: $e');
@@ -519,14 +411,4 @@ class ModbusPLCClient implements PlcClient {
 
   @override
   bool get isConnected => _isConnected && _client != null;
-
-  // ✅ DEBUG: Config'i yazdır
-  void printConfig() {
-    if (_config == null) {
-      _log('Config henüz yüklenmedi');
-      return;
-    }
-
-    _configLoader.printConfigInfo();
-  }
 }

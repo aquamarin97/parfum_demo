@@ -1,6 +1,8 @@
-// app.dart file
+// lib/app.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:parfume_app/plc/debug/hidden_button.dart';  // ← EKLE
+import 'package:parfume_app/plc/admin/admin_panel_screen.dart';  // ← EKLE
 
 import 'i18n/rtl_support.dart';
 import 'ui/components/language_switcher.dart';
@@ -30,6 +32,7 @@ class AppRoot extends StatelessWidget {
       builder: (context, viewModel, _) {
         final router = const AppRouter();
         final textDirection = RtlSupport.textDirection(viewModel.language);
+        
         return Listener(
           onPointerDown: (_) => viewModel.onUserInteraction(),
           child: PopScope(
@@ -39,18 +42,12 @@ class AppRoot extends StatelessWidget {
               child: Scaffold(
                 body: Stack(
                   children: [
-                    // Positioned.fill(
-                    //   child: viewModel.initialized
-                    //       ? ResultScreen(
-                    //           viewModel: viewModel,
-                    //         ) // router.build(viewModel) yerine bunu yazdık
-                    //       : const Center(child: CircularProgressIndicator()),
-                    // ),
                     Positioned.fill(
                       child: viewModel.initialized
                           ? router.build(viewModel)
                           : const Center(child: CircularProgressIndicator()),
                     ),
+                    
                     Positioned(
                       right: 30,
                       bottom: 30,
@@ -58,6 +55,19 @@ class AppRoot extends StatelessWidget {
                         selected: viewModel.language,
                         onSelect: viewModel.changeLanguage,
                       ),
+                    ),
+                    
+                    // ✅ GİZLİ ADMIN BUTON (Sol alt köşe)
+                    HiddenAdminButton(
+                      onAccessGranted: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AdminPanelScreen(
+                              plcService: viewModel.plcService,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
