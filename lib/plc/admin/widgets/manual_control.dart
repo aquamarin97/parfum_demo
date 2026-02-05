@@ -4,7 +4,16 @@ import 'package:parfume_app/plc/plc_service_manager.dart';
 import 'package:parfume_app/plc/modbus_plc_client.dart';
 import 'package:parfume_app/plc/admin/models/plc_event.dart';
 
-/// Manuel register okuma/yazma widget
+/// Kiosk/32" uyumlu sabit renk & boyut sistemi (RegisterMonitor ile aynı)
+const Color kBgDark = Color(0xFF0B1020);
+const Color kCardBg = Color(0xFF141A2E);
+const Color kPrimaryText = Colors.white;
+const Color kSecondaryText = Color(0xFFB9C0D4);
+const Color kAccent = Color(0xFF4DA3FF);
+const Color kLiveGreen = Color(0xFF4CAF50);
+const Color kDangerRed = Color(0xFFE53935);
+const Color kWarnOrange = Color(0xFFFB8C00);
+
 class ManualControl extends StatefulWidget {
   const ManualControl({
     super.key,
@@ -47,22 +56,22 @@ class _ManualControlState extends State<ManualControl> {
     });
 
     try {
-      // ModbusPLCClient'tan direkt oku
       final client = widget.plcService;
-      
+
       // TODO: Direct read metodunu çağır
       // Şimdilik mock
       await Future.delayed(const Duration(milliseconds: 500));
-      final value = 42; // Mock value
-      
+      final value = 42;
+
       setState(() {
-        _lastResult = 'Register $register = $value';
+        _lastResult = 'Register R$register = $value';
       });
-      
+
       PLCEventLogger.instance.logRead(register, value);
     } catch (e) {
       _showError('Okuma hatası: $e');
-      PLCEventLogger.instance.logError('Register $register okuma hatası', error: e.toString());
+      PLCEventLogger.instance
+          .logError('Register $register okuma hatası', error: e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -97,26 +106,46 @@ class _ManualControlState extends State<ManualControl> {
       return;
     }
 
-    // Onay dialog
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(
-          'Yazma Onayı',
-          style: TextStyle(fontSize: 28),
+        backgroundColor: kCardBg,
+        titleTextStyle: const TextStyle(
+          fontSize: 40,
+          fontWeight: FontWeight.w900,
+          color: kPrimaryText,
         ),
+        contentTextStyle: const TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w600,
+          color: kSecondaryText,
+        ),
+        title: const Text('Yazma Onayı'),
         content: Text(
-          'Register $register\'a değer $value yazılacak. Emin misiniz?',
-          style: const TextStyle(fontSize: 20),
+          'Register R$register\'a değer $value yazılacak.\nEmin misiniz?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('İptal', style: TextStyle(fontSize: 20)),
+            child: const Text(
+              'İptal',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.w800,
+                color: kSecondaryText,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Yaz', style: TextStyle(fontSize: 20)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kWarnOrange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+              textStyle:
+                  const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+            ),
+            child: const Text('Yaz'),
           ),
         ],
       ),
@@ -130,21 +159,21 @@ class _ManualControlState extends State<ManualControl> {
     });
 
     try {
-      // ModbusPLCClient'tan direkt yaz
       final client = widget.plcService;
-      
+
       // TODO: Direct write metodunu çağır
       // Şimdilik mock
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       setState(() {
-        _lastResult = 'Register $register = $value (yazıldı)';
+        _lastResult = 'Register R$register = $value (yazıldı)';
       });
-      
+
       PLCEventLogger.instance.logWrite(register, value);
     } catch (e) {
       _showError('Yazma hatası: $e');
-      PLCEventLogger.instance.logError('Register $register yazma hatası', error: e.toString());
+      PLCEventLogger.instance
+          .logError('Register $register yazma hatası', error: e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -155,8 +184,11 @@ class _ManualControlState extends State<ManualControl> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(fontSize: 20)),
-        backgroundColor: Colors.red,
+        backgroundColor: kDangerRed,
+        content: Text(
+          message,
+          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+        ),
       ),
     );
   }
@@ -170,157 +202,214 @@ class _ManualControlState extends State<ManualControl> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Manuel Kontrol',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        
-        const SizedBox(height: 16),
-
-        // Register input
-        TextField(
-          controller: _registerController,
-          keyboardType: TextInputType.number,
-          style: const TextStyle(fontSize: 24),
-          decoration: const InputDecoration(
-            labelText: 'Register Adresi (0-65535)',
-            labelStyle: TextStyle(fontSize: 20),
-            border: OutlineInputBorder(),
-            prefixText: 'R',
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Value input (for write)
-        TextField(
-          controller: _valueController,
-          keyboardType: TextInputType.number,
-          style: const TextStyle(fontSize: 24),
-          decoration: const InputDecoration(
-            labelText: 'Değer (0-65535)',
-            labelStyle: TextStyle(fontSize: 20),
-            border: OutlineInputBorder(),
-          ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // Buttons
-        Row(
+    return Container(
+      color: kBgDark,
+      padding: const EdgeInsets.all(12),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _readRegister,
-                icon: const Icon(Icons.download, size: 28),
-                label: const Text(
-                  'Oku',
-                  style: TextStyle(fontSize: 24),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
-                ),
+            const Text(
+              'Manuel Kontrol',
+              style: TextStyle(
+                fontSize: 42,
+                fontWeight: FontWeight.w900,
+                color: kPrimaryText,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _writeRegister,
-                icon: const Icon(Icons.upload, size: 28),
-                label: const Text(
-                  'Yaz',
-                  style: TextStyle(fontSize: 24),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.orange,
-                ),
-              ),
+
+            const SizedBox(height: 18),
+
+            // Register input
+            _BigField(
+              controller: _registerController,
+              labelText: 'Register Adresi (0-65535)',
+              prefixText: 'R',
             ),
-          ],
-        ),
 
-        const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
-        // Loading indicator
-        if (_isLoading)
-          const Center(
-            child: CircularProgressIndicator(),
-          ),
-
-        // Result
-        if (_lastResult != null && !_isLoading)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.green),
+            // Value input
+            _BigField(
+              controller: _valueController,
+              labelText: 'Değer (0-65535)',
             ),
-            child: Row(
+
+            const SizedBox(height: 22),
+
+            // Buttons
+            Row(
               children: [
-                const Icon(Icons.check_circle, color: Colors.green, size: 32),
-                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    _lastResult!,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _readRegister,
+                    icon: const Icon(Icons.download, size: 48),
+                    label: const Text(
+                      'Oku',
+                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      backgroundColor: kAccent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: kAccent.withOpacity(0.35),
+                      disabledForegroundColor: Colors.white70,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _writeRegister,
+                    icon: const Icon(Icons.upload, size: 48),
+                    label: const Text(
+                      'Yaz',
+                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      backgroundColor: kWarnOrange,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: kWarnOrange.withOpacity(0.35),
+                      disabledForegroundColor: Colors.white70,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
 
-        const SizedBox(height: 24),
+            const SizedBox(height: 22),
 
-        // Quick actions
-        const Text(
-          'Hızlı İşlemler:',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        
-        const SizedBox(height: 8),
+            if (_isLoading)
+              const Center(
+                child: SizedBox(
+                  width: 64,
+                  height: 64,
+                  child: CircularProgressIndicator(strokeWidth: 6),
+                ),
+              ),
 
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _QuickActionChip(
-              label: 'R0 (Öneri 1)',
-              onTap: () => _registerController.text = '0',
+            if (_lastResult != null && !_isLoading) ...[
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: kLiveGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: kLiveGreen, width: 2),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle,
+                        color: kLiveGreen, size: 52),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        _lastResult!,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: kPrimaryText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 26),
+
+            const Text(
+              'Hızlı İşlemler:',
+              style: TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.w900,
+                color: kPrimaryText,
+              ),
             ),
-            _QuickActionChip(
-              label: 'R10 (Tester)',
-              onTap: () => _registerController.text = '10',
-            ),
-            _QuickActionChip(
-              label: 'R20 (Ödeme)',
-              onTap: () => _registerController.text = '20',
-            ),
-            _QuickActionChip(
-              label: 'R30 (Parfüm)',
-              onTap: () => _registerController.text = '30',
-            ),
-            _QuickActionChip(
-              label: 'R100 (Heartbeat)',
-              onTap: () => _registerController.text = '100',
+
+            const SizedBox(height: 12),
+
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _QuickActionChip(
+                  label: 'R0 (Öneri 1)',
+                  onTap: () => setState(() => _registerController.text = '0'),
+                ),
+                _QuickActionChip(
+                  label: 'R10 (Tester)',
+                  onTap: () => setState(() => _registerController.text = '10'),
+                ),
+                _QuickActionChip(
+                  label: 'R20 (Ödeme)',
+                  onTap: () => setState(() => _registerController.text = '20'),
+                ),
+                _QuickActionChip(
+                  label: 'R30 (Parfüm)',
+                  onTap: () => setState(() => _registerController.text = '30'),
+                ),
+                _QuickActionChip(
+                  label: 'R100 (Heartbeat)',
+                  onTap: () => setState(() => _registerController.text = '100'),
+                ),
+              ],
             ),
           ],
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _BigField extends StatelessWidget {
+  const _BigField({
+    required this.controller,
+    required this.labelText,
+    this.prefixText,
+  });
+
+  final TextEditingController controller;
+  final String labelText;
+  final String? prefixText;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(
+        fontSize: 34,
+        fontWeight: FontWeight.w800,
+        color: kPrimaryText,
+      ),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: kCardBg,
+        labelText: labelText,
+        labelStyle: const TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          color: kSecondaryText,
+        ),
+        prefixText: prefixText,
+        prefixStyle: const TextStyle(
+          fontSize: 34,
+          fontWeight: FontWeight.w900,
+          color: kAccent,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: kSecondaryText.withOpacity(0.35), width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: kAccent, width: 3),
+        ),
+      ),
     );
   }
 }
@@ -337,11 +426,19 @@ class _QuickActionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActionChip(
+      backgroundColor: kCardBg,
+      side: BorderSide(color: kSecondaryText.withOpacity(0.25), width: 2),
       label: Text(
         label,
-        style: const TextStyle(fontSize: 18),
+        style: const TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w800,
+          color: kPrimaryText,
+        ),
       ),
       onPressed: onTap,
+      avatar: const Icon(Icons.flash_on, size: 34, color: kAccent),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }
 }

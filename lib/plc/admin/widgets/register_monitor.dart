@@ -4,12 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:parfume_app/plc/plc_service_manager.dart';
 import 'package:parfume_app/plc/config/register_config.dart';
 
+/// Kiosk/32" uyumlu sabit renk & boyut sistemi
+const Color kBgDark = Color(0xFF0B1020);
+const Color kCardBg = Color(0xFF141A2E);
+const Color kPrimaryText = Colors.white;
+const Color kSecondaryText = Color(0xFFB9C0D4);
+const Color kAccent = Color(0xFF4DA3FF);
+const Color kLiveGreen = Color(0xFF4CAF50);
+
 /// Canlı register monitoring widget
 class RegisterMonitor extends StatefulWidget {
-  const RegisterMonitor({
-    super.key,
-    required this.plcService,
-  });
+  const RegisterMonitor({super.key, required this.plcService});
 
   final PLCServiceManager plcService;
 
@@ -32,12 +37,7 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
   }
 
   void _loadWatchedRegisters() {
-    // Config'den önemli register'ları al
     if (widget.plcService.isConnected) {
-      final client = widget.plcService;
-      // ModbusPLCClient'tan config al
-      // TODO: Config access metodunu ekle
-      
       // Şimdilik hard-coded önemli register'lar
       _watchedRegisters = [
         RegisterAddress(
@@ -87,11 +87,13 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
         _pollRegisters();
       }
     });
+    if (mounted) setState(() {});
   }
 
   void _stopPolling() {
     _isPolling = false;
     _pollTimer?.cancel();
+    if (mounted) setState(() {});
   }
 
   Future<void> _pollRegisters() async {
@@ -99,14 +101,17 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
 
     try {
       final client = widget.plcService;
-      
-      // Her watched register'ı oku
+
+      // TODO: Direct read metodunu ekleyince burayı aktif edeceksin.
+      // Şimdilik örnek amaçlı "skip".
       for (final reg in _watchedRegisters) {
         if (reg.isReadable) {
           try {
-            // ModbusPLCClient'tan oku
-            // TODO: Direct read metodunu ekle
-            // Şimdilik skip
+            // final val = await client.readRegister(reg.address);
+            // setState(() {
+            //   _registerValues[reg.address] = val;
+            //   _lastUpdate[reg.address] = DateTime.now();
+            // });
           } catch (e) {
             debugPrint('Register ${reg.address} okuma hatası: $e');
           }
@@ -125,138 +130,176 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Register Monitor',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+    return Container(
+      color: kBgDark,
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Register Monitor',
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  color: kPrimaryText,
+                ),
               ),
-            ),
-            Row(
-              children: [
-                Text(
-                  _isPolling ? '● LIVE' : '○ STOPPED',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: _isPolling ? Colors.green : Colors.grey,
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  Text(
+                    _isPolling ? '● LIVE' : '○ STOPPED',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: _isPolling ? kLiveGreen : kSecondaryText,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(_isPolling ? Icons.pause : Icons.play_arrow),
-                  onPressed: () {
-                    setState(() {
-                      if (_isPolling) {
-                        _stopPolling();
-                      } else {
-                        _startPolling();
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // Register list
-        Expanded(
-          child: _watchedRegisters.isEmpty
-              ? const Center(
-                  child: Text(
-                    'PLC bağlı değil veya register bulunamadı',
-                    style: TextStyle(fontSize: 20, color: Colors.grey),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    iconSize: 48,
+                    color: kPrimaryText,
+                    icon: Icon(_isPolling ? Icons.pause : Icons.play_arrow),
+                    onPressed: () {
+                      setState(() {
+                        _isPolling ? _stopPolling() : _startPolling();
+                      });
+                    },
                   ),
-                )
-              : ListView.builder(
-                  itemCount: _watchedRegisters.length,
-                  itemBuilder: (context, index) {
-                    final reg = _watchedRegisters[index];
-                    final value = _registerValues[reg.address];
-                    final lastUpdate = _lastUpdate[reg.address];
-                    
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        leading: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Register list
+          Expanded(
+            child: _watchedRegisters.isEmpty
+                ? const Center(
+                    child: Text(
+                      'PLC bağlı değil veya register bulunamadı',
+                      style: TextStyle(
+                        fontSize: 40,
+                        color: kSecondaryText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _watchedRegisters.length,
+                    itemBuilder: (context, index) {
+                      final reg = _watchedRegisters[index];
+                      final value = _registerValues[reg.address];
+                      final lastUpdate = _lastUpdate[reg.address];
+
+                      return Card(
+                        color: kCardBg,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          isThreeLine: true,
+                          minVerticalPadding: 16,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
                           ),
-                          child: Center(
-                            child: Text(
-                              'R${reg.address}',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
+
+                          leading: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: kAccent.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                        ),
-                        title: Text(
-                          reg.description,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${reg.fullPath} (${reg.type.toJson()})',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              value?.toString() ?? '--',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            if (lastUpdate != null)
-                              Text(
-                                _formatTime(lastUpdate),
+                            child: Center(
+                              child: Text(
+                                'R${reg.address}',
                                 style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  color: kAccent,
                                 ),
                               ),
-                          ],
+                            ),
+                          ),
+
+                          title: Text(
+                            reg.description,
+                            style: const TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w700,
+                              color: kPrimaryText,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          subtitle: Text(
+                            '${reg.fullPath} (${reg.type.toJson()})',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              color: kSecondaryText,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          // 🔥 Overflow’un asıl çıktığı yer burası
+                          trailing: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 120),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min, // <-- kritik
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  value?.toString() ?? '--',
+                                  style: const TextStyle(
+                                    fontSize: 44,
+                                    fontWeight: FontWeight.w900,
+                                    color: kPrimaryText,
+                                    height: 1.0,
+                                  ),
+                                ),
+                                if (lastUpdate != null)
+                                  Text(
+                                    _formatTime(lastUpdate),
+                                    style: const TextStyle(
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.w700,
+                                      color: kSecondaryText,
+                                      height: 1.0,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
-    
+
     if (diff.inSeconds < 60) {
-      return '${diff.inSeconds}s ago';
+      return '- ${diff.inSeconds} sn';
     } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m ago';
+      return '- ${diff.inMinutes} dk';
     } else {
-      return '${time.hour}:${time.minute.toString().padLeft(2, '0')}';
+      return '${time.hour.toString().padLeft(2, '0')}:'
+          '${time.minute.toString().padLeft(2, '0')}:'
+          '${time.second.toString().padLeft(2, '0')}';
     }
   }
 }
