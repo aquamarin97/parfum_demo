@@ -129,8 +129,8 @@ class _QuestionScreenState extends State<QuestionScreen>
           children: [
             TopNavBar(
               title: widget.viewModel.progressLabel,
-              backLabel: strings.back,
-              cancelLabel: strings.cancel,
+              backLabel: strings.t('back'),
+              cancelLabel: strings.t('cancel'),
               onBack: widget.viewModel.goBackQuestion,
               onCancel: widget.viewModel.cancelToIdle,
               backEnabled: widget.viewModel.canGoBack,
@@ -164,6 +164,7 @@ class _QuestionScreenState extends State<QuestionScreen>
                         options: question.options,
                         selectedIndex: selection,
                         onSelect: widget.viewModel.answerCurrentQuestion,
+                        isRtl: widget.viewModel.language.isRtl,
                       ),
                     ],
                   ),

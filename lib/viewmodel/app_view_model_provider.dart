@@ -1,4 +1,6 @@
-// app_view_model_provider.dart file
+import 'dart:io';
+
+import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
 import '../core/logging/app_logger.dart';
@@ -9,8 +11,11 @@ import '../data/repositories/kvkk_repository.dart';
 import '../data/repositories/survey_repository.dart';
 import '../domain/engine/seeded_random_scoring_engine.dart';
 import '../domain/session/session_manager.dart';
-import '../viewmodel/app_view_model.dart';
+import '../i18n/language_registry.dart';
+import '../i18n/sources/asset_string_source.dart';
+import '../i18n/sources/filesystem_string_source.dart';
 import '../i18n/string_repository.dart';
+import '../viewmodel/app_view_model.dart';
 
 class AppViewModelProvider {
   static ChangeNotifierProvider<AppViewModel> create() {
@@ -18,7 +23,19 @@ class AppViewModelProvider {
     final prefs = PreferencesStore();
     final surveyRepo = SurveyRepository(loader);
     final kvkkRepo = KvkkRepository(loader);
-    final i18nRepo = I18nRepository(StringRepository(loader));
+
+    final registry = LanguageRegistry();
+
+    // Filesystem kaynağı: exe yanındaki i18n/ klasörü (USB güncelleme)
+    final exeDir = File(Platform.resolvedExecutable).parent.path;
+    final fsI18nPath = p.join(exeDir, 'i18n');
+
+    final stringRepo = StringRepository([
+      FilesystemStringSource(fsI18nPath), // Önce USB/filesystem
+      const AssetStringSource(),          // Sonra bundled asset
+    ]);
+
+    final i18nRepo = I18nRepository(stringRepo, registry);
     final sessionManager = SessionManager();
     final engine = SeededRandomScoringEngine();
     final logger = AppLogger();
@@ -32,6 +49,7 @@ class AppViewModelProvider {
         sessionManager: sessionManager,
         scoringEngine: engine,
         logger: logger,
+        languageRegistry: registry,
       )..initialize(),
     );
   }

@@ -20,7 +20,7 @@ class GiftCardQuestionView extends StatelessWidget {
         const SizedBox(height: 40),
         
         Text(
-          strings.giftCardQuestion, // ✅
+          strings.t('gift_card_question'),
           style: AppTextStyles.title.copyWith(
             fontFamily: 'NotoSans',
             fontWeight: FontWeight.bold,
@@ -34,7 +34,7 @@ class GiftCardQuestionView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             PrimaryButton(
-              label: strings.yes, // ✅
+              label: strings.t('yes'),
               onPressed: () => viewModel.onGiftCardAnswer(true),
               fontSize: 50,
               paddingHorizontal: 120,
@@ -53,7 +53,7 @@ class GiftCardQuestionView extends StatelessWidget {
                 side: const BorderSide(color: AppColors.border, width: 2),
               ),
               child: Text(
-                strings.no, // ✅
+                strings.t('no'),
                 style: AppTextStyles.body.copyWith(
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.w600,

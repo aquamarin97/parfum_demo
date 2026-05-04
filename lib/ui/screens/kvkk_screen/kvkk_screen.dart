@@ -73,7 +73,7 @@ class _KvkkScreenState extends State<KvkkScreen> {
             children: [
               Expanded(
                 child: PrimaryOutlinedButton(
-                  label: strings.cancel,
+                  label: strings.t('cancel'),
                   onPressed: widget.viewModel.cancelToIdle,
                   fontSize: 50,
                 ),

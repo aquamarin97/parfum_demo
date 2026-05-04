@@ -1,4 +1,3 @@
-// kvkk_text.dart file
 import 'language.dart';
 
 class KvkkTranslation {
@@ -19,9 +18,9 @@ class KvkkText {
   const KvkkText({required this.id, required this.translations});
 
   final String id;
-  final Map<Language, KvkkTranslation> translations;
+  final Map<String, KvkkTranslation> translations;
 
   KvkkTranslation translationFor(Language language) {
-    return translations[language] ?? translations.values.first;
+    return translations[language.code] ?? translations.values.first;
   }
 }

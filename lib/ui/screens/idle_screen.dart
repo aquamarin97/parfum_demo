@@ -104,7 +104,7 @@ class _IdleScreenState extends State<IdleScreen>
                       : CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.viewModel.strings.idleTitle_1,
+                      widget.viewModel.strings.t('idle_title_1'),
                       style: AppTextStyles.headline.copyWith(
                         fontFamily: 'NotoSans',
                         fontWeight: FontWeight.bold,
@@ -115,7 +115,7 @@ class _IdleScreenState extends State<IdleScreen>
                       TextSpan(
                         children: [
                           TextSpan(
-                            text: widget.viewModel.strings.idleTitle_2,
+                            text: widget.viewModel.strings.t('idle_title_2'),
                             style: AppTextStyles.headline.copyWith(
                               fontFamily: 'NotoSans',
                               fontWeight: FontWeight.bold,
@@ -125,7 +125,7 @@ class _IdleScreenState extends State<IdleScreen>
                             alignment: PlaceholderAlignment.baseline,
                             baseline: TextBaseline.alphabetic,
                             child: VentuseText(
-                              text: widget.viewModel.strings.brandName,
+                              text: widget.viewModel.strings.t('brand_name'),
                             ),
                           ),
                         ],
@@ -154,7 +154,7 @@ class _IdleScreenState extends State<IdleScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        widget.viewModel.strings.idleSubtitle,
+                        widget.viewModel.strings.t('idle_subtitle'),
                         textAlign: TextAlign.center,
                         style: AppTextStyles.title.copyWith(
                           fontFamily: 'NotoSans',
@@ -163,7 +163,7 @@ class _IdleScreenState extends State<IdleScreen>
                       ),
                       const SizedBox(height: 100),
                       PrimaryButton(
-                        label: widget.viewModel.strings.start,
+                        label: widget.viewModel.strings.t('start'),
                         onPressed: widget.viewModel.startKvkk,
                       ),
                       SizedBox(

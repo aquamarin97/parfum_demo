@@ -19,12 +19,12 @@ class ErrorScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(strings.errorTitle, style: AppTextStyles.title),
+            Text(strings.t('error_title'), style: AppTextStyles.title),
             const SizedBox(height: 16),
-            Text(strings.errorBody, style: AppTextStyles.body),
+            Text(strings.t('error_body'), style: AppTextStyles.body),
             const SizedBox(height: 24),
             PrimaryButton(
-              label: strings.backToStart,
+              label: strings.t('back_to_start'),
               onPressed: viewModel.resetToIdle,
             ),
           ],

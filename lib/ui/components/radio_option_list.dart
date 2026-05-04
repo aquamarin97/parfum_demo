@@ -10,11 +10,13 @@ class RadioOptionList extends StatefulWidget {
     required this.options,
     required this.selectedIndex,
     required this.onSelect,
+    this.isRtl = false,
   });
 
   final List<String> options;
   final int? selectedIndex;
   final ValueChanged<int> onSelect;
+  final bool isRtl;
 
   @override
   State<RadioOptionList> createState() => _RadioOptionListState();
@@ -55,10 +57,13 @@ class _RadioOptionListState extends State<RadioOptionList>
         ),
       );
 
+      // LTR: çift index sol sütun, tek index sağ sütun.
+      // RTL: Row çocukları ters sıralandığı için yönü de tersine alıyoruz.
       final isLeftSide = i % 2 == 0;
+      final xBegin = (isLeftSide ? -0.3 : 0.3) * (widget.isRtl ? -1.0 : 1.0);
       _slideAnimations.add(
         Tween<Offset>(
-          begin: Offset(isLeftSide ? -0.3 : 0.3, 0),
+          begin: Offset(xBegin, 0),
           end: Offset.zero,
         ).animate(
           CurvedAnimation(

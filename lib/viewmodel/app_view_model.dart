@@ -1,4 +1,3 @@
-// app_view_model.dart file
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -21,6 +20,7 @@ import '../domain/session/session_manager.dart';
 import '../domain/session/timeout_watcher.dart';
 import '../domain/state/app_state.dart';
 import '../domain/state/app_state_machine.dart';
+import '../i18n/language_registry.dart';
 
 class AppStrings {
   const AppStrings({required this.localeCode, required this.values});
@@ -28,49 +28,9 @@ class AppStrings {
   final String localeCode;
   final Map<String, String> values;
 
-  // Mevcut getter'lar
-  String get brandName => _value('brand_name');
-  String get idleTitle_1 => _value('idle_title_1');
-  String get idleTitle_2 => _value('idle_title_2');
-  String get idleSubtitle => _value('idle_subtitle');
-  String get start => _value('start');
-  String get cancel => _value('cancel');
-  String get back => _value('back');
-  String get loading => _value('loading');
-  String get resultTitle => _value('result_title');
-  String get recommendationLabel => _value('recommendation_label');
-  String get backToStart => _value('back_to_start');
-  String get errorTitle => _value('error_title');
-  String get errorBody => _value('error_body');
-
-  // ✅ Result ekranı için yeni getter'lar
-  String get fragranceRecommendationsSelected => _value('fragrance_recommendations_selected');
-  String get testersPreparing => _value('testers_preparing');
-  String get testersPrepared => _value('testers_prepared');
-  String get customerChoice => _value('customer_choice');
-  String get paymentWaiting => _value('payment_waiting');
-  String get paymentCompleted => _value('payment_completed');
-  String get paymentFailed => _value('payment_failed');
-  String get fragrancePreparing => _value('fragrance_preparing');
-  String get fragrancePrepared => _value('fragrance_prepared');
-  String get giftCardNotCreated => _value('gift_card_not_created');
-  
-  String get pleaseSelect => _value('please_select');
-  String get noPriceDifference => _value('no_price_difference');
-  String get priceLabel => _value('price_label');
-  String get retryOrCancel => _value('retry_or_cancel');
-  String get retryPayment => _value('retry_payment');
-  String get cancelPayment => _value('cancel_payment');
-  String get giftCardQuestion => _value('gift_card_question');
-  String get yes => _value('yes');
-  String get no => _value('no');
-  String get thankYouMessage => _value('thank_you_message');
-  String get goodbyeMessage => _value('goodbye_message');
-
-  String _value(String key) {
-    return values[key] ?? '[MISSING: $key]';
-  }
+  String t(String key) => values[key] ?? '[MISSING: $key]';
 }
+
 class AppViewModel extends ChangeNotifier {
   AppViewModel({
     required SurveyRepository surveyRepository,
@@ -80,6 +40,7 @@ class AppViewModel extends ChangeNotifier {
     required SessionManager sessionManager,
     required RecommendationEngine scoringEngine,
     required AppLogger logger,
+    required LanguageRegistry languageRegistry,
   })  : _surveyRepository = surveyRepository,
         _kvkkRepository = kvkkRepository,
         _i18nRepository = i18nRepository,
@@ -87,6 +48,7 @@ class AppViewModel extends ChangeNotifier {
         _sessionManager = sessionManager,
         _scoringEngine = scoringEngine,
         _logger = logger,
+        _languageRegistry = languageRegistry,
         _stateMachine = AppStateMachine() {
     _initializePLC();
   }
@@ -99,15 +61,16 @@ class AppViewModel extends ChangeNotifier {
   final RecommendationEngine _scoringEngine;
   final AppLogger _logger;
   final AppStateMachine _stateMachine;
+  final LanguageRegistry _languageRegistry;
 
-  // ✅ PLC
   late final PLCServiceManager _plcService;
   PLCServiceManager get plcService => _plcService;
 
   Survey? _survey;
   KvkkText? _kvkkText;
-  Map<Language, Map<String, String>> _stringMap = {};
-  Language _language = Language.tr;
+  Map<String, Map<String, String>> _stringMap = {};
+  // _setup() çalışana kadar geçici yer tutucu; registry yüklendikten sonra güncellenir.
+  Language _language = const Language(code: 'tr', label: 'TR');
   Map<int, int> _answers = {};
   Map<int, int> _scores = {};
   Recommendation _recommendation = Recommendation(topIds: []);
@@ -119,13 +82,23 @@ class AppViewModel extends ChangeNotifier {
   AppState get state => _stateMachine.state;
   Language get language => _language;
   bool get initialized => _initialized;
+  List<Language> get availableLanguages => _languageRegistry.available;
 
-  AppStrings get strings => AppStrings(
-        localeCode: _language.code,
-        values: _stringMap[_language] ?? {},
-      );
+  AppStrings get strings {
+    final values = _stringMap[_language.code];
+    if (values != null && values.isNotEmpty) {
+      return AppStrings(localeCode: _language.code, values: values);
+    }
+    // Seçilen dilin çeviri dosyası yoksa listedeki ilk dile düş.
+    final fallbackCode = _languageRegistry.available.isNotEmpty
+        ? _languageRegistry.available.first.code
+        : 'tr';
+    return AppStrings(
+      localeCode: _language.code,
+      values: _stringMap[fallbackCode] ?? {},
+    );
+  }
 
-  // --- PLC init + error handling ---
   Future<void> _initializePLC() async {
     _plcService = PLCServiceManager(
       autoConnect: true,
@@ -136,7 +109,6 @@ class AppViewModel extends ChangeNotifier {
   void _handlePLCError(PLCException error) {
     _logger.log('PLC Error: ${error.errorCode} - ${error.message}');
 
-    // Critical error'larda error state'e geç
     if (error.errorCode == PLCErrorCodes.connectionFailed ||
         error.errorCode == PLCErrorCodes.connectionLost) {
       _setState(PLCErrorState(error));
@@ -171,7 +143,6 @@ class AppViewModel extends ChangeNotifier {
     _setup();
   }
 
-  // app_view_model.dart içinde güncelleme
   void goToResult() {
     _recommendation = Recommendation.mock();
     _setState(ResultState(_recommendation));
@@ -179,7 +150,11 @@ class AppViewModel extends ChangeNotifier {
 
   Future<void> _setup() async {
     try {
-      _language = await _preferencesStore.readLanguage() ?? Language.tr;
+      await _languageRegistry.load();
+      final savedCode = await _preferencesStore.readLanguageCode();
+      _language = _languageRegistry.findByCode(
+        savedCode ?? _languageRegistry.available.first.code,
+      );
       await _preferencesStore.readOrCreateDeviceId();
       _survey = await _surveyRepository.loadSurvey();
       _kvkkText = await _kvkkRepository.loadKvkk();
@@ -295,12 +270,7 @@ class AppViewModel extends ChangeNotifier {
   void dispose() {
     _loadingTimer?.cancel();
     _resultTimer?.cancel();
-    _timeoutWatcher?.stop();  
-
-    // PLC tarafında dispose/close varsa çağır (sende hangi isim varsa ona göre düzenle)
-    // _plcService.dispose();
-    // veya: _plcService.close();
-
+    _timeoutWatcher?.stop();
     super.dispose();
   }
 }

@@ -1,4 +1,3 @@
-// result_view_model.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
@@ -7,9 +6,7 @@ import 'models/result_flow_state.dart';
 import 'models/timeline_message.dart';
 
 class ResultViewModel extends ChangeNotifier {
-  ResultViewModel({required this.appViewModel}) {
-    _startFlow();
-  }
+  ResultViewModel({required this.appViewModel});
 
   final AppViewModel appViewModel;
 
@@ -21,7 +18,6 @@ class ResultViewModel extends ChangeNotifier {
   final ValueNotifier<int> timerNotifier = ValueNotifier<int>(300);
   bool _shouldAnimate = false;
 
-  // Getters
   ResultFlowState get currentState => _currentState;
   int? get selectedTester => _selectedTester;
   List<TimelineMessage> get messages => List.unmodifiable(_messages);
@@ -29,23 +25,69 @@ class ResultViewModel extends ChangeNotifier {
   bool get shouldAnimate => _shouldAnimate;
   AppStrings get strings => appViewModel.strings;
 
-  // ✅ Protected setters (child class'lar için)
   @protected
   set selectedTester(int? value) => _selectedTester = value;
-  
+
   @protected
   set shouldAnimate(bool value) => _shouldAnimate = value;
 
-  // Public methods...
-  void onTesterSelected(int index) { /* mevcut kod */ }
-  void onPaymentComplete() { /* mevcut kod */ }
-  void onPaymentError() { /* mevcut kod */ }
-  void retryPayment() { /* mevcut kod */ }
-  void onGiftCardAnswer(bool wantsCard) { /* mevcut kod */ }
-  void cancelToIdle() { /* mevcut kod */ }
-  void clearAnimationFlag() { /* mevcut kod */ }
+  // --- Public methods (PLC subclass gerektiğinde override eder) ---
 
-  // ✅ Protected methods (child class'lar override edebilir)
+  void onTesterSelected(int index) {
+    selectedTester = index;
+    shouldAnimate = false;
+    notifyListeners();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      addMessage(
+        "${strings.t('customer_choice')}${topIds[index]}",
+        TimelineMessageStatus.completed,
+      );
+      Future.delayed(const Duration(milliseconds: 300), () {
+        addMessage(strings.t('payment_waiting'), TimelineMessageStatus.active);
+        transitionToState(ResultFlowState.waitingPayment);
+        startTimer(300);
+      });
+    });
+  }
+
+  void onPaymentComplete() {
+    cancelTimer();
+    updateLastMessage(strings.t('payment_completed'), TimelineMessageStatus.completed);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      addMessage(strings.t('fragrance_preparing'), TimelineMessageStatus.active);
+      transitionToState(ResultFlowState.preparingPerfume);
+      Future.delayed(const Duration(seconds: 3), _onPerfumeReady);
+    });
+  }
+
+  void onPaymentError() {
+    cancelTimer();
+    updateLastMessage(strings.t('payment_failed'), TimelineMessageStatus.error);
+    transitionToState(ResultFlowState.paymentError);
+  }
+
+  void retryPayment() {
+    updateLastMessage(strings.t('payment_waiting'), TimelineMessageStatus.active);
+    transitionToState(ResultFlowState.waitingPayment);
+    startTimer(300);
+  }
+
+  void onGiftCardAnswer(bool wantsCard) {
+    transitionToState(ResultFlowState.thankYou);
+  }
+
+  void cancelToIdle() {
+    appViewModel.cancelToIdle();
+  }
+
+  void clearAnimationFlag() {
+    _shouldAnimate = false;
+    // notifyListeners çağrılmaz — sadece flag sıfırlanır, yeni render tetiklenmez.
+  }
+
+  // --- Protected helpers ---
+
   @protected
   void transitionToState(ResultFlowState newState) {
     _currentState = newState;
@@ -90,13 +132,13 @@ class ResultViewModel extends ChangeNotifier {
     _timer?.cancel();
   }
 
-  // Private methods (child class'lar erişemez)
-  void _startFlow() { /* mevcut kod */ }
-  void _sendToPLC() { /* mevcut kod */ }
-  void _onTestersPreparing() { /* mevcut kod */ }
-  void _onTestersReady() { /* mevcut kod */ }
-  void _onPerfumeReady() { /* mevcut kod */ }
-  void _showThankYou() { /* mevcut kod */ }
+  void _onPerfumeReady() {
+    updateLastMessage(strings.t('fragrance_prepared'), TimelineMessageStatus.completed);
+    transitionToState(ResultFlowState.perfumeReady);
+    Future.delayed(const Duration(seconds: 2), () {
+      transitionToState(ResultFlowState.giftCardQuestion);
+    });
+  }
 
   @override
   void dispose() {

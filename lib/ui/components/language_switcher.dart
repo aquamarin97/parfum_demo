@@ -1,4 +1,3 @@
-// language_switcher.dart file
 import 'package:flutter/material.dart';
 
 import '../../data/models/language.dart';
@@ -8,10 +7,12 @@ class LanguageSwitcher extends StatelessWidget {
   const LanguageSwitcher({
     super.key,
     required this.selected,
+    required this.available,
     required this.onSelect,
   });
 
   final Language selected;
+  final List<Language> available;
   final ValueChanged<Language> onSelect;
 
   @override
@@ -33,14 +34,15 @@ class LanguageSwitcher extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         textDirection: TextDirection.ltr,
-        children: Language.values.map((language) {
+        children: available.map((language) {
           final isSelected = language == selected;
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 backgroundColor: isSelected ? AppColors.primary : null,
-                foregroundColor: isSelected ? Colors.white : AppColors.textPrimary,
+                foregroundColor:
+                    isSelected ? Colors.white : AppColors.textPrimary,
                 side: BorderSide(
                   color: isSelected ? AppColors.primary : AppColors.border,
                 ),

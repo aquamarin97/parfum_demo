@@ -24,7 +24,7 @@ class PaymentErrorView extends StatelessWidget {
         const SizedBox(height: 10),
 
         Text(
-          strings.retryOrCancel, // ✅
+          strings.t('retry_or_cancel'),
           style: AppTextStyles.title.copyWith(
             fontFamily: 'NotoSans',
             fontWeight: FontWeight.bold,
@@ -38,7 +38,7 @@ class PaymentErrorView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             PrimaryButton(
-              label: strings.retryPayment, // ✅
+              label: strings.t('retry_payment'),
               onPressed: viewModel.retryPayment,
               fontSize: 50,
               paddingHorizontal: 48,
@@ -57,7 +57,7 @@ class PaymentErrorView extends StatelessWidget {
                 side: const BorderSide(color: AppColors.border, width: 2),
               ),
               child: Text(
-                strings.cancelPayment, // ✅
+                strings.t('cancel_payment'),
                 style: AppTextStyles.body.copyWith(
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.w600,

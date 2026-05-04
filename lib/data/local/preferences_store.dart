@@ -1,4 +1,3 @@
-// preferences_store.dart file
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,13 +9,9 @@ class PreferencesStore {
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
-  Future<Language?> readLanguage() async {
+  Future<String?> readLanguageCode() async {
     final prefs = await _prefs;
-    final code = prefs.getString(_keyLanguage);
-    return Language.values.firstWhere(
-      (lang) => lang.code == code,
-      orElse: () => Language.tr,
-    );
+    return prefs.getString(_keyLanguage);
   }
 
   Future<void> saveLanguage(Language language) async {

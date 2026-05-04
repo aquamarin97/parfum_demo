@@ -28,7 +28,7 @@ class LoadingScreen extends StatelessWidget {
             // ),
             const SizedBox(height: 28),
             Text(
-              viewModel.strings.loading,
+              viewModel.strings.t('loading'),
               style: AppTextStyles.title,
               textAlign: TextAlign.center,
             ),

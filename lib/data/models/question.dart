@@ -1,4 +1,3 @@
-// question.dart file
 import 'language.dart';
 
 class QuestionTranslation {
@@ -12,9 +11,9 @@ class SurveyQuestion {
   const SurveyQuestion({required this.id, required this.translations});
 
   final int id;
-  final Map<Language, QuestionTranslation> translations;
+  final Map<String, QuestionTranslation> translations;
 
   QuestionTranslation translationFor(Language language) {
-    return translations[language] ?? translations.values.first;
+    return translations[language.code] ?? translations.values.first;
   }
 }

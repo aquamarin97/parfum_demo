@@ -48,7 +48,7 @@ class ThankYouView extends StatelessWidget {
                     const SizedBox(height: 32),
 
                     Text(
-                      strings.thankYouMessage, // ✅
+                      strings.t('thank_you_message'),
                       style: AppTextStyles.title.copyWith(
                         fontFamily: 'NotoSans',
                         fontWeight: FontWeight.bold,
@@ -61,7 +61,7 @@ class ThankYouView extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     Text(
-                      strings.goodbyeMessage, // ✅
+                      strings.t('goodbye_message'),
                       style: AppTextStyles.body.copyWith(
                         fontFamily: 'NotoSans',
                         fontSize: 40,

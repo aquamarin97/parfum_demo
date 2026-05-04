@@ -30,7 +30,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
       
       // Mock flow (PLC olmadan test için)
       addMessage(
-        '${strings.fragranceRecommendationsSelected} (Mock Mode)',
+        '${strings.t('fragrance_recommendations_selected')} (Mock Mode)',
         TimelineMessageStatus.completed,
       );
 
@@ -42,7 +42,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
     // Normal PLC flow
     addMessage(
-      strings.fragranceRecommendationsSelected,
+      strings.t('fragrance_recommendations_selected'),
       TimelineMessageStatus.completed,
     );
 
@@ -59,7 +59,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
     Future.delayed(const Duration(milliseconds: 500), () async {
       addMessage(
-        "${strings.customerChoice}${topIds[index]}",
+        "${strings.t('customer_choice')}${topIds[index]}",
         TimelineMessageStatus.completed,
       );
 
@@ -75,7 +75,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
       }
 
       Future.delayed(const Duration(milliseconds: 300), () {
-        addMessage(strings.paymentWaiting, TimelineMessageStatus.active);
+        addMessage(strings.t('payment_waiting'), TimelineMessageStatus.active);
         transitionToState(ResultFlowState.waitingPayment);
         startTimer(300);
         _watchPaymentStatus();
@@ -86,10 +86,10 @@ class ResultViewModelWithPLC extends ResultViewModel {
   @override
   void onPaymentComplete() {
     cancelTimer();
-    updateLastMessage(strings.paymentCompleted, TimelineMessageStatus.completed);
+    updateLastMessage(strings.t('payment_completed'), TimelineMessageStatus.completed);
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      addMessage(strings.fragrancePreparing, TimelineMessageStatus.active);
+      addMessage(strings.t('fragrance_preparing'), TimelineMessageStatus.active);
       transitionToState(ResultFlowState.preparingPerfume);
       _watchPerfumeReady();
     });
@@ -97,7 +97,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
   @override
   void retryPayment() {
-    updateLastMessage(strings.paymentWaiting, TimelineMessageStatus.active);
+    updateLastMessage(strings.t('payment_waiting'), TimelineMessageStatus.active);
     transitionToState(ResultFlowState.waitingPayment);
     startTimer(300);
     _watchPaymentStatus();
@@ -125,7 +125,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
   }
 
   void _onTestersPreparing() {
-    addMessage(strings.testersPreparing, TimelineMessageStatus.active);
+    addMessage(strings.t('testers_preparing'), TimelineMessageStatus.active);
     transitionToState(ResultFlowState.preparingTesters);
 
     // PLC'den tester hazır sinyali bekle (veya mock)
@@ -157,7 +157,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
   void _onTestersReady() {
     _plcSubscription?.cancel();
-    updateLastMessage(strings.testersPrepared, TimelineMessageStatus.completed);
+    updateLastMessage(strings.t('testers_prepared'), TimelineMessageStatus.completed);
     transitionToState(ResultFlowState.testersReady);
     startTimer(300);
   }
@@ -211,7 +211,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
   void _onPerfumeReady() {
     _plcSubscription?.cancel();
-    updateLastMessage(strings.fragrancePrepared, TimelineMessageStatus.completed);
+    updateLastMessage(strings.t('fragrance_prepared'), TimelineMessageStatus.completed);
     transitionToState(ResultFlowState.perfumeReady);
 
     Future.delayed(const Duration(seconds: 2), () {

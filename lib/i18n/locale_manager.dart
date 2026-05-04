@@ -1,13 +1,10 @@
-// locale_manager.dart file
 import '../data/models/language.dart';
+import 'language_registry.dart';
 
 class LocaleManager {
-  const LocaleManager();
+  const LocaleManager(this._registry);
 
-  Language fromCode(String code) {
-    return Language.values.firstWhere(
-      (lang) => lang.code == code,
-      orElse: () => Language.tr,
-    );
-  }
+  final LanguageRegistry _registry;
+
+  Language fromCode(String code) => _registry.findByCode(code);
 }

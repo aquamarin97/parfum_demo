@@ -65,7 +65,7 @@ class PLCErrorScreen extends StatelessWidget {
 
               // Error title
               Text(
-                strings.errorTitle,
+                strings.t('error_title'),
                 style: AppTextStyles.title.copyWith(
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.bold,
@@ -153,7 +153,7 @@ class PLCErrorScreen extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          strings.backToStart,
+                          strings.t('back_to_start'),
                           style: AppTextStyles.body.copyWith(
                             fontFamily: 'NotoSans',
                             fontSize: 45, // 50 → 45

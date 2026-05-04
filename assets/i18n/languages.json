@@ -1,0 +1,6 @@
+[
+  {"code": "tr", "label": "TR", "rtl": false},
+  {"code": "en", "label": "EN", "rtl": false},
+  {"code": "fr", "label": "FR", "rtl": false},
+  {"code": "ar", "label": "AR", "rtl": true}
+]

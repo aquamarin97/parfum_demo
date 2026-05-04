@@ -28,7 +28,7 @@ class TestersReadyView extends StatelessWidget {
         const SizedBox(height: 40),
         
         Text(
-          strings.pleaseSelect, // ✅
+          strings.t('please_select'),
           style: AppTextStyles.title.copyWith(
             fontFamily: 'NotoSans',
             fontWeight: FontWeight.bold,
@@ -39,7 +39,7 @@ class TestersReadyView extends StatelessWidget {
         const SizedBox(height: 16),
         
         Text(
-          strings.noPriceDifference, // ✅
+          strings.t('no_price_difference'),
           style: AppTextStyles.body.copyWith(
             fontFamily: 'NotoSans',
             color: AppColors.textSecondary,

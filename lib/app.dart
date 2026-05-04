@@ -53,6 +53,7 @@ class AppRoot extends StatelessWidget {
                       bottom: 30,
                       child: LanguageSwitcher(
                         selected: viewModel.language,
+                        available: viewModel.availableLanguages,
                         onSelect: viewModel.changeLanguage,
                       ),
                     ),

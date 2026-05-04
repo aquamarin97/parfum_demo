@@ -14,3 +14,13 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+
+
+DİL GÜNCELLEMELERİİİİİİİ
+Çevrimdışı cihaz (USB):
+
+strings_fr.json dosyasını oluştur (mevcut TR/EN şablonundan çevir)
+languages.json'a satır ekle: {"code": "fr", "label": "FR", "rtl": false}
+Her iki dosyayı USB ile cihazın {uygulama_dizini}/i18n/ klasörüne kopyala
+Uygulamayı yeniden başlat — Fransızca butonu otomatik görünür
