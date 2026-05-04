@@ -30,13 +30,29 @@ class _ResultScreenState extends State<ResultScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _logoAnimation;
+  late ResultViewModelWithPLC _resultViewModel;
 
   static bool _isFirstLoad = true;
 
   @override
   void initState() {
     super.initState();
+    _resultViewModel = ResultViewModelWithPLC(
+      appViewModel: widget.viewModel,
+      plcService: widget.viewModel.plcService,
+    );
     _setupAnimations();
+    _resultViewModel.addListener(_onViewModelChanged);
+  }
+
+  void _onViewModelChanged() {
+    if (!mounted) return;
+    if (_resultViewModel.shouldAnimate) {
+      _controller.reset();
+      _controller.forward().then((_) {
+        if (mounted) _resultViewModel.clearAnimationFlag();
+      });
+    }
   }
 
   void _setupAnimations() {
@@ -77,6 +93,8 @@ class _ResultScreenState extends State<ResultScreen>
 
   @override
   void dispose() {
+    _resultViewModel.removeListener(_onViewModelChanged);
+    _resultViewModel.dispose();
     _controller.dispose();
     _logoController.dispose();
     super.dispose();
@@ -84,26 +102,10 @@ class _ResultScreenState extends State<ResultScreen>
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ResultViewModelWithPLC(
-        appViewModel: widget.viewModel,
-        plcService: widget.viewModel.plcService,
-      ),
+    return ChangeNotifierProvider.value(
+      value: _resultViewModel,
       child: Consumer<ResultViewModelWithPLC>(
-        // ✅ Tip değişti
         builder: (context, viewModel, _) {
-          if (viewModel.shouldAnimate) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                _controller.reset();
-                _controller.forward().then((_) {
-                  if (mounted) {
-                    viewModel.clearAnimationFlag();
-                  }
-                });
-              }
-            });
-          }
 
           return Stack(
             children: [
