@@ -1,11 +1,11 @@
 // plc_error_screen.dart - FIXED LAYOUT
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/error/plc_error_codes.dart';
+import 'package:parfume_app/domain/plc/plc_exceptions.dart';
 import 'package:parfume_app/ui/components/primary_button.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
-import '../../viewmodel/app_view_model.dart';
+import '../../../viewmodel/app_view_model.dart';
 
 class PLCErrorScreen extends StatelessWidget {
   const PLCErrorScreen({

@@ -1,21 +1,20 @@
-// plc_service_manager.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:parfume_app/plc/error/plc_error_codes.dart';
+import 'package:parfume_app/domain/plc/i_plc_client.dart';
+import 'package:parfume_app/domain/plc/plc_exceptions.dart';
 
-import '../plc/modbus_plc_client.dart';
-import '../plc/plc_client.dart';
-
-/// PLC bağlantısını yöneten ve hata yönetimi yapan servis
+/// PLC bağlantısını yöneten ve hata yönetimi yapan servis.
+/// Concrete client dışarıdan enjekte edilir (DIP).
 class PLCServiceManager extends ChangeNotifier {
-  PLCServiceManager({PlcClient? client, bool autoConnect = true, this.onError})
-    : _client = client ?? ModbusPLCClient() {
-    if (autoConnect) {
-      initialize();
-    }
+  PLCServiceManager({
+    required IPlcClient client,
+    bool autoConnect = true,
+    this.onError,
+  }) : _client = client {
+    if (autoConnect) initialize();
   }
 
-  final PlcClient _client;
+  final IPlcClient _client;
   final void Function(PLCException)? onError;
 
   PLCConnectionState _state = PLCConnectionState.disconnected;
@@ -24,7 +23,6 @@ class PLCServiceManager extends ChangeNotifier {
   int _reconnectAttempts = 0;
   static const int maxReconnectAttempts = 5;
 
-  // Getters
   PLCConnectionState get state => _state;
   PLCException? get lastError => _lastError;
   bool get isConnected => _state == PLCConnectionState.connected;
@@ -32,7 +30,6 @@ class PLCServiceManager extends ChangeNotifier {
   bool get hasError => _state == PLCConnectionState.error;
   DateTime? get lastConnectedTime => _lastConnectedTime;
 
-  /// PLC bağlantısını başlat
   Future<void> initialize() async {
     if (_state == PLCConnectionState.connecting) {
       debugPrint('[PLCService] Zaten bağlantı kuruluyor...');
@@ -52,22 +49,18 @@ class PLCServiceManager extends ChangeNotifier {
 
       debugPrint('[PLCService] ✓ PLC bağlantısı başarılı');
     } on PLCException catch (e) {
-      debugPrint(
-        '[PLCService] ✗ Bağlantı hatası: ${e.errorCode} - ${e.message}',
-      );
+      debugPrint('[PLCService] ✗ Bağlantı hatası: ${e.errorCode} - ${e.message}');
       _handleError(e);
     } catch (e) {
       debugPrint('[PLCService] ✗ Beklenmeyen hata: $e');
-      final plcError = PLCException(
+      _handleError(PLCException(
         errorCode: PLCErrorCodes.unknownError,
         message: 'Beklenmeyen bir hata oluştu',
         technicalDetail: e.toString(),
-      );
-      _handleError(plcError);
+      ));
     }
   }
 
-  /// Bağlantıyı kapat
   Future<void> disconnect() async {
     try {
       await _client.disconnect();
@@ -78,28 +71,24 @@ class PLCServiceManager extends ChangeNotifier {
     }
   }
 
-  /// Bağlantıyı yeniden kur
   Future<void> reconnect() async {
     _reconnectAttempts++;
 
     if (_reconnectAttempts > maxReconnectAttempts) {
-      final error = PLCException(
+      _handleError(PLCException(
         errorCode: PLCErrorCodes.connectionFailed,
         message: 'Maksimum yeniden bağlanma denemesi aşıldı',
         technicalDetail: 'Deneme sayısı: $_reconnectAttempts',
-      );
-      _handleError(error);
+      ));
       return;
     }
 
     debugPrint('[PLCService] Yeniden bağlanma denemesi: $_reconnectAttempts');
-
     await disconnect();
     await Future.delayed(const Duration(seconds: 2));
     await initialize();
   }
 
-  /// Önerileri PLC'ye gönder
   Future<void> sendRecommendations(List<int> perfumeIds) async {
     _ensureConnected();
 
@@ -114,33 +103,21 @@ class PLCServiceManager extends ChangeNotifier {
     }
   }
 
-  /// Testerların hazır olmasını bekle
   Stream<bool> watchTestersReady() async* {
     _ensureConnected();
-
     try {
-      if (_client is ModbusPLCClient) {
-        yield* _client.watchTestersReady();
-      } else {
-        // Mock client için fallback
-        await Future.delayed(const Duration(seconds: 3));
-        yield true;
-      }
+      yield* _client.watchTestersReady();
     } on PLCException catch (e) {
       _handleError(e);
       rethrow;
     }
   }
 
-  /// Seçilen tester'ı PLC'ye gönder
   Future<void> sendSelectedTester(int testerNumber) async {
     _ensureConnected();
     try {
       debugPrint('[PLCService] Seçilen tester gönderiliyor: $testerNumber');
-
-      // ✅ Direkt interface'den çağır (cast yok)
       await _client.sendSelectedTester(testerNumber);
-
       debugPrint('[PLCService] ✓ Tester seçimi gönderildi');
     } on PLCException catch (e) {
       _handleError(e);
@@ -148,50 +125,30 @@ class PLCServiceManager extends ChangeNotifier {
     }
   }
 
-  /// Ödeme durumunu izle
   Stream<int> watchPaymentStatus() async* {
     _ensureConnected();
-
     try {
-      if (_client is ModbusPLCClient) {
-        yield* _client.watchPaymentStatus();
-      } else {
-        // Mock client
-        await Future.delayed(const Duration(seconds: 5));
-        yield 1; // Payment complete
-      }
+      yield* _client.watchPaymentStatus();
     } on PLCException catch (e) {
       _handleError(e);
       rethrow;
     }
   }
 
-  /// Parfümün hazır olmasını bekle
   Stream<bool> watchPerfumeReady() async* {
     _ensureConnected();
-
     try {
-      if (_client is ModbusPLCClient) {
-        yield* _client.watchPerfumeReady();
-      } else {
-        await Future.delayed(const Duration(seconds: 8));
-        yield true;
-      }
+      yield* _client.watchPerfumeReady();
     } on PLCException catch (e) {
       _handleError(e);
       rethrow;
     }
   }
 
-  /// Bağlantı sağlık kontrolü
   Future<bool> checkHealth() async {
     if (!isConnected) return false;
-
     try {
-      if (_client is ModbusPLCClient) {
-        return await _client.healthCheck();
-      }
-      return true;
+      return await _client.healthCheck();
     } catch (e) {
       debugPrint('[PLCService] Health check başarısız: $e');
       return false;
@@ -227,5 +184,4 @@ class PLCServiceManager extends ChangeNotifier {
   }
 }
 
-/// PLC bağlantı durumu
 enum PLCConnectionState { disconnected, connecting, connected, error }

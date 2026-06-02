@@ -2,12 +2,14 @@ import '../../core/constants/app_constants.dart';
 import '../local/asset_json_loader.dart';
 import '../models/question.dart';
 import '../models/survey.dart';
+import 'i_survey_repository.dart';
 
-class SurveyRepository {
+class SurveyRepository implements ISurveyRepository {
   SurveyRepository(this._loader);
 
   final AssetJsonLoader _loader;
 
+  @override
   Future<Survey> loadSurvey() async {
     final json = await _loader.loadJson(AppConstants.surveyAssetPath);
     final list = json['perfume_survey'] as List<dynamic>;

@@ -1,8 +1,7 @@
 // lib/plc/admin/widgets/manual_control.dart
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/plc_service_manager.dart';
-import 'package:parfume_app/plc/modbus_plc_client.dart';
-import 'package:parfume_app/plc/admin/models/plc_event.dart';
+import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
+import 'package:parfume_app/data/models/plc/plc_event.dart';
 
 /// Kiosk/32" uyumlu sabit renk & boyut sistemi (RegisterMonitor ile aynı)
 const Color kBgDark = Color(0xFF0B1020);

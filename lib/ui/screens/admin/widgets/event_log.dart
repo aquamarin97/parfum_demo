@@ -1,7 +1,7 @@
 // lib/plc/admin/widgets/event_log.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/admin/models/plc_event.dart';
+import 'package:parfume_app/data/models/plc/plc_event.dart';
 
 /// Kiosk/32" uyumlu sabit renk & boyut sistemi (diğer tablarla aynı)
 const Color kBgDark = Color(0xFF0B1020);

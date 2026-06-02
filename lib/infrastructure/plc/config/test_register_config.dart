@@ -3,7 +3,7 @@
 // Bu dosyayı main.dart'ın başına ekleyerek test edebilirsiniz
 
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/config/register_loader.dart';
+import 'package:parfume_app/infrastructure/plc/config/register_loader.dart';
 
 /// Test fonksiyonu - main() içinde çağırın
 Future<void> testRegisterConfig() async {

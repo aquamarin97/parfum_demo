@@ -1,12 +1,14 @@
 import '../../core/constants/app_constants.dart';
 import '../local/asset_json_loader.dart';
 import '../models/kvkk_text.dart';
+import 'i_kvkk_repository.dart';
 
-class KvkkRepository {
+class KvkkRepository implements IKvkkRepository {
   KvkkRepository(this._loader);
 
   final AssetJsonLoader _loader;
 
+  @override
   Future<KvkkText> loadKvkk() async {
     final json = await _loader.loadJson(AppConstants.kvkkAssetPath);
     final kvkk = json['kvkk_text'] as Map<String, dynamic>;

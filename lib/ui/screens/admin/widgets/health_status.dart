@@ -1,7 +1,7 @@
 // lib/plc/admin/widgets/health_status.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/plc_service_manager.dart';
+import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 
 /// Kiosk/32" uyumlu sabit renk & boyut sistemi (diğer tablarla aynı)
 const Color kBgDark = Color(0xFF0B1020);

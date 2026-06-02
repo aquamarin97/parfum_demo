@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:parfume_app/data/plc/modbus_plc_client.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 
@@ -15,6 +16,7 @@ import '../i18n/language_registry.dart';
 import '../i18n/sources/asset_string_source.dart';
 import '../i18n/sources/filesystem_string_source.dart';
 import '../i18n/string_repository.dart';
+import '../infrastructure/plc/plc_service_manager.dart';
 import '../viewmodel/app_view_model.dart';
 
 class AppViewModelProvider {
@@ -40,6 +42,12 @@ class AppViewModelProvider {
     final engine = SeededRandomScoringEngine();
     final logger = AppLogger();
 
+    final plcClient = ModbusPLCClient();
+    final plcService = PLCServiceManager(
+      client: plcClient,
+      autoConnect: true,
+    );
+
     return ChangeNotifierProvider<AppViewModel>(
       create: (_) => AppViewModel(
         surveyRepository: surveyRepo,
@@ -50,6 +58,7 @@ class AppViewModelProvider {
         scoringEngine: engine,
         logger: logger,
         languageRegistry: registry,
+        plcService: plcService,
       )..initialize(),
     );
   }

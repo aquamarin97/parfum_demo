@@ -1,11 +1,11 @@
 // result_view_model_with_plc.dart - IMPROVED ERROR HANDLING
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:parfume_app/plc/error/plc_error_codes.dart';
-import 'package:parfume_app/plc/plc_service_manager.dart';
-import 'package:parfume_app/ui/screens/result/result_view_model_refactored.dart';
+import 'package:parfume_app/domain/plc/plc_exceptions.dart';
+import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
+import 'package:parfume_app/viewmodel/result_view_model.dart';
 
-import '../viewmodel/app_view_model.dart';
+import 'app_view_model.dart';
 
 import '../ui/screens/result/models/result_flow_state.dart';
 import '../ui/screens/result/models/timeline_message.dart';

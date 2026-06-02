@@ -1,6 +1,6 @@
 // app_router.dart
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/screen/plc_error_screen.dart';
+import 'package:parfume_app/ui/screens/plc_error/plc_error_screen.dart';
 
 import '../../domain/state/app_state.dart';
 import '../../viewmodel/app_view_model.dart';

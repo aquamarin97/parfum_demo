@@ -1,8 +1,8 @@
 // lib/app.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:parfume_app/plc/debug/hidden_button.dart';  // ← EKLE
-import 'package:parfume_app/plc/admin/admin_panel_screen.dart';  // ← EKLE
+import 'package:parfume_app/ui/screens/admin/widgets/hidden_button.dart';
+import 'package:parfume_app/ui/screens/admin/admin_panel_screen.dart';
 
 import 'i18n/rtl_support.dart';
 import 'ui/components/language_switcher.dart';

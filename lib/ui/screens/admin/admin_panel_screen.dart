@@ -1,6 +1,6 @@
 // lib/plc/admin/admin_panel_screen.dart
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/plc_service_manager.dart';
+import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'widgets/register_monitor.dart';
 import 'widgets/manual_control.dart';
 import 'widgets/health_status.dart';

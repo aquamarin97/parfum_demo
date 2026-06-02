@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parfume_app/plc/result_view_model_with_plc.dart';
+import 'package:parfume_app/viewmodel/result_view_model_with_plc.dart';
 import 'package:parfume_app/ui/screens/loading_indicator.dart';
 import 'package:provider/provider.dart';
 

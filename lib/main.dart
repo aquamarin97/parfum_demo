@@ -7,7 +7,7 @@ import 'app.dart';
 import 'kiosk/android_kiosk_controller.dart';
 import 'kiosk/kiosk_mode_controller.dart';
 import 'viewmodel/app_view_model_provider.dart';
-import 'plc/config/test_register_config.dart';
+import 'infrastructure/plc/config/test_register_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

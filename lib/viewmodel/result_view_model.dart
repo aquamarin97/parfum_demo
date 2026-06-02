@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-import '../../../viewmodel/app_view_model.dart';
-import 'models/result_flow_state.dart';
-import 'models/timeline_message.dart';
+import 'app_view_model.dart';
+import '../core/strings/app_strings.dart';
+import '../ui/screens/result/models/result_flow_state.dart';
+import '../ui/screens/result/models/timeline_message.dart';
 
 class ResultViewModel extends ChangeNotifier {
   ResultViewModel({required this.appViewModel});

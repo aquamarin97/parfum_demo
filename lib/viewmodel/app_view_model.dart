@@ -1,19 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:parfume_app/plc/error/plc_error_codes.dart';
-import 'package:parfume_app/plc/plc_service_manager.dart';
+import 'package:parfume_app/domain/plc/plc_exceptions.dart';
+import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 
 import '../core/constants/app_constants.dart';
 import '../core/logging/app_logger.dart';
+import '../core/strings/app_strings.dart';
+import '../domain/session/timer_coordinator.dart';
 import '../data/models/kvkk_text.dart';
 import '../data/models/language.dart';
 import '../data/models/question.dart';
 import '../data/models/recommendation.dart';
 import '../data/models/survey.dart';
-import '../data/repositories/i18n_repository.dart';
-import '../data/repositories/kvkk_repository.dart';
-import '../data/repositories/survey_repository.dart';
+import '../data/repositories/i_kvkk_repository.dart';
+import '../data/repositories/i_string_map_repository.dart';
+import '../data/repositories/i_survey_repository.dart';
 import '../data/local/preferences_store.dart';
 import '../domain/engine/recommendation_engine.dart';
 import '../domain/session/session_manager.dart';
@@ -22,40 +24,42 @@ import '../domain/state/app_state.dart';
 import '../domain/state/app_state_machine.dart';
 import '../i18n/language_registry.dart';
 
-class AppStrings {
-  const AppStrings({required this.localeCode, required this.values});
-
-  final String localeCode;
-  final Map<String, String> values;
-
-  String t(String key) => values[key] ?? '[MISSING: $key]';
-}
-
 class AppViewModel extends ChangeNotifier {
   AppViewModel({
-    required SurveyRepository surveyRepository,
-    required KvkkRepository kvkkRepository,
-    required I18nRepository i18nRepository,
+    required ISurveyRepository surveyRepository,
+    required IKvkkRepository kvkkRepository,
+    required IStringMapRepository i18nRepository,
     required PreferencesStore preferencesStore,
     required SessionManager sessionManager,
     required RecommendationEngine scoringEngine,
     required AppLogger logger,
     required LanguageRegistry languageRegistry,
-  })  : _surveyRepository = surveyRepository,
-        _kvkkRepository = kvkkRepository,
-        _i18nRepository = i18nRepository,
-        _preferencesStore = preferencesStore,
-        _sessionManager = sessionManager,
-        _scoringEngine = scoringEngine,
-        _logger = logger,
-        _languageRegistry = languageRegistry,
-        _stateMachine = AppStateMachine() {
-    _initializePLC();
+    required PLCServiceManager plcService,
+  }) : _surveyRepository = surveyRepository,
+       _kvkkRepository = kvkkRepository,
+       _i18nRepository = i18nRepository,
+       _preferencesStore = preferencesStore,
+       _sessionManager = sessionManager,
+       _scoringEngine = scoringEngine,
+       _logger = logger,
+       _languageRegistry = languageRegistry,
+       _stateMachine = AppStateMachine(),
+       _plcService = plcService {
+    _plcService.addListener(_onPLCStateChanged);
+    _timerCoordinator = TimerCoordinator(
+      loadingDelay: AppConstants.loadingDelay,
+      resultDuration: AppConstants.resultAutoReturn,
+      onLoadingComplete: () {
+        _recommendation = _scoringEngine.buildRecommendation(_scores, top: 3);
+        _setState(ResultState(_recommendation));
+      },
+      onResultTimeout: resetToIdle,
+    );
   }
 
-  final SurveyRepository _surveyRepository;
-  final KvkkRepository _kvkkRepository;
-  final I18nRepository _i18nRepository;
+  final ISurveyRepository _surveyRepository;
+  final IKvkkRepository _kvkkRepository;
+  final IStringMapRepository _i18nRepository;
   final PreferencesStore _preferencesStore;
   final SessionManager _sessionManager;
   final RecommendationEngine _scoringEngine;
@@ -63,7 +67,7 @@ class AppViewModel extends ChangeNotifier {
   final AppStateMachine _stateMachine;
   final LanguageRegistry _languageRegistry;
 
-  late final PLCServiceManager _plcService;
+  final PLCServiceManager _plcService;
   PLCServiceManager get plcService => _plcService;
 
   Survey? _survey;
@@ -76,8 +80,7 @@ class AppViewModel extends ChangeNotifier {
   Recommendation _recommendation = Recommendation(topIds: []);
   bool _initialized = false;
   TimeoutWatcher? _timeoutWatcher;
-  Timer? _loadingTimer;
-  Timer? _resultTimer;
+  late final TimerCoordinator _timerCoordinator;
 
   AppState get state => _stateMachine.state;
   Language get language => _language;
@@ -99,11 +102,9 @@ class AppViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> _initializePLC() async {
-    _plcService = PLCServiceManager(
-      autoConnect: true,
-      onError: _handlePLCError,
-    );
+  void _onPLCStateChanged() {
+    final error = _plcService.lastError;
+    if (_plcService.hasError && error != null) _handlePLCError(error);
   }
 
   void _handlePLCError(PLCException error) {
@@ -235,24 +236,11 @@ class AppViewModel extends ChangeNotifier {
     _scores = {};
     _recommendation = Recommendation(topIds: []);
     _sessionManager.resetSession();
-    _loadingTimer?.cancel();
-    _resultTimer?.cancel();
+    _timerCoordinator.cancel();
   }
 
   void _startLoadingSequence() {
-    _loadingTimer?.cancel();
-    _loadingTimer = Timer(AppConstants.loadingDelay, () {
-      _recommendation = _scoringEngine.buildRecommendation(_scores, top: 3);
-      _setState(ResultState(_recommendation));
-      _startResultAutoReturn();
-    });
-  }
-
-  void _startResultAutoReturn() {
-    _resultTimer?.cancel();
-    _resultTimer = Timer(AppConstants.resultAutoReturn, () {
-      resetToIdle();
-    });
+    _timerCoordinator.startLoadingSequence();
   }
 
   void _handleTimeout() {
@@ -268,8 +256,8 @@ class AppViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _loadingTimer?.cancel();
-    _resultTimer?.cancel();
+    _plcService.removeListener(_onPLCStateChanged);
+    _timerCoordinator.dispose();
     _timeoutWatcher?.stop();
     super.dispose();
   }

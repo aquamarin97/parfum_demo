@@ -2,17 +2,17 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:modbus/modbus.dart' as modbus;
-import 'package:parfume_app/plc/error/plc_error_codes.dart';
-import 'package:parfume_app/plc/config/register_loader.dart';
-import 'package:parfume_app/plc/config/register_config.dart';
-import 'plc_client.dart';
-import 'package:parfume_app/plc/admin/models/plc_event.dart';
+import 'package:parfume_app/domain/plc/i_plc_client.dart';
+import 'package:parfume_app/domain/plc/plc_exceptions.dart';
+import 'package:parfume_app/infrastructure/plc/config/register_loader.dart';
+import 'package:parfume_app/infrastructure/plc/config/register_config.dart';
+import 'package:parfume_app/data/models/plc/plc_event.dart';
 
 /// ✅ Config-based Modbus TCP PLC Client
 ///
 /// Register adresleri artık JSON'dan yükleniyor.
 /// Yeni register eklemek için sadece JSON'ı güncelle!
-class ModbusPLCClient implements PlcClient {
+class ModbusPLCClient implements IPlcClient {
   ModbusPLCClient({
     this.connectionTimeout = const Duration(seconds: 3),
     this.responseTimeout = const Duration(seconds: 2),

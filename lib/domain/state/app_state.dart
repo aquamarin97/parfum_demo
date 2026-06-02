@@ -1,5 +1,5 @@
 // app_state.dart file
-import 'package:parfume_app/plc/error/plc_error_codes.dart';
+import 'package:parfume_app/domain/plc/plc_exceptions.dart';
 
 import '../../data/models/recommendation.dart';
 
