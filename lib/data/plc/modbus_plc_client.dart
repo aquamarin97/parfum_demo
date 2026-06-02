@@ -149,14 +149,6 @@ class ModbusPLCClient implements IPlcClient {
       _log('Creating Modbus TCP client...');
       final client = modbus.createTcpClient(host, port: port);
 
-      if (client == null) {
-        throw PLCException(
-          errorCode: PLCErrorCodes.connectionFailed,
-          message: 'Modbus client oluşturulamadı',
-          technicalDetail: 'createTcpClient returned null for $host:$port',
-        );
-      }
-
       _log('Client created, connecting...');
       _client = client;
 

@@ -1,8 +1,8 @@
 // test/plc_integration_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:parfume_app/plc/error/plc_error_codes.dart';
-import 'package:parfume_app/plc/modbus_plc_client.dart';
-import 'package:parfume_app/plc/plc_service_manager.dart';
+import 'package:parfume_app/domain/plc/plc_exceptions.dart';
+import 'package:parfume_app/data/plc/modbus_plc_client.dart';
+import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 
 
 /// PLC Modbus entegrasyonu için test dosyası

@@ -1,0 +1,18 @@
+{
+  "401": "PLC bağlantısı kurulamadı",
+  "402": "Bağlantı zaman aşımına uğradı",
+  "403": "PLC ile bağlantı kesildi",
+  "404": "Geçersiz PLC adresi",
+  "405": "Port erişilemez durumda",
+  "410": "Veri okuma hatası",
+  "411": "Veri yazma hatası",
+  "412": "Geçersiz register adresi",
+  "413": "Veri bozulması tespit edildi",
+  "414": "PLC yanıt vermedi",
+  "420": "PLC hazır değil",
+  "421": "Acil durum butonu aktif",
+  "422": "Sensör hatası",
+  "423": "Motor hatası",
+  "430": "Beklenmeyen bir hata oluştu",
+  "431": "Yapılandırma hatası"
+}

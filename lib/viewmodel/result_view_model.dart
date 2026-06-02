@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-import 'app_view_model.dart';
 import '../core/strings/app_strings.dart';
+import 'i_result_context.dart';
 import '../ui/screens/result/models/result_flow_state.dart';
 import '../ui/screens/result/models/timeline_message.dart';
 
 class ResultViewModel extends ChangeNotifier {
   ResultViewModel({required this.appViewModel});
 
-  final AppViewModel appViewModel;
+  final IResultContext appViewModel;
 
   ResultFlowState _currentState = ResultFlowState.showingRecommendations;
   int? _selectedTester;
@@ -22,7 +22,7 @@ class ResultViewModel extends ChangeNotifier {
   ResultFlowState get currentState => _currentState;
   int? get selectedTester => _selectedTester;
   List<TimelineMessage> get messages => List.unmodifiable(_messages);
-  List<int> get topIds => appViewModel.recommendation.topIds;
+  List<int> get topIds => appViewModel.topIds;
   bool get shouldAnimate => _shouldAnimate;
   AppStrings get strings => appViewModel.strings;
 
@@ -75,6 +75,7 @@ class ResultViewModel extends ChangeNotifier {
   }
 
   void onGiftCardAnswer(bool wantsCard) {
+    // todo: persist wantsCard for gift-card fulfilment flow
     transitionToState(ResultFlowState.thankYou);
   }
 

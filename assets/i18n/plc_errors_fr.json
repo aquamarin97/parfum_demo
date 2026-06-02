@@ -1,0 +1,18 @@
+{
+  "401": "Échec de connexion au PLC",
+  "402": "Délai de connexion dépassé",
+  "403": "Connexion au PLC perdue",
+  "404": "Adresse PLC invalide",
+  "405": "Port non disponible",
+  "410": "Erreur de lecture des données",
+  "411": "Erreur d'écriture des données",
+  "412": "Adresse de registre invalide",
+  "413": "Corruption de données détectée",
+  "414": "Le PLC n'a pas répondu",
+  "420": "PLC non prêt",
+  "421": "Arrêt d'urgence actif",
+  "422": "Erreur de capteur",
+  "423": "Erreur de moteur",
+  "430": "Une erreur inattendue s'est produite",
+  "431": "Erreur de configuration"
+}

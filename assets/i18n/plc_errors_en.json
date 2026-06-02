@@ -1,0 +1,18 @@
+{
+  "401": "Failed to connect to PLC",
+  "402": "Connection timeout",
+  "403": "Connection to PLC lost",
+  "404": "Invalid PLC address",
+  "405": "Port not available",
+  "410": "Data read error",
+  "411": "Data write error",
+  "412": "Invalid register address",
+  "413": "Data corruption detected",
+  "414": "PLC did not respond",
+  "420": "PLC not ready",
+  "421": "Emergency stop active",
+  "422": "Sensor error",
+  "423": "Motor error",
+  "430": "An unexpected error occurred",
+  "431": "Configuration error"
+}

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dart analyze *)",
+      "Bash(Get-ChildItem lib/plc -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)"
+    ]
+  }
+}

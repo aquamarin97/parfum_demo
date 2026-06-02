@@ -8,6 +8,7 @@ import '../core/constants/app_constants.dart';
 import '../core/logging/app_logger.dart';
 import '../core/strings/app_strings.dart';
 import '../domain/session/timer_coordinator.dart';
+import 'i_result_context.dart';
 import '../data/models/kvkk_text.dart';
 import '../data/models/language.dart';
 import '../data/models/question.dart';
@@ -24,7 +25,23 @@ import '../domain/state/app_state.dart';
 import '../domain/state/app_state_machine.dart';
 import '../i18n/language_registry.dart';
 
-class AppViewModel extends ChangeNotifier {
+/// Root view-model for the kiosk application.
+///
+/// Owns the [AppStateMachine], coordinates all repositories, and exposes the
+/// current [AppState] to the widget tree via [ChangeNotifier]. Also implements
+/// [IResultContext] so that result-screen view-models can depend on the narrow
+/// interface rather than this concrete class.
+///
+/// Lifecycle:
+/// 1. Constructed and wired by [AppViewModelProvider].
+/// 2. [initialize] is called once; it triggers [_setup] which loads all
+///    assets and transitions from [InitializingState] to [IdleState].
+/// 3. User interactions drive further state transitions via public methods.
+/// 4. [dispose] cancels all timers and listeners.
+class AppViewModel extends ChangeNotifier implements IResultContext {
+  /// Creates an [AppViewModel] with all required dependencies injected.
+  ///
+  /// Call [initialize] after construction to start the async setup sequence.
   AppViewModel({
     required ISurveyRepository surveyRepository,
     required IKvkkRepository kvkkRepository,
@@ -35,16 +52,16 @@ class AppViewModel extends ChangeNotifier {
     required AppLogger logger,
     required LanguageRegistry languageRegistry,
     required PLCServiceManager plcService,
-  }) : _surveyRepository = surveyRepository,
-       _kvkkRepository = kvkkRepository,
-       _i18nRepository = i18nRepository,
-       _preferencesStore = preferencesStore,
-       _sessionManager = sessionManager,
-       _scoringEngine = scoringEngine,
-       _logger = logger,
-       _languageRegistry = languageRegistry,
-       _stateMachine = AppStateMachine(),
-       _plcService = plcService {
+  })  : _surveyRepository = surveyRepository,
+        _kvkkRepository = kvkkRepository,
+        _i18nRepository = i18nRepository,
+        _preferencesStore = preferencesStore,
+        _sessionManager = sessionManager,
+        _scoringEngine = scoringEngine,
+        _logger = logger,
+        _languageRegistry = languageRegistry,
+        _stateMachine = AppStateMachine(),
+        _plcService = plcService {
     _plcService.addListener(_onPLCStateChanged);
     _timerCoordinator = TimerCoordinator(
       loadingDelay: AppConstants.loadingDelay,
@@ -66,33 +83,57 @@ class AppViewModel extends ChangeNotifier {
   final AppLogger _logger;
   final AppStateMachine _stateMachine;
   final LanguageRegistry _languageRegistry;
-
   final PLCServiceManager _plcService;
-  PLCServiceManager get plcService => _plcService;
 
   Survey? _survey;
   KvkkText? _kvkkText;
   Map<String, Map<String, String>> _stringMap = {};
-  // _setup() çalışana kadar geçici yer tutucu; registry yüklendikten sonra güncellenir.
+
+  /// Temporary placeholder until [_setup] resolves the persisted language.
   Language _language = const Language(code: 'tr', label: 'TR');
   Map<int, int> _answers = {};
   Map<int, int> _scores = {};
   Recommendation _recommendation = Recommendation(topIds: []);
+
+  /// Guards against calling [initialize] more than once.
+  bool _setupStarted = false;
+
+  /// Becomes `true` when [_setup] completes (successfully or with an error).
+  /// The UI waits for this flag before rendering any screen.
   bool _initialized = false;
+
   TimeoutWatcher? _timeoutWatcher;
   late final TimerCoordinator _timerCoordinator;
+  AppStrings? _cachedStrings;
 
+  /// The current application state.
   AppState get state => _stateMachine.state;
+
+  /// The active [Language] used for all UI strings.
   Language get language => _language;
+
+  /// Whether initial setup has completed and the UI may be rendered.
   bool get initialized => _initialized;
+
+  /// Languages available for selection, as loaded from the language registry.
   List<Language> get availableLanguages => _languageRegistry.available;
 
-  AppStrings get strings {
+  /// The [PLCServiceManager] instance, exposed for admin panel access.
+  PLCServiceManager get plcService => _plcService;
+
+  /// Returns the localised string map for the active language.
+  ///
+  /// Result is cached; the cache is invalidated when the language changes.
+  /// Falls back to the first available language if the active language has no
+  /// loaded strings, and to an empty map if no languages are available at all.
+  @override
+  AppStrings get strings => _cachedStrings ??= _buildStrings();
+
+  AppStrings _buildStrings() {
     final values = _stringMap[_language.code];
     if (values != null && values.isNotEmpty) {
       return AppStrings(localeCode: _language.code, values: values);
     }
-    // Seçilen dilin çeviri dosyası yoksa listedeki ilk dile düş.
     final fallbackCode = _languageRegistry.available.isNotEmpty
         ? _languageRegistry.available.first.code
         : 'tr';
@@ -102,53 +143,76 @@ class AppViewModel extends ChangeNotifier {
     );
   }
 
-  void _onPLCStateChanged() {
-    final error = _plcService.lastError;
-    if (_plcService.hasError && error != null) _handlePLCError(error);
-  }
+  @override
+  List<int> get topIds => _recommendation.topIds;
 
-  void _handlePLCError(PLCException error) {
-    _logger.log('PLC Error: ${error.errorCode} - ${error.message}');
+  @override
+  String get languageCode => _language.code;
 
-    if (error.errorCode == PLCErrorCodes.connectionFailed ||
-        error.errorCode == PLCErrorCodes.connectionLost) {
-      _setState(PLCErrorState(error));
-    }
-  }
-
+  /// The [QuestionTranslation] for the question currently shown.
+  ///
+  /// Must only be called while [state] is [QuestionsState].
   QuestionTranslation get currentQuestion => _survey!
       .questions[(state as QuestionsState).index]
       .translationFor(_language);
 
+  /// The option index previously selected for the current question, or `null`.
+  ///
+  /// Must only be called while [state] is [QuestionsState].
   int? get currentSelectionIndex {
-    final questionId = _survey!.questions[(state as QuestionsState).index].id;
+    final questionId =
+        _survey!.questions[(state as QuestionsState).index].id;
     return _answers[questionId];
   }
 
+  /// Human-readable progress label, e.g. `'3/16'`.
+  ///
+  /// Must only be called while [state] is [QuestionsState].
   String get progressLabel {
     final index = (state as QuestionsState).index + 1;
     return '$index/${AppConstants.totalQuestions}';
   }
 
+  /// Whether the user can navigate to the previous question.
   bool get canGoBack =>
       (state is QuestionsState) && (state as QuestionsState).index > 0;
 
+  /// The KVKK consent text for the active language.
+  ///
+  /// Must only be called while [state] is [KvkkState] and after [_setup]
+  /// has completed.
   KvkkTranslation get kvkkText => _kvkkText!.translationFor(_language);
 
+  /// The most recent recommendation computed by the scoring engine.
   Recommendation get recommendation => _recommendation;
+
+  /// Alias for [language]; provided for clarity in contexts where the
+  /// distinction between locale and language object matters.
   Language get currentLanguage => _language;
 
+  /// Starts the async initialisation sequence exactly once.
+  ///
+  /// Safe to call multiple times; subsequent calls are no-ops.
   void initialize() {
-    if (_initialized) return;
-    _initialized = true;
+    if (_setupStarted) return;
+    _setupStarted = true;
     _setup();
   }
 
+  /// Transitions directly to [ResultState] with mock data.
+  ///
+  /// Debug builds only — no-op in release to prevent mock data reaching
+  /// production kiosks.
   void goToResult() {
+    if (!kDebugMode) return;
     _recommendation = Recommendation.mock();
     _setState(ResultState(_recommendation));
   }
 
+  /// Loads all assets, resolves the saved language, and starts the inactivity
+  /// watcher before transitioning to [IdleState].
+  ///
+  /// On failure, transitions to [ErrorState] with the error description.
   Future<void> _setup() async {
     try {
       await _languageRegistry.load();
@@ -165,30 +229,44 @@ class AppViewModel extends ChangeNotifier {
         onTimeout: _handleTimeout,
       )..start();
       _logger.log('App initialized');
+      _initialized = true;
       _setState(const IdleState());
     } catch (error) {
       _logger.log('Initialization failed: $error');
+      // Set to true even on failure so the UI exits the loading screen.
+      _initialized = true;
       _setState(ErrorState(error.toString()));
     }
   }
 
+  /// Notifies the inactivity watcher that the user is active.
+  ///
+  /// Should be called on every pointer-down event at the root of the widget
+  /// tree.
   void onUserInteraction() {
     _timeoutWatcher?.reset();
   }
 
+  /// Transitions to [KvkkState] to begin the consent flow.
   void startKvkk() {
     _logger.log('Transition to KVKK');
     _setState(const KvkkState());
   }
 
+  /// Transitions to [QuestionsState] at index 0 to begin the survey.
   void startQuestions() {
     _logger.log('Start questions');
     _setState(const QuestionsState(0));
   }
 
+  /// Records the user's answer for the current question and advances the flow.
+  ///
+  /// If this is the last question, transitions to [LoadingState] and starts
+  /// the loading sequence. Otherwise advances to the next question.
   void answerCurrentQuestion(int optionIndex) {
     if (state is! QuestionsState) return;
-    final question = _survey!.questions[(state as QuestionsState).index];
+    final question =
+        _survey!.questions[(state as QuestionsState).index];
     _answers[question.id] = optionIndex;
     _scores = _scoringEngine.computeScores(
       sessionId: _sessionManager.sessionId,
@@ -205,6 +283,9 @@ class AppViewModel extends ChangeNotifier {
     }
   }
 
+  /// Navigates to the previous survey question.
+  ///
+  /// No-op if already at the first question or not in [QuestionsState].
   void goBackQuestion() {
     if (state is! QuestionsState) return;
     final index = (state as QuestionsState).index;
@@ -212,19 +293,28 @@ class AppViewModel extends ChangeNotifier {
     _setState(QuestionsState(index - 1));
   }
 
+  @override
   void cancelToIdle() {
-    _logger.log('Cancel to idle');
+    // Semantically distinct from resetToIdle: signals the user deliberately
+    // abandoned the flow (useful for future analytics). Behaviour is identical
+    // today but the two entry-points are kept separate to allow divergence.
+    _logger.log('User cancelled — returning to idle');
     resetToIdle();
   }
 
+  @override
   void resetToIdle() {
     _resetSession();
     _setState(const IdleState());
   }
 
+  /// Changes the active language, persists the choice, and resets to idle.
+  ///
+  /// No-op if [language] is already the active language.
   void changeLanguage(Language language) {
     if (_language == language) return;
     _language = language;
+    _cachedStrings = null;
     _preferencesStore.saveLanguage(language);
     _logger.log('Language changed to ${language.code}');
     resetToIdle();
@@ -248,9 +338,32 @@ class AppViewModel extends ChangeNotifier {
     resetToIdle();
   }
 
+  /// Reacts to [PLCServiceManager] state changes.
+  ///
+  /// Promotes connection-level faults to [PLCErrorState].
+  void _onPLCStateChanged() {
+    final error = _plcService.lastError;
+    if (_plcService.hasError && error != null) _handlePLCError(error);
+  }
+
+  void _handlePLCError(PLCException error) {
+    _logger.log('PLC Error: ${error.errorCode} - ${error.message}');
+    if (error.errorCode == PLCErrorCodes.connectionFailed ||
+        error.errorCode == PLCErrorCodes.connectionLost) {
+      _setState(PLCErrorState(error));
+    }
+  }
+
+  /// Attempts the state transition and logs rejected transitions.
   void _setState(AppState next) {
-    _stateMachine.transition(next);
-    _logger.log('State -> ${next.runtimeType}');
+    if (!_stateMachine.transition(next)) {
+      _logger.log(
+        'Invalid transition: '
+        '${_stateMachine.state.runtimeType} → ${next.runtimeType}',
+      );
+      return;
+    }
+    _logger.log('State → ${next.runtimeType}');
     notifyListeners();
   }
 

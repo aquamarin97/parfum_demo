@@ -1,125 +1,66 @@
-/// PLC bağlantı ve iletişim hataları için error code sistemi
+/// Error code constants and technical descriptions for PLC faults.
+///
+/// Localised user-facing messages are stored separately in
+/// `assets/i18n/plc_errors_<languageCode>.json` and loaded via
+/// [IPlcErrorStringSource] implementations.
 class PLCErrorCodes {
-  // Bağlantı hataları (400-409)
+  // Connection errors (400–409)
   static const int connectionFailed = 401;
   static const int connectionTimeout = 402;
   static const int connectionLost = 403;
   static const int invalidHost = 404;
   static const int portNotAvailable = 405;
 
-  // İletişim hataları (410-419)
+  // Communication errors (410–419)
   static const int modbusReadError = 410;
   static const int modbusWriteError = 411;
   static const int invalidRegisterAddress = 412;
   static const int dataCorruption = 413;
   static const int responseTimeout = 414;
 
-  // PLC durum hataları (420-429)
+  // PLC state errors (420–429)
   static const int plcNotReady = 420;
   static const int plcEmergencyStop = 421;
   static const int sensorError = 422;
   static const int motorError = 423;
 
-  // Uygulama hataları (430-439)
+  // Application errors (430–439)
   static const int unknownError = 430;
   static const int configurationError = 431;
 
-  static String getErrorMessage(int errorCode, String locale) {
-    final messages = _errorMessages[locale] ?? _errorMessages['tr']!;
-    return messages[errorCode] ?? messages[unknownError]!;
-  }
-
+  /// Returns a developer-facing technical description for [errorCode].
   static String getTechnicalDescription(int errorCode) {
-    return _technicalDescriptions[errorCode] ??
-        'Bilinmeyen hata kodu: $errorCode';
+    return _technicalDescriptions[errorCode] ?? 'Unknown error code: $errorCode';
   }
-
-  static final Map<String, Map<int, String>> _errorMessages = {
-    'tr': {
-      connectionFailed: 'PLC bağlantısı kurulamadı',
-      connectionTimeout: 'Bağlantı zaman aşımına uğradı',
-      connectionLost: 'PLC ile bağlantı kesildi',
-      invalidHost: 'Geçersiz PLC adresi',
-      portNotAvailable: 'Port erişilemez durumda',
-      modbusReadError: 'Veri okuma hatası',
-      modbusWriteError: 'Veri yazma hatası',
-      invalidRegisterAddress: 'Geçersiz register adresi',
-      dataCorruption: 'Veri bozulması tespit edildi',
-      responseTimeout: 'PLC yanıt vermedi',
-      plcNotReady: 'PLC hazır değil',
-      plcEmergencyStop: 'Acil durum butonu aktif',
-      sensorError: 'Sensör hatası',
-      motorError: 'Motor hatası',
-      unknownError: 'Beklenmeyen bir hata oluştu',
-      configurationError: 'Yapılandırma hatası',
-    },
-    'en': {
-      connectionFailed: 'Failed to connect to PLC',
-      connectionTimeout: 'Connection timeout',
-      connectionLost: 'Connection to PLC lost',
-      invalidHost: 'Invalid PLC address',
-      portNotAvailable: 'Port not available',
-      modbusReadError: 'Data read error',
-      modbusWriteError: 'Data write error',
-      invalidRegisterAddress: 'Invalid register address',
-      dataCorruption: 'Data corruption detected',
-      responseTimeout: 'PLC did not respond',
-      plcNotReady: 'PLC not ready',
-      plcEmergencyStop: 'Emergency stop active',
-      sensorError: 'Sensor error',
-      motorError: 'Motor error',
-      unknownError: 'An unexpected error occurred',
-      configurationError: 'Configuration error',
-    },
-    'ar': {
-      connectionFailed: 'فشل الاتصال بـ PLC',
-      connectionTimeout: 'انتهت مهلة الاتصال',
-      connectionLost: 'فُقد الاتصال بـ PLC',
-      invalidHost: 'عنوان PLC غير صالح',
-      portNotAvailable: 'المنفذ غير متاح',
-      modbusReadError: 'خطأ في قراءة البيانات',
-      modbusWriteError: 'خطأ في كتابة البيانات',
-      invalidRegisterAddress: 'عنوان السجل غير صالح',
-      dataCorruption: 'تم اكتشاف تلف في البيانات',
-      responseTimeout: 'لم يستجب PLC',
-      plcNotReady: 'PLC غير جاهز',
-      plcEmergencyStop: 'زر الطوارئ نشط',
-      sensorError: 'خطأ في المستشعر',
-      motorError: 'خطأ في المحرك',
-      unknownError: 'حدث خطأ غير متوقع',
-      configurationError: 'خطأ في التكوين',
-    },
-  };
 
   static final Map<int, String> _technicalDescriptions = {
     connectionFailed:
-        'TCP/IP bağlantısı başlatılamadı. IP ve port ayarlarını kontrol edin.',
+        'TCP/IP connection could not be established. Check IP and port settings.',
     connectionTimeout:
-        'Bağlantı timeout değeri: 3000ms. PLC network üzerinde erişilebilir mi?',
+        'Connection timeout: 3000 ms. Is the PLC reachable on the network?',
     connectionLost:
-        'Aktif bağlantı kesildi. Kablo bağlantısını ve PLC gücünü kontrol edin.',
-    invalidHost: 'Hedef IP adresi geçersiz format. Varsayılan: 127.0.0.1',
-    portNotAvailable: 'Modbus TCP portu (502) kullanımda veya engellenmiş.',
-    modbusReadError: 'Read Holding Registers (FC03) komutu başarısız.',
+        'Active connection dropped. Check cable and PLC power.',
+    invalidHost: 'Target IP address is in an invalid format. Default: 127.0.0.1',
+    portNotAvailable: 'Modbus TCP port (502) is in use or blocked.',
+    modbusReadError: 'Read Holding Registers (FC03) command failed.',
     modbusWriteError:
-        'Write Single Register (FC06) veya Multiple (FC16) komutu başarısız.',
-    invalidRegisterAddress: 'Register adresi range dışında (0-65535).',
+        'Write Single Register (FC06) or Multiple (FC16) command failed.',
+    invalidRegisterAddress: 'Register address out of range (0–65535).',
     dataCorruption:
-        'CRC/Checksum hatası. Elektriksel gürültü veya kablo sorunu olabilir.',
+        'CRC/checksum error. Possible electrical noise or cable issue.',
     responseTimeout:
-        'PLC read timeout: 2000ms. PLC yanıt süresi yavaş olabilir.',
-    plcNotReady: 'PLC RUN modunda değil. PLC panel kontrolünü yapın.',
-    plcEmergencyStop: 'E-STOP aktif. Güvenlik devresi kontrol edilmeli.',
+        'PLC read timeout: 2000 ms. PLC response may be slow.',
+    plcNotReady: 'PLC is not in RUN mode. Check PLC panel.',
+    plcEmergencyStop: 'E-STOP is active. Safety circuit must be inspected.',
     sensorError:
-        'Analog/Digital sensor okuma hatası. Sensor kalibrasyonu gerekli.',
-    motorError: 'Motor sürücü hatası. Inverter/Driver kontrolü yapın.',
-    unknownError: 'Kategorize edilmemiş hata. Log dosyalarını inceleyin.',
-    configurationError:
-        'Modbus ayarları hatalı. Config dosyasını kontrol edin.',
+        'Analog/digital sensor read error. Sensor calibration required.',
+    motorError: 'Motor driver fault. Check inverter/driver.',
+    unknownError: 'Uncategorised error. Review log files.',
+    configurationError: 'Modbus settings are incorrect. Check config file.',
   };
 }
 
-/// PLC Hatası Exception sınıfı
+/// Represents a PLC communication or state fault.
 class PLCException implements Exception {
   PLCException({
     required this.errorCode,
@@ -128,6 +69,11 @@ class PLCException implements Exception {
   }) : timestamp = DateTime.now();
 
   final int errorCode;
+
+  /// English technical fallback message set by the infrastructure layer.
+  ///
+  /// Localised user-facing messages are loaded at the UI layer via
+  /// [IPlcErrorStringSource] using the active language code.
   final String message;
   final String? technicalDetail;
   final DateTime timestamp;
@@ -136,12 +82,10 @@ class PLCException implements Exception {
   String toString() =>
       'PLCException(code: $errorCode, message: $message, time: $timestamp)';
 
-  String getUserMessage(String locale) =>
-      PLCErrorCodes.getErrorMessage(errorCode, locale);
-
+  /// Returns the technical description with any additional runtime detail appended.
   String getTechnicalInfo() {
-    final baseInfo = PLCErrorCodes.getTechnicalDescription(errorCode);
-    if (technicalDetail != null) return '$baseInfo\n\nEk Detay: $technicalDetail';
-    return baseInfo;
+    final base = PLCErrorCodes.getTechnicalDescription(errorCode);
+    if (technicalDetail != null) return '$base\n\nAdditional detail: $technicalDetail';
+    return base;
   }
 }

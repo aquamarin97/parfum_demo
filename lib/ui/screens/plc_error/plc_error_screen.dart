@@ -1,5 +1,6 @@
-// plc_error_screen.dart - FIXED LAYOUT
 import 'package:flutter/material.dart';
+import 'package:parfume_app/data/plc/plc_error_asset_source.dart';
+import 'package:parfume_app/domain/plc/i_plc_error_string_source.dart';
 import 'package:parfume_app/domain/plc/plc_exceptions.dart';
 import 'package:parfume_app/ui/components/primary_button.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
@@ -7,25 +8,60 @@ import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
 import '../../../viewmodel/app_view_model.dart';
 
-class PLCErrorScreen extends StatelessWidget {
+/// Displays a PLC fault screen with a localised error message.
+///
+/// The message is loaded asynchronously from [errorStringSource] using
+/// [languageCode]. While loading, or if the source returns no data for the
+/// given [errorCode], [PLCErrorCodes.getTechnicalDescription] is used as a
+/// fallback.
+class PLCErrorScreen extends StatefulWidget {
   const PLCErrorScreen({
     super.key,
     required this.viewModel,
     required this.errorCode,
-    required this.errorMessage,
+    required this.languageCode,
     this.technicalDetail,
     this.onRetry,
+    this.errorStringSource = const PlcErrorAssetSource(),
   });
 
   final AppViewModel viewModel;
   final int errorCode;
-  final String errorMessage;
+  final String languageCode;
   final String? technicalDetail;
   final VoidCallback? onRetry;
 
+  /// Source for localised error messages. Defaults to the bundled asset source.
+  final IPlcErrorStringSource errorStringSource;
+
+  @override
+  State<PLCErrorScreen> createState() => _PLCErrorScreenState();
+}
+
+class _PLCErrorScreenState extends State<PLCErrorScreen> {
+  late final Future<Map<int, String>?> _messagesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _messagesFuture = widget.errorStringSource.load(widget.languageCode);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final strings = viewModel.strings;
+    return FutureBuilder<Map<int, String>?>(
+      future: _messagesFuture,
+      builder: (context, snapshot) {
+        final message = snapshot.data?[widget.errorCode]
+            ?? snapshot.data?[PLCErrorCodes.unknownError]
+            ?? PLCErrorCodes.getTechnicalDescription(widget.errorCode);
+        return _buildContent(context, message);
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, String errorMessage) {
+    final strings = widget.viewModel.strings;
     final showTechnicalDetails = _shouldShowTechnicalDetails();
 
     return Scaffold(
@@ -36,7 +72,6 @@ class PLCErrorScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Error icon
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 600),
@@ -48,7 +83,7 @@ class PLCErrorScreen extends StatelessWidget {
                       width: 200,
                       height: 200,
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
+                        color: AppColors.error.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -63,7 +98,6 @@ class PLCErrorScreen extends StatelessWidget {
 
               const SizedBox(height: 48),
 
-              // Error title
               Text(
                 strings.t('error_title'),
                 style: AppTextStyles.title.copyWith(
@@ -76,7 +110,6 @@ class PLCErrorScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // User-friendly error message
               Text(
                 errorMessage,
                 style: AppTextStyles.body.copyWith(
@@ -88,22 +121,21 @@ class PLCErrorScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Error code
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
+                  color: AppColors.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.error.withOpacity(0.3),
+                    color: AppColors.error.withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),
                 child: Text(
-                  'Hata Kodu: $errorCode',
+                  'Error Code: ${widget.errorCode}',
                   style: AppTextStyles.body.copyWith(
                     fontFamily: 'Courier',
                     fontSize: 40,
@@ -113,39 +145,36 @@ class PLCErrorScreen extends StatelessWidget {
                 ),
               ),
 
-              // Technical details (if enabled)
-              if (showTechnicalDetails && technicalDetail != null) ...[
+              if (showTechnicalDetails && widget.technicalDetail != null) ...[
                 const SizedBox(height: 32),
                 _buildTechnicalDetailsCard(),
               ],
 
               const SizedBox(height: 48),
 
-              // ✅ Action buttons - FIXED LAYOUT
-              // Ekranın %80'ini kullan, butonları Flexible/Expanded yap
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: Row(
                   children: [
-                    if (onRetry != null) ...[
+                    if (widget.onRetry != null) ...[
                       Flexible(
                         child: PrimaryButton(
-                          label: 'Tekrar Dene',
-                          onPressed: onRetry,
-                          fontSize: 45, // 50 → 45 (biraz küçült)
-                          paddingHorizontal: 60, // 80 → 60
-                          paddingvertical: 20, // 24 → 20
+                          label: strings.t('retry_payment'),
+                          onPressed: widget.onRetry,
+                          fontSize: 45,
+                          paddingHorizontal: 60,
+                          paddingvertical: 20,
                         ),
                       ),
                       const SizedBox(width: 24),
                     ],
                     Flexible(
                       child: OutlinedButton(
-                        onPressed: viewModel.resetToIdle,
+                        onPressed: widget.viewModel.resetToIdle,
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 60, // 80 → 60
-                            vertical: 20, // 24 → 20
+                            horizontal: 60,
+                            vertical: 20,
                           ),
                           side: const BorderSide(
                             color: AppColors.border,
@@ -156,7 +185,7 @@ class PLCErrorScreen extends StatelessWidget {
                           strings.t('back_to_start'),
                           style: AppTextStyles.body.copyWith(
                             fontFamily: 'NotoSans',
-                            fontSize: 45, // 50 → 45
+                            fontSize: 45,
                             fontWeight: FontWeight.w600,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -195,7 +224,7 @@ class PLCErrorScreen extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                'Teknik Detaylar',
+                'Technical Details',
                 style: AppTextStyles.body.copyWith(
                   fontFamily: 'NotoSans',
                   fontSize: 36,
@@ -207,7 +236,7 @@ class PLCErrorScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            PLCErrorCodes.getTechnicalDescription(errorCode),
+            PLCErrorCodes.getTechnicalDescription(widget.errorCode),
             style: AppTextStyles.body.copyWith(
               fontFamily: 'NotoSans',
               fontSize: 32,
@@ -215,7 +244,7 @@ class PLCErrorScreen extends StatelessWidget {
               height: 1.5,
             ),
           ),
-          if (technicalDetail != null) ...[
+          if (widget.technicalDetail != null) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
@@ -224,7 +253,7 @@ class PLCErrorScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                technicalDetail!,
+                widget.technicalDetail!,
                 style: TextStyle(
                   fontFamily: 'Courier',
                   fontSize: 28,
@@ -238,8 +267,5 @@ class PLCErrorScreen extends StatelessWidget {
     );
   }
 
-  bool _shouldShowTechnicalDetails() {
-    // Production'da false, debug modda true
-    return true; // Şimdilik her zaman göster
-  }
+  bool _shouldShowTechnicalDetails() => true;
 }
