@@ -6,6 +6,8 @@ class AppColors {
   // Background
   static const Color background = Color(0xFFFFFDEE);
 
+  static const Color shadowLight = Color(0x14000000);
+  static const Color shadowExtraLight = Color(0x11000000);
   // Brand / Primary
   static const Color primary = Color(0xFFEE741E);
 
@@ -33,4 +35,8 @@ class AppColors {
   // Scent wave colors
   static const Color waveOrange = Color(0xFFF18142);
   static const Color wavePurple = Color(0xFF3C0F77);
+
+  // Admin Panel
+  static const Color adminBackground = Color(0xFF0B1020);
+  static const Color adminTabUnselected = Color(0xFFB9C0D4);
 }

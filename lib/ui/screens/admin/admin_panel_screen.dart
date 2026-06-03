@@ -1,12 +1,18 @@
-// lib/plc/admin/admin_panel_screen.dart
 import 'package:flutter/material.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
-import 'widgets/register_monitor.dart';
-import 'widgets/manual_control.dart';
-import 'widgets/health_status.dart';
-import 'widgets/event_log.dart';
+import 'package:parfume_app/ui/theme/app_admin_colors.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
 
-/// PLC Admin Panel Ana Ekran
+import 'widgets/event_log.dart';
+import 'widgets/health_status.dart';
+import 'widgets/manual_control.dart';
+import 'widgets/register_monitor.dart';
+
+/// PLC administration panel with four tabs:
+/// Monitor, Manual Control, Health Status, and Event Log.
+///
+/// Accessed via the hidden admin button in the kiosk shell.
+/// Requires an active [PLCServiceManager] instance.
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key, required this.plcService});
 
@@ -36,80 +42,84 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 120,
-        iconTheme: const IconThemeData(size: 50, color: Colors.white),
-
-        backgroundColor: const Color(0xFF0B1020),
+        toolbarHeight: AppSizes.adminAppBarHeight,
+        iconTheme: const IconThemeData(
+          size: AppSizes.adminAppBarIconSize,
+          color: Colors.white,
+        ),
+        backgroundColor: AdminColors.appBarBackground,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         title: const Text(
           'PLC Admin Panel',
           style: TextStyle(
-            fontSize: 45,
+            fontSize: AppSizes.adminAppBarTitleSize,
             fontWeight: FontWeight.w900,
             height: 1.0,
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120),
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true, // büyük fontta şart
-            tabAlignment: TabAlignment.center,
-            indicatorColor: Colors.white,
-            indicatorWeight: 16,
-            labelColor: Colors.white,
-            unselectedLabelColor: Color(0xFFB9C0D4),
-            labelStyle: const TextStyle(
-              fontSize: 48,
-              fontWeight: FontWeight.w800,
+          preferredSize: const Size.fromHeight(AppSizes.adminTabBarHeight),
+          child: Container(
+            color: AdminColors.tabBarBackground,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.center,
+              indicatorColor: Colors.white,
+              indicatorWeight: AppSizes.adminIndicatorWeight,
+              labelColor: Colors.white,
+              unselectedLabelColor: AdminColors.secondaryText,
+              labelStyle: const TextStyle(
+                fontSize: AppSizes.adminTabSelectedFontSize,
+                fontWeight: FontWeight.w800,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontSize: AppSizes.adminTabUnselectedFontSize,
+                fontWeight: FontWeight.w700,
+              ),
+              tabs: const [
+                _AdminTab(icon: Icons.monitor, text: 'Monitor'),
+                _AdminTab(icon: Icons.edit, text: 'Manual'),
+                _AdminTab(icon: Icons.health_and_safety, text: 'Status'),
+                _AdminTab(icon: Icons.event_note, text: 'Log'),
+              ],
             ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 44,
-              fontWeight: FontWeight.w700,
-            ),
-            tabs: const [
-              _BigTab(icon: Icons.monitor, text: 'Monitor'),
-              _BigTab(icon: Icons.edit, text: 'Manuel'),
-              _BigTab(icon: Icons.health_and_safety, text: 'Durum'),
-              _BigTab(icon: Icons.event_note, text: 'Log'),
-            ],
           ),
         ),
       ),
-
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Register Monitor
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: RegisterMonitor(plcService: widget.plcService),
-          ),
-
-          // Manuel Control
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: ManualControl(plcService: widget.plcService),
-          ),
-
-          // Health Status
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: HealthStatus(plcService: widget.plcService),
-          ),
-
-          // Event Log
-          Padding(padding: const EdgeInsets.all(16), child: const EventLog()),
-        ],
+      body: Container(
+        color: AdminColors.background,
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSizes.adminContentPadding),
+              child: RegisterMonitor(plcService: widget.plcService),
+            ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSizes.adminContentPadding),
+              child: ManualControl(plcService: widget.plcService),
+            ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSizes.adminContentPadding),
+              child: HealthStatus(plcService: widget.plcService),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSizes.adminContentPadding),
+              child: const EventLog(),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _BigTab extends StatelessWidget {
-  const _BigTab({required this.icon, required this.text});
+/// A single tab in the [AdminPanelScreen] tab bar.
+class _AdminTab extends StatelessWidget {
+  const _AdminTab({required this.icon, required this.text});
 
   final IconData icon;
   final String text;
@@ -117,14 +127,13 @@ class _BigTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 260, // statik: her tab geniş
-      height: 140, // TabBar yüksekliği ile uyumlu
+      width: AppSizes.adminTabWidth,
+      height: AppSizes.adminTabHeight,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 52),
-          const SizedBox(height: 6),
-          // Taşma olursa bile küçültüp sığdırır (ama font büyük kalır)
+          Icon(icon, size: AppSizes.adminTabIconSize),
+          const SizedBox(height: AppSizes.adminTabSpacing),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(text, maxLines: 1, softWrap: false),

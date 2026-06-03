@@ -1,25 +1,34 @@
-// lib/plc/debug/hidden_button.dart
-import 'package:flutter/material.dart';
 import 'dart:async';
 
-/// Gizli admin panel giriş butonu
-/// 
-/// Kullanım:
-/// - Sol alt köşede görünmez alan
-/// - 4 kez tıkla (2 saniye içinde)
-/// - Şifre ekranı açılır
+import 'package:flutter/material.dart';
+import 'package:parfume_app/core/constants/app_constants.dart';
+import 'package:parfume_app/ui/theme/app_admin_colors.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
+
+/// An invisible tap target in the bottom-left corner that opens the admin
+/// panel after [requiredTaps] taps within [tapWindowSeconds] seconds.
+///
+/// A password dialog is shown before granting access. The default password
+/// is defined in [AppConstants.adminPassword].
 class HiddenAdminButton extends StatefulWidget {
   const HiddenAdminButton({
     super.key,
     required this.onAccessGranted,
     this.requiredTaps = 4,
     this.tapWindowSeconds = 2,
-    this.password = '1234',
+    this.password = AppConstants.adminPassword,
   });
 
+  /// Called when the correct password is entered.
   final VoidCallback onAccessGranted;
+
+  /// Number of taps required within [tapWindowSeconds] to trigger the dialog.
   final int requiredTaps;
+
+  /// Time window in seconds within which [requiredTaps] must occur.
   final int tapWindowSeconds;
+
+  /// Password required to access the admin panel.
   final String password;
 
   @override
@@ -31,27 +40,17 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
   Timer? _resetTimer;
 
   void _handleTap() {
-    setState(() {
-      _tapCount++;
-    });
+    setState(() => _tapCount++);
 
-    // Reset timer'ı yeniden başlat
     _resetTimer?.cancel();
     _resetTimer = Timer(
       Duration(seconds: widget.tapWindowSeconds),
-      () {
-        setState(() {
-          _tapCount = 0;
-        });
-      },
+      () => setState(() => _tapCount = 0),
     );
 
-    // Yeterli sayıda tıklama yapıldıysa şifre ekranını aç
     if (_tapCount >= widget.requiredTaps) {
       _resetTimer?.cancel();
-      setState(() {
-        _tapCount = 0;
-      });
+      setState(() => _tapCount = 0);
       _showPasswordDialog();
     }
   }
@@ -64,22 +63,27 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
       barrierDismissible: true,
       builder: (context) => AlertDialog(
         title: const Text(
-          'Admin Erişimi',
-          style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          'Admin Access',
+          style: TextStyle(
+            fontSize: AppSizes.adminDialogTitleSize,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Lütfen şifreyi girin:',
-              style: TextStyle(fontSize: 32),
+              'Enter password:',
+              style: TextStyle(fontSize: AppSizes.adminDialogBodySize),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSizes.spacingS),
             TextField(
               controller: controller,
               obscureText: true,
               autofocus: true,
-              style: const TextStyle(fontSize: 40),
+              style: const TextStyle(
+                fontSize: AppSizes.adminDialogTitleSize,
+              ),
               keyboardType: TextInputType.number,
               maxLength: 4,
               decoration: const InputDecoration(
@@ -87,9 +91,7 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
                 hintText: '****',
                 counterText: '',
               ),
-              onSubmitted: (value) {
-                _checkPassword(context, value);
-              },
+              onSubmitted: (value) => _checkPassword(context, value),
             ),
           ],
         ),
@@ -97,17 +99,15 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
-              'İptal',
-              style: TextStyle(fontSize: 36),
+              'Cancel',
+              style: TextStyle(fontSize: AppSizes.adminDialogActionSize),
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              _checkPassword(context, controller.text);
-            },
+            onPressed: () => _checkPassword(context, controller.text),
             child: const Text(
-              'Giriş',
-              style: TextStyle(fontSize: 36),
+              'Enter',
+              style: TextStyle(fontSize: AppSizes.adminDialogActionSize),
             ),
           ),
         ],
@@ -120,14 +120,13 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
       Navigator.pop(context);
       widget.onAccessGranted();
     } else {
-      // Hatalı şifre
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Hatalı şifre!',
-            style: TextStyle(fontSize: 32),
+            'Incorrect password.',
+            style: TextStyle(fontSize: AppSizes.adminDialogBodySize),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AdminColors.danger,
           duration: Duration(seconds: 2),
         ),
       );
@@ -148,18 +147,16 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
       child: GestureDetector(
         onTap: _handleTap,
         child: Container(
-          width: 80,
-          height: 80,
-          color: const Color.fromARGB(0, 133, 21, 21),
-          // Debug için görmek istersen:
-          // color: Colors.red.withOpacity(0.1),
+          width: AppSizes.hiddenButtonSize,
+          height: AppSizes.hiddenButtonSize,
+          color: Colors.transparent,
           child: _tapCount > 0
               ? Center(
                   child: Text(
                     '$_tapCount',
                     style: const TextStyle(
                       color: Colors.grey,
-                      fontSize: 24,
+                      fontSize: AppSizes.adminTapCounterSize,
                     ),
                   ),
                 )

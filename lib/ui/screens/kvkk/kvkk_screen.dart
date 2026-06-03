@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/components/outlinedbutton.dart';
+import 'package:parfume_app/ui/components/buttons/primary_outlined_button.dart';
+import 'package:parfume_app/ui/components/buttons/primary_button.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 
 import '../../../viewmodel/app_view_model.dart';
-import '../../components/primary_button.dart';
 import '../../theme/app_text_styles.dart';
 
 /// KVKK (data-privacy consent) screen.

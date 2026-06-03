@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/components/primary_button.dart';
+import 'package:parfume_app/ui/components/buttons/primary_button.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
@@ -34,7 +34,7 @@ class GiftCardQuestionView extends StatelessWidget {
                 onPressed: () => viewModel.onGiftCardAnswer(true),
                 fontSize: AppSizes.fontBody,
                 paddingHorizontal: AppSizes.spacingXL,
-                paddingvertical: AppSizes.spacingM,
+                paddingVertical: AppSizes.spacingM,
               ),
             ),
             const SizedBox(width: AppSizes.spacingM),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:parfume_app/core/constants/app_constants.dart';
-import 'package:parfume_app/ui/components/top_nav_bar.dart';
+import 'package:parfume_app/ui/components/navigation/top_nav_bar.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 
-import '../../viewmodel/app_view_model.dart';
-import '../components/radio_option_list.dart';
-import '../theme/app_text_styles.dart';
+import '../../../viewmodel/app_view_model.dart';
+import '../../components/inputs/radio_option_list.dart';
+import '../../theme/app_text_styles.dart';
 
 /// Displays a single survey question with animated transitions.
 class QuestionScreen extends StatefulWidget {

@@ -1,18 +1,12 @@
-// lib/plc/admin/widgets/manual_control.dart
 import 'package:flutter/material.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/data/models/plc/plc_event.dart';
+import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 
-/// Kiosk/32" uyumlu sabit renk & boyut sistemi (RegisterMonitor ile aynı)
-const Color kBgDark = Color(0xFF0B1020);
-const Color kCardBg = Color(0xFF141A2E);
-const Color kPrimaryText = Colors.white;
-const Color kSecondaryText = Color(0xFFB9C0D4);
-const Color kAccent = Color(0xFF4DA3FF);
-const Color kLiveGreen = Color(0xFF4CAF50);
-const Color kDangerRed = Color(0xFFE53935);
-const Color kWarnOrange = Color(0xFFFB8C00);
-
+/// Manual register read/write controls for PLC diagnostics.
+///
+/// All write operations require confirmation. Read operations are
+/// currently mocked pending direct client access.
 class ManualControl extends StatefulWidget {
   const ManualControl({
     super.key,
@@ -33,19 +27,19 @@ class _ManualControlState extends State<ManualControl> {
 
   Future<void> _readRegister() async {
     if (!widget.plcService.isConnected) {
-      _showError('PLC bağlı değil');
+      _showError('PLC not connected');
       return;
     }
 
     final registerStr = _registerController.text.trim();
     if (registerStr.isEmpty) {
-      _showError('Register adresi giriniz');
+      _showError('Enter register address');
       return;
     }
 
     final register = int.tryParse(registerStr);
     if (register == null || register < 0 || register > 65535) {
-      _showError('Geçersiz register adresi (0-65535)');
+      _showError('Invalid register address (0–65535)');
       return;
     }
 
@@ -55,12 +49,10 @@ class _ManualControlState extends State<ManualControl> {
     });
 
     try {
-      final client = widget.plcService;
-
-      // TODO: Direct read metodunu çağır
-      // Şimdilik mock
+      // TODO: call direct read method
+      // mock for now
       await Future.delayed(const Duration(milliseconds: 500));
-      final value = 42;
+      const value = 42;
 
       setState(() {
         _lastResult = 'Register R$register = $value';
@@ -68,9 +60,9 @@ class _ManualControlState extends State<ManualControl> {
 
       PLCEventLogger.instance.logRead(register, value);
     } catch (e) {
-      _showError('Okuma hatası: $e');
+      _showError('Read error: $e');
       PLCEventLogger.instance
-          .logError('Register $register okuma hatası', error: e.toString());
+          .logError('Register $register read error', error: e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -80,7 +72,7 @@ class _ManualControlState extends State<ManualControl> {
 
   Future<void> _writeRegister() async {
     if (!widget.plcService.isConnected) {
-      _showError('PLC bağlı değil');
+      _showError('PLC not connected');
       return;
     }
 
@@ -88,7 +80,7 @@ class _ManualControlState extends State<ManualControl> {
     final valueStr = _valueController.text.trim();
 
     if (registerStr.isEmpty || valueStr.isEmpty) {
-      _showError('Register ve değer giriniz');
+      _showError('Enter register and value');
       return;
     }
 
@@ -96,55 +88,55 @@ class _ManualControlState extends State<ManualControl> {
     final value = int.tryParse(valueStr);
 
     if (register == null || register < 0 || register > 65535) {
-      _showError('Geçersiz register adresi (0-65535)');
+      _showError('Invalid register address (0–65535)');
       return;
     }
 
     if (value == null || value < 0 || value > 65535) {
-      _showError('Geçersiz değer (0-65535)');
+      _showError('Invalid value (0–65535)');
       return;
     }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: kCardBg,
+        backgroundColor: AdminColors.cardBackground,
         titleTextStyle: const TextStyle(
           fontSize: 40,
           fontWeight: FontWeight.w900,
-          color: kPrimaryText,
+          color: AdminColors.primaryText,
         ),
         contentTextStyle: const TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.w600,
-          color: kSecondaryText,
+          color: AdminColors.secondaryText,
         ),
-        title: const Text('Yazma Onayı'),
+        title: const Text('Write Confirmation'),
         content: Text(
-          'Register R$register\'a değer $value yazılacak.\nEmin misiniz?',
+          'Value $value will be written to register R$register.\nAre you sure?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text(
-              'İptal',
+              'Cancel',
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
-                color: kSecondaryText,
+                color: AdminColors.secondaryText,
               ),
             ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: kWarnOrange,
+              backgroundColor: AdminColors.warning,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
               textStyle:
                   const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
             ),
-            child: const Text('Yaz'),
+            child: const Text('Write'),
           ),
         ],
       ),
@@ -158,21 +150,19 @@ class _ManualControlState extends State<ManualControl> {
     });
 
     try {
-      final client = widget.plcService;
-
-      // TODO: Direct write metodunu çağır
-      // Şimdilik mock
+      // TODO: call direct write method
+      // mock for now
       await Future.delayed(const Duration(milliseconds: 500));
 
       setState(() {
-        _lastResult = 'Register R$register = $value (yazıldı)';
+        _lastResult = 'Register R$register = $value (written)';
       });
 
       PLCEventLogger.instance.logWrite(register, value);
     } catch (e) {
-      _showError('Yazma hatası: $e');
+      _showError('Write error: $e');
       PLCEventLogger.instance
-          .logError('Register $register yazma hatası', error: e.toString());
+          .logError('Register $register write error', error: e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -183,7 +173,7 @@ class _ManualControlState extends State<ManualControl> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        backgroundColor: kDangerRed,
+        backgroundColor: AdminColors.danger,
         content: Text(
           message,
           style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
@@ -201,169 +191,165 @@ class _ManualControlState extends State<ManualControl> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: kBgDark,
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Manuel Kontrol',
-              style: TextStyle(
-                fontSize: 42,
-                fontWeight: FontWeight.w900,
-                color: kPrimaryText,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Manual Control',
+            style: TextStyle(
+              fontSize: 42,
+              fontWeight: FontWeight.w900,
+              color: AdminColors.primaryText,
             ),
+          ),
 
-            const SizedBox(height: 18),
+          const SizedBox(height: 18),
 
-            // Register input
-            _BigField(
-              controller: _registerController,
-              labelText: 'Register Adresi (0-65535)',
-              prefixText: 'R',
-            ),
+          _BigField(
+            controller: _registerController,
+            labelText: 'Register Address (0–65535)',
+            prefixText: 'R',
+          ),
 
-            const SizedBox(height: 18),
+          const SizedBox(height: 18),
 
-            // Value input
-            _BigField(
-              controller: _valueController,
-              labelText: 'Değer (0-65535)',
-            ),
+          _BigField(
+            controller: _valueController,
+            labelText: 'Value (0–65535)',
+          ),
 
-            const SizedBox(height: 22),
+          const SizedBox(height: 22),
 
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _readRegister,
-                    icon: const Icon(Icons.download, size: 48),
-                    label: const Text(
-                      'Oku',
-                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      backgroundColor: kAccent,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: kAccent.withOpacity(0.35),
-                      disabledForegroundColor: Colors.white70,
-                    ),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _readRegister,
+                  icon: const Icon(Icons.download, size: 48),
+                  label: const Text(
+                    'Read',
+                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    backgroundColor: AdminColors.accent,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        AdminColors.accent.withValues(alpha: 0.35),
+                    disabledForegroundColor: Colors.white70,
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _writeRegister,
-                    icon: const Icon(Icons.upload, size: 48),
-                    label: const Text(
-                      'Yaz',
-                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      backgroundColor: kWarnOrange,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: kWarnOrange.withOpacity(0.35),
-                      disabledForegroundColor: Colors.white70,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 22),
-
-            if (_isLoading)
-              const Center(
-                child: SizedBox(
-                  width: 64,
-                  height: 64,
-                  child: CircularProgressIndicator(strokeWidth: 6),
-                ),
               ),
-
-            if (_lastResult != null && !_isLoading) ...[
-              const SizedBox(height: 18),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: kLiveGreen.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: kLiveGreen, width: 2),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle,
-                        color: kLiveGreen, size: 52),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        _lastResult!,
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: kPrimaryText,
-                        ),
-                      ),
-                    ),
-                  ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _writeRegister,
+                  icon: const Icon(Icons.upload, size: 48),
+                  label: const Text(
+                    'Write',
+                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    backgroundColor: AdminColors.warning,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        AdminColors.warning.withValues(alpha: 0.35),
+                    disabledForegroundColor: Colors.white70,
+                  ),
                 ),
               ),
             ],
+          ),
 
-            const SizedBox(height: 26),
+          const SizedBox(height: 22),
 
-            const Text(
-              'Hızlı İşlemler:',
-              style: TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                color: kPrimaryText,
+          if (_isLoading)
+            const Center(
+              child: SizedBox(
+                width: 64,
+                height: 64,
+                child: CircularProgressIndicator(strokeWidth: 6),
               ),
             ),
 
-            const SizedBox(height: 12),
-
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _QuickActionChip(
-                  label: 'R0 (Öneri 1)',
-                  onTap: () => setState(() => _registerController.text = '0'),
-                ),
-                _QuickActionChip(
-                  label: 'R10 (Tester)',
-                  onTap: () => setState(() => _registerController.text = '10'),
-                ),
-                _QuickActionChip(
-                  label: 'R20 (Ödeme)',
-                  onTap: () => setState(() => _registerController.text = '20'),
-                ),
-                _QuickActionChip(
-                  label: 'R30 (Parfüm)',
-                  onTap: () => setState(() => _registerController.text = '30'),
-                ),
-                _QuickActionChip(
-                  label: 'R100 (Heartbeat)',
-                  onTap: () => setState(() => _registerController.text = '100'),
-                ),
-              ],
+          if (_lastResult != null && !_isLoading) ...[
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AdminColors.success.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AdminColors.success, width: 2),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle,
+                      color: AdminColors.success, size: 52),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      _lastResult!,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: AdminColors.primaryText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
-        ),
+
+          const SizedBox(height: 26),
+
+          const Text(
+            'Quick Actions:',
+            style: TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+              color: AdminColors.primaryText,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _QuickActionChip(
+                label: 'R0 (Suggestion 1)',
+                onTap: () => setState(() => _registerController.text = '0'),
+              ),
+              _QuickActionChip(
+                label: 'R10 (Tester)',
+                onTap: () => setState(() => _registerController.text = '10'),
+              ),
+              _QuickActionChip(
+                label: 'R20 (Payment)',
+                onTap: () => setState(() => _registerController.text = '20'),
+              ),
+              _QuickActionChip(
+                label: 'R30 (Perfume)',
+                onTap: () => setState(() => _registerController.text = '30'),
+              ),
+              _QuickActionChip(
+                label: 'R100 (Heartbeat)',
+                onTap: () => setState(() => _registerController.text = '100'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
+/// A large numeric input field styled for the admin panel.
 class _BigField extends StatelessWidget {
   const _BigField({
     required this.controller,
@@ -383,36 +369,40 @@ class _BigField extends StatelessWidget {
       style: const TextStyle(
         fontSize: 34,
         fontWeight: FontWeight.w800,
-        color: kPrimaryText,
+        color: AdminColors.primaryText,
       ),
       decoration: InputDecoration(
         filled: true,
-        fillColor: kCardBg,
+        fillColor: AdminColors.cardBackground,
         labelText: labelText,
         labelStyle: const TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.w700,
-          color: kSecondaryText,
+          color: AdminColors.secondaryText,
         ),
         prefixText: prefixText,
         prefixStyle: const TextStyle(
           fontSize: 34,
           fontWeight: FontWeight.w900,
-          color: kAccent,
+          color: AdminColors.accent,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: kSecondaryText.withOpacity(0.35), width: 2),
+          borderSide: BorderSide(
+            color: AdminColors.secondaryText.withValues(alpha: 0.35),
+            width: 2,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: kAccent, width: 3),
+          borderSide: const BorderSide(color: AdminColors.accent, width: 3),
         ),
       ),
     );
   }
 }
 
+/// A tappable chip that pre-fills the register address field.
 class _QuickActionChip extends StatelessWidget {
   const _QuickActionChip({
     required this.label,
@@ -425,18 +415,21 @@ class _QuickActionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActionChip(
-      backgroundColor: kCardBg,
-      side: BorderSide(color: kSecondaryText.withOpacity(0.25), width: 2),
+      backgroundColor: AdminColors.cardBackground,
+      side: BorderSide(
+        color: AdminColors.secondaryText.withValues(alpha: 0.25),
+        width: 2,
+      ),
       label: Text(
         label,
         style: const TextStyle(
           fontSize: 28,
           fontWeight: FontWeight.w800,
-          color: kPrimaryText,
+          color: AdminColors.primaryText,
         ),
       ),
       onPressed: onTap,
-      avatar: const Icon(Icons.flash_on, size: 34, color: kAccent),
+      avatar: const Icon(Icons.flash_on, size: 34, color: AdminColors.accent),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }

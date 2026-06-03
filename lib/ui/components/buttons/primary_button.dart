@@ -1,15 +1,21 @@
-// primary_button.dart
 import 'package:flutter/material.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
+import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
+/// Primary action button used throughout the kiosk UI.
+///
+/// Defaults to the standard kiosk button size; callers may override
+/// [fontSize], [paddingHorizontal], and [paddingVertical] for context-specific
+/// layouts. Pass `enabled: false` or `onPressed: null` to disable.
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
-    this.fontSize = 120.0, // Varsayılan değer 100 olarak belirlendi
+    this.fontSize = AppSizes.fontButton,
     this.enabled = true,
-    this.paddingHorizontal = 150,
-    this.paddingvertical = 30,
+    this.paddingHorizontal = AppSizes.buttonPaddingH,
+    this.paddingVertical = AppSizes.buttonPaddingV,
   });
 
   final String label;
@@ -17,7 +23,8 @@ class PrimaryButton extends StatelessWidget {
   final bool enabled;
   final double fontSize;
   final double paddingHorizontal;
-  final double paddingvertical;
+  final double paddingVertical;
+
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
@@ -25,14 +32,13 @@ class PrimaryButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(
           horizontal: paddingHorizontal,
-          vertical: paddingvertical,
+          vertical: paddingVertical,
         ),
         shape: const StadiumBorder(),
       ),
       child: Text(
         label,
-        // Değişken kullanıldığı için style kısmında const kullanılmaz
-        style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
+        style: AppTextStyles.button.copyWith(fontSize: fontSize),
       ),
     );
   }

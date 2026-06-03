@@ -1,19 +1,12 @@
-// lib/plc/admin/widgets/event_log.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:parfume_app/data/models/plc/plc_event.dart';
+import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 
-/// Kiosk/32" uyumlu sabit renk & boyut sistemi (diğer tablarla aynı)
-const Color kBgDark = Color(0xFF0B1020);
-const Color kCardBg = Color(0xFF141A2E);
-const Color kPrimaryText = Colors.white;
-const Color kSecondaryText = Color(0xFFB9C0D4);
-const Color kAccent = Color(0xFF4DA3FF);
-const Color kLiveGreen = Color(0xFF4CAF50);
-const Color kDangerRed = Color(0xFFE53935);
-const Color kWarnOrange = Color(0xFFFB8C00);
-
-/// Event log görüntüleme widget
+/// Scrollable, filterable log of [PLCEvent] entries.
+///
+/// Refreshes every second and supports per-type filtering via chip buttons.
+/// Entries can be cleared via the delete button in the header.
 class EventLog extends StatefulWidget {
   const EventLog({super.key});
 
@@ -29,7 +22,7 @@ class _EventLogState extends State<EventLog> {
   @override
   void initState() {
     super.initState();
-    // Her saniye güncelle
+    // Refresh every second.
     _refreshTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -53,12 +46,11 @@ class _EventLogState extends State<EventLog> {
     final events = _filteredEvents;
 
     return Container(
-      color: kBgDark,
+      color: AdminColors.background,
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -67,7 +59,7 @@ class _EventLogState extends State<EventLog> {
                 style: TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.w900,
-                  color: kPrimaryText,
+                  color: AdminColors.primaryText,
                 ),
               ),
               Row(
@@ -77,16 +69,16 @@ class _EventLogState extends State<EventLog> {
                     style: const TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
-                      color: kSecondaryText,
+                      color: AdminColors.secondaryText,
                     ),
                   ),
                   const SizedBox(width: 14),
                   IconButton(
                     iconSize: 52,
-                    color: kPrimaryText,
+                    color: AdminColors.primaryText,
                     icon: const Icon(Icons.delete_sweep),
                     onPressed: () => _clearLogs(),
-                    tooltip: 'Temizle',
+                    tooltip: 'Clear',
                   ),
                 ],
               ),
@@ -95,13 +87,12 @@ class _EventLogState extends State<EventLog> {
 
           const SizedBox(height: 12),
 
-          // Filters
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 _BigFilterChip(
-                  label: 'TÜMÜ',
+                  label: 'ALL',
                   selected: _filterType == null,
                   onSelected: () => setState(() => _filterType = null),
                 ),
@@ -122,16 +113,15 @@ class _EventLogState extends State<EventLog> {
 
           const SizedBox(height: 14),
 
-          // Event list
           Expanded(
             child: events.isEmpty
                 ? const Center(
                     child: Text(
-                      'Henüz event yok',
+                      'No events yet',
                       style: TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.w700,
-                        color: kSecondaryText,
+                        color: AdminColors.secondaryText,
                       ),
                     ),
                   )
@@ -153,28 +143,30 @@ class _EventLogState extends State<EventLog> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: kCardBg,
+        backgroundColor: AdminColors.cardBackground,
         titleTextStyle: const TextStyle(
           fontSize: 40,
           fontWeight: FontWeight.w900,
-          color: kPrimaryText,
+          color: AdminColors.primaryText,
         ),
         contentTextStyle: const TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.w600,
-          color: kSecondaryText,
+          color: AdminColors.secondaryText,
         ),
-        title: const Text('Log Temizle'),
-        content: const Text('Tüm event logları silinecek.\nEmin misiniz?'),
+        title: const Text('Clear Log'),
+        content: const Text(
+          'All event logs will be deleted.\nAre you sure?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text(
-              'İptal',
+              'Cancel',
               style: TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
-                color: kSecondaryText,
+                color: AdminColors.secondaryText,
               ),
             ),
           ),
@@ -185,13 +177,13 @@ class _EventLogState extends State<EventLog> {
               setState(() {});
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: kDangerRed,
+              backgroundColor: AdminColors.danger,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
               textStyle:
                   const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
             ),
-            child: const Text('Temizle'),
+            child: const Text('Clear'),
           ),
         ],
       ),
@@ -199,6 +191,7 @@ class _EventLogState extends State<EventLog> {
   }
 }
 
+/// Large touchable filter chip for the admin panel event type selector.
 class _BigFilterChip extends StatelessWidget {
   const _BigFilterChip({
     required this.label,
@@ -215,19 +208,16 @@ class _BigFilterChip extends StatelessWidget {
     return FilterChip(
       selected: selected,
       onSelected: (_) => onSelected(),
-
-      // ❌ checkmark iptal – kiosk’ta gereksiz ve karışık
+      // Hide checkmark — unnecessary on kiosk.
       showCheckmark: false,
-
-      // 🎯 NET KONTRAST
-      backgroundColor: kCardBg,
-      selectedColor: kAccent, // TAM RENK
-
+      backgroundColor: AdminColors.cardBackground,
+      selectedColor: AdminColors.accent,
       side: BorderSide(
-        color: selected ? kAccent : kSecondaryText.withOpacity(0.35),
+        color: selected
+            ? AdminColors.accent
+            : AdminColors.secondaryText.withValues(alpha: 0.35),
         width: selected ? 3 : 2,
       ),
-
       label: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Text(
@@ -235,10 +225,7 @@ class _BigFilterChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.w900,
-
-            // 👇 kritik kontrast
-            color: selected ? Colors.black : kSecondaryText,
-
+            color: selected ? Colors.black : AdminColors.secondaryText,
             height: 1.0,
             letterSpacing: 0.5,
           ),
@@ -248,7 +235,7 @@ class _BigFilterChip extends StatelessWidget {
   }
 }
 
-
+/// A single row in the event log list.
 class _EventTile extends StatelessWidget {
   const _EventTile({required this.event});
 
@@ -256,21 +243,21 @@ class _EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final badgeColor = event.color; // modelden gelen renk (tip rengi)
+    final badgeColor = event.color;
 
     return Card(
-      color: kCardBg,
+      color: AdminColors.cardBackground,
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         isThreeLine: true,
         minVerticalPadding: 16,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         leading: Container(
           width: 72,
           height: 72,
           decoration: BoxDecoration(
-            color: badgeColor.withOpacity(0.14),
+            color: badgeColor.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -279,15 +266,18 @@ class _EventTile extends StatelessWidget {
             size: 52,
           ),
         ),
-
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: badgeColor.withOpacity(0.18),
+                color: badgeColor.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: badgeColor.withOpacity(0.45), width: 2),
+                border: Border.all(
+                  color: badgeColor.withValues(alpha: 0.45),
+                  width: 2,
+                ),
               ),
               child: Text(
                 event.type.name.toUpperCase(),
@@ -306,7 +296,7 @@ class _EventTile extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w700,
-                  color: kPrimaryText,
+                  color: AdminColors.primaryText,
                   height: 1.05,
                 ),
                 maxLines: 1,
@@ -315,7 +305,6 @@ class _EventTile extends StatelessWidget {
             ),
           ],
         ),
-
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Wrap(
@@ -340,15 +329,15 @@ class _EventTile extends StatelessWidget {
             ],
           ),
         ),
-
         trailing: event.error != null
-            ? const Icon(Icons.error, color: kDangerRed, size: 46)
+            ? const Icon(Icons.error, color: AdminColors.danger, size: 46)
             : null,
       ),
     );
   }
 }
 
+/// A small pill-shaped metadata tag showing an icon and a text value.
 class _MetaPill extends StatelessWidget {
   const _MetaPill({
     required this.icon,
@@ -363,21 +352,24 @@ class _MetaPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: kSecondaryText.withOpacity(0.10),
+        color: AdminColors.secondaryText.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: kSecondaryText.withOpacity(0.18), width: 2),
+        border: Border.all(
+          color: AdminColors.secondaryText.withValues(alpha: 0.18),
+          width: 2,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 28, color: kSecondaryText),
+          Icon(icon, size: 28, color: AdminColors.secondaryText),
           const SizedBox(width: 10),
           Text(
             text,
             style: const TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w800,
-              color: kSecondaryText,
+              color: AdminColors.secondaryText,
               height: 1.0,
             ),
           ),

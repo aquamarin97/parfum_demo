@@ -57,6 +57,57 @@ class AppSizes {
   static const double testerButtonBorderNormal = 2.0;
   static const double testerButtonBlurRadius = 12.0;
 
+  // Radio option list
+  static const double radioOptionMinHeight = 80.0;
+  static const double radioOptionPaddingH = 20.0;
+  static const double radioOptionPaddingV = 18.0;
+  static const double radioOptionPadding = 8.0;
+  static const double radioButtonSize = 24.0;
+  static const double radioOptionBorderWidth = 2.0;
+  static const double radioOptionSlideOffset = 0.3;
+
+  // Language Switcher
+  static const double languageSwitcherShadowBlur = 6.0;
+  static const double languageSwitcherShadowOffsetY = 3.0;
+  static const double languageSwitcherButtonSpacing = 4.0;
+
+  // Button
+  static const double buttonPaddingH = 150.0;
+  static const double buttonPaddingV = 30.0;
+  static const double outlinedButtonBorderWidth = 3.0;
+
+  // Navigation Bar
+  static const double navBarBackMinWidth = 180.0;
+  static const double navBarCancelMinWidth = 140.0;
+  static const double navBarMinHeight = 72.0;
+  static const double navBarIconSize = 64.0;
+  static const double navBarPaddingH = 30.0;
+  static const double navBarPaddingV = 15.0;
+  static const double navBarRadius = 10.0;
+  static const double navBarShadowBlur = 16.0;
+  static const double navBarShadowOffsetY = 6.0;
+
+  // ADMİN PANEL \\
+  static const double adminAppBarHeight = 120.0;
+  static const double adminTabBarHeight = 120.0;
+  static const double adminTabWidth = 260.0;
+  static const double adminTabHeight = 140.0;
+  static const double adminTabIconSize = 52.0;
+  static const double adminTabSelectedFontSize = 48.0;
+  static const double adminTabUnselectedFontSize = 44.0;
+  static const double adminAppBarTitleSize = 45.0;
+  static const double adminAppBarIconSize = 50.0;
+  static const double adminIndicatorWeight = 16.0;
+  static const double adminContentPadding = 16.0;
+  static const double adminTabSpacing = 6.0;
+
+  // Hidden button
+  static const double hiddenButtonSize = 80.0;
+  static const double adminDialogTitleSize = 40.0;
+  static const double adminDialogBodySize = 32.0;
+  static const double adminDialogActionSize = 36.0;
+  static const double adminTapCounterSize = 24.0;
+  
   // Font sizes
   static const double fontHeadline = 100.0;
   static const double fontTitle = 80.0;

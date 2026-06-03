@@ -3,11 +3,11 @@ import 'package:parfume_app/ui/screens/plc_error/plc_error_screen.dart';
 
 import '../../domain/state/app_state.dart';
 import '../../viewmodel/app_view_model.dart';
-import '../screens/error_screen.dart';
+import '../screens/error/error_screen.dart';
 import '../screens/idle/idle_screen.dart';
-import '../screens/kvkk_screen/kvkk_screen.dart';
-import '../screens/loading_screen.dart';
-import '../screens/question_screen.dart';
+import '../screens/kvkk/kvkk_screen.dart';
+import '../screens/loading/loading_screen.dart';
+import '../screens/question/question_screen.dart';
 import '../screens/result/result_screen.dart';
 
 /// Maps each [AppState] subtype to its corresponding screen widget.

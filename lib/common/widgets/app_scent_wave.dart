@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/screens/scent_waves_loader.dart';
+import 'package:parfume_app/common/widgets/scent_waves_loader.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 

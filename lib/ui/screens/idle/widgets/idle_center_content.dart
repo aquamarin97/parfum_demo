@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/components/primary_button.dart';
+import 'package:parfume_app/ui/components/buttons/primary_button.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
 /// Centred subtitle, start button, and bottom spacing for the idle screen.

@@ -8,7 +8,7 @@ import 'package:parfume_app/ui/screens/admin/widgets/hidden_button.dart';
 import 'package:parfume_app/ui/screens/admin/admin_panel_screen.dart';
 
 import 'i18n/rtl_support.dart';
-import 'ui/components/language_switcher.dart';
+import 'ui/components/navigation/language_switcher.dart';
 import 'ui/navigation/app_router.dart';
 import 'ui/theme/app_theme.dart';
 import 'viewmodel/app_view_model.dart';

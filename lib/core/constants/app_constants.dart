@@ -13,4 +13,6 @@ class AppConstants {
   static const int timerUrgentThreshold = 60; // seconds
   static const String surveyAssetPath = 'assets/content/survey_questions.json';
   static const String kvkkAssetPath = 'assets/content/kvkk_legal_01.json';
+
+  static const String adminPassword = '1234'; // TODO: replace before release
 }

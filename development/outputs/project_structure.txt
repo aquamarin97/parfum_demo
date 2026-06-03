@@ -189,7 +189,8 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                 ├── app_logo_background.dart
                 ├── app_logo_painter.dart
                 ├── app_scent_wave.dart
-                └── app_ventuse_text.dart
+                ├── app_ventuse_text.dart
+                └── scent_waves_loader.dart
         ├── core/
             ├── constants/
                 └── app_constants.dart
@@ -268,19 +269,18 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
             └── kiosk_mode_controller.dart
         ├── ui/
             ├── components/
-                ├── language_switcher.dart
-                ├── outlinedbutton.dart
-                ├── primary_button.dart
-                ├── radio_option_list.dart
-                └── top_nav_bar.dart
+                ├── buttons/
+                    ├── primary_button.dart
+                    └── primary_outlined_button.dart
+                ├── inputs/
+                    └── radio_option_list.dart
+                ├── navigation/
+                    ├── language_switcher.dart
+                    └── top_nav_bar.dart
             ├── navigation/
                 ├── app_router.dart
                 └── app_routes.dart
             ├── screens/
-                ├── error_screen.dart
-                ├── loading_indicator.dart
-                ├── loading_screen.dart
-                └── question_screen.dart
                 ├── admin/
                     └── admin_panel_screen.dart
                     ├── widgets/
@@ -289,6 +289,8 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                         ├── hidden_button.dart
                         ├── manual_control.dart
                         └── register_monitor.dart
+                ├── error/
+                    └── error_screen.dart
                 ├── idle/
                     └── idle_screen.dart
                     ├── widgets/
@@ -296,8 +298,12 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                         └── idle_greeting_text.dart
                 ├── kvkk_screen/
                     └── kvkk_screen.dart
+                ├── loading/
+                    └── loading_screen.dart
                 ├── plc_error/
                     └── plc_error_screen.dart
+                ├── question/
+                    └── question_screen.dart
                 ├── result/
                     └── result_screen.dart
                     ├── models/

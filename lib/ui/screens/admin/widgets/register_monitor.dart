@@ -1,18 +1,14 @@
-// lib/plc/admin/widgets/register_monitor.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/infrastructure/plc/config/register_config.dart';
+import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 
-/// Kiosk/32" uyumlu sabit renk & boyut sistemi
-const Color kBgDark = Color(0xFF0B1020);
-const Color kCardBg = Color(0xFF141A2E);
-const Color kPrimaryText = Colors.white;
-const Color kSecondaryText = Color(0xFFB9C0D4);
-const Color kAccent = Color(0xFF4DA3FF);
-const Color kLiveGreen = Color(0xFF4CAF50);
-
-/// Canlı register monitoring widget
+/// Live register value monitor for the admin panel.
+///
+/// Polls watched registers every second while [_isPolling] is true.
+/// Polling is paused automatically when the PLC is disconnected.
+/// Register reads are currently mocked pending direct client access.
 class RegisterMonitor extends StatefulWidget {
   const RegisterMonitor({super.key, required this.plcService});
 
@@ -38,35 +34,35 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
 
   void _loadWatchedRegisters() {
     if (widget.plcService.isConnected) {
-      // Şimdilik hard-coded önemli register'lar
+      // Hard-coded key registers — replace with config-driven list when available.
       _watchedRegisters = [
         RegisterAddress(
           group: 'recommendations',
           name: 'first',
           address: 0,
           type: RegisterType.write,
-          description: 'İlk öneri',
+          description: 'First recommendation',
         ),
         RegisterAddress(
           group: 'tester_control',
           name: 'testers_ready',
           address: 10,
           type: RegisterType.readWrite,
-          description: 'Testerlar hazır',
+          description: 'Testers ready',
         ),
         RegisterAddress(
           group: 'payment',
           name: 'status',
           address: 20,
           type: RegisterType.readWrite,
-          description: 'Ödeme durumu',
+          description: 'Payment status',
         ),
         RegisterAddress(
           group: 'perfume_dispenser',
           name: 'ready',
           address: 30,
           type: RegisterType.readWrite,
-          description: 'Parfüm hazır',
+          description: 'Perfume ready',
         ),
         RegisterAddress(
           group: 'system',
@@ -100,25 +96,22 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
     if (!widget.plcService.isConnected) return;
 
     try {
-      final client = widget.plcService;
-
-      // TODO: Direct read metodunu ekleyince burayı aktif edeceksin.
-      // Şimdilik örnek amaçlı "skip".
+      // TODO: activate when direct read method is available on PLCServiceManager
       for (final reg in _watchedRegisters) {
         if (reg.isReadable) {
           try {
-            // final val = await client.readRegister(reg.address);
+            // final val = await widget.plcService.readRegister(reg.address);
             // setState(() {
             //   _registerValues[reg.address] = val;
             //   _lastUpdate[reg.address] = DateTime.now();
             // });
           } catch (e) {
-            debugPrint('Register ${reg.address} okuma hatası: $e');
+            debugPrint('Register ${reg.address} read error: $e');
           }
         }
       }
     } catch (e) {
-      debugPrint('Polling hatası: $e');
+      debugPrint('Polling error: $e');
     }
   }
 
@@ -130,14 +123,12 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: kBgDark,
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
@@ -145,7 +136,7 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
                 style: TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.w900,
-                  color: kPrimaryText,
+                  color: AdminColors.primaryText,
                 ),
               ),
               Row(
@@ -155,13 +146,15 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
-                      color: _isPolling ? kLiveGreen : kSecondaryText,
+                      color: _isPolling
+                          ? AdminColors.success
+                          : AdminColors.secondaryText,
                     ),
                   ),
                   const SizedBox(width: 12),
                   IconButton(
                     iconSize: 48,
-                    color: kPrimaryText,
+                    color: AdminColors.primaryText,
                     icon: Icon(_isPolling ? Icons.pause : Icons.play_arrow),
                     onPressed: () {
                       setState(() {
@@ -173,118 +166,113 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
               ),
             ],
           ),
+        ),
 
-          const SizedBox(height: 16),
+        const SizedBox(height: 16),
 
-          // Register list
-          Expanded(
-            child: _watchedRegisters.isEmpty
-                ? const Center(
-                    child: Text(
-                      'PLC bağlı değil veya register bulunamadı',
-                      style: TextStyle(
-                        fontSize: 40,
-                        color: kSecondaryText,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
+        Expanded(
+          child: _watchedRegisters.isEmpty
+              ? const Center(
+                  child: Text(
+                    'PLC not connected or no registers found',
+                    style: TextStyle(
+                      fontSize: 40,
+                      color: AdminColors.secondaryText,
+                      fontWeight: FontWeight.w600,
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: _watchedRegisters.length,
-                    itemBuilder: (context, index) {
-                      final reg = _watchedRegisters[index];
-                      final value = _registerValues[reg.address];
-                      final lastUpdate = _lastUpdate[reg.address];
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: _watchedRegisters.length,
+                  itemBuilder: (context, index) {
+                    final reg = _watchedRegisters[index];
+                    final value = _registerValues[reg.address];
+                    final lastUpdate = _lastUpdate[reg.address];
 
-                      return Card(
-                        color: kCardBg,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          isThreeLine: true,
-                          minVerticalPadding: 16,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
+                    return Card(
+                      color: AdminColors.cardBackground,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        isThreeLine: true,
+                        minVerticalPadding: 16,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        leading: Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: AdminColors.accent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-
-                          leading: Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              color: kAccent.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'R${reg.address}',
-                                style: const TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w900,
-                                  color: kAccent,
-                                ),
+                          child: Center(
+                            child: Text(
+                              'R${reg.address}',
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                color: AdminColors.accent,
                               ),
                             ),
                           ),
-
-                          title: Text(
-                            reg.description,
-                            style: const TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w700,
-                              color: kPrimaryText,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        ),
+                        title: Text(
+                          reg.description,
+                          style: const TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                            color: AdminColors.primaryText,
                           ),
-
-                          subtitle: Text(
-                            '${reg.fullPath} (${reg.type.toJson()})',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              color: kSecondaryText,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          '${reg.fullPath} (${reg.type.toJson()})',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            color: AdminColors.secondaryText,
                           ),
-
-                          // 🔥 Overflow’un asıl çıktığı yer burası
-                          trailing: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 120),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min, // <-- kritik
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 120),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                value?.toString() ?? '--',
+                                style: const TextStyle(
+                                  fontSize: 44,
+                                  fontWeight: FontWeight.w900,
+                                  color: AdminColors.primaryText,
+                                  height: 1.0,
+                                ),
+                              ),
+                              if (lastUpdate != null)
                                 Text(
-                                  value?.toString() ?? '--',
+                                  _formatTime(lastUpdate),
                                   style: const TextStyle(
-                                    fontSize: 44,
-                                    fontWeight: FontWeight.w900,
-                                    color: kPrimaryText,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w700,
+                                    color: AdminColors.secondaryText,
                                     height: 1.0,
                                   ),
                                 ),
-                                if (lastUpdate != null)
-                                  Text(
-                                    _formatTime(lastUpdate),
-                                    style: const TextStyle(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.w700,
-                                      color: kSecondaryText,
-                                      height: 1.0,
-                                    ),
-                                  ),
-                              ],
-                            ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 
@@ -293,9 +281,9 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
     final diff = now.difference(time);
 
     if (diff.inSeconds < 60) {
-      return '- ${diff.inSeconds} sn';
+      return '${diff.inSeconds}s ago';
     } else if (diff.inMinutes < 60) {
-      return '- ${diff.inMinutes} dk';
+      return '${diff.inMinutes}m ago';
     } else {
       return '${time.hour.toString().padLeft(2, '0')}:'
           '${time.minute.toString().padLeft(2, '0')}:'
