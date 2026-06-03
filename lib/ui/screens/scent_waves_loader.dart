@@ -1,23 +1,23 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// Parfüm şişesi ile animasyonlu loader widget'ı.
+/// Decorative animated perfume bottle widget with scent-wave and molecule effects.
 ///
-/// GPU'suz kiosk sistemler için optimize edilmiştir (A83T ARM CPU).
+/// Optimised for GPU-less kiosk systems (A83T ARM CPU): blur effects are
+/// disabled, wave and particle counts are reduced, and all shader usage is
+/// kept minimal.
 ///
-/// Özellikler:
-/// - Renkli koku molekülleri (CPU friendly)
-/// - Çift yönlü organik dalgalar
-/// - Gerçekçi sprey efekti (blur'suz)
-/// - 60 FPS hedefi (ARM CPU'da test edilmeli)
+/// Use [KioskOptimizedConfig.sprayConfig] and set [useOptimizedSettings] to
+/// `true` for production kiosk deployments.
 ///
-/// Örnek kullanım:
+/// Example:
 /// ```dart
 /// ScentWavesLoader(
-///   size: 200,
-///   primaryColor: Color(0xFFF18142),
-///   waveGradientType: WaveGradientType.sweepMultiColor,
+///   size: 600,
+///   primaryColor: AppColors.waveOrange,
+///   waveGradientType: WaveGradientType.solid,
 ///   sprayConfig: KioskOptimizedConfig.sprayConfig,
+///   useOptimizedSettings: true,
 /// )
 /// ```
 class ScentWavesLoader extends StatefulWidget {
@@ -48,23 +48,36 @@ class ScentWavesLoader extends StatefulWidget {
 
 class _ScentWavesLoaderState extends State<ScentWavesLoader>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _c;
+  late final AnimationController _controller;
+  late List<Color> _moleculeColors;
   final Stopwatch _sw = Stopwatch();
 
   @override
   void initState() {
     super.initState();
     _sw.start();
-
-    _c = AnimationController(
+    _moleculeColors = _createHarmonicPalette(
+      widget.primaryColor ?? Colors.orange,
+    );
+    _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3000),
     )..repeat();
   }
 
   @override
+  void didUpdateWidget(ScentWavesLoader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.primaryColor != widget.primaryColor) {
+      _moleculeColors = _createHarmonicPalette(
+        widget.primaryColor ?? Colors.orange,
+      );
+    }
+  }
+
+  @override
   void dispose() {
-    _c.dispose();
+    _controller.dispose();
     _sw.stop();
     super.dispose();
   }
@@ -76,14 +89,12 @@ class _ScentWavesLoaderState extends State<ScentWavesLoader>
 
     final sprayColor = widget.sprayColor ?? const Color.fromARGB(255, 70, 190, 34);
     final waveColor = widget.waveColor ?? baseColor;
-    final moleculeColors =
-        widget.moleculeColors ?? _createHarmonicPalette(baseColor);
 
     return SizedBox(
       width: widget.size,
       height: widget.size,
       child: AnimatedBuilder(
-        animation: _c,
+        animation: _controller,
         builder: (_, __) {
           final tSeconds = _sw.elapsedMicroseconds / 1e6;
           return CustomPaint(
@@ -92,7 +103,7 @@ class _ScentWavesLoaderState extends State<ScentWavesLoader>
               primaryColor: baseColor,
               sprayColor: sprayColor,
               waveColor: waveColor,
-              moleculeColors: moleculeColors,
+              moleculeColors: widget.moleculeColors ?? _moleculeColors,
               size: widget.size,
               sprayConfig: widget.sprayConfig,
               waveGradientType: widget.waveGradientType,
@@ -144,23 +155,23 @@ class _ScentWavesPainter extends CustomPainter {
   void paint(Canvas canvas, Size canvasSize) {
     final c = Offset(canvasSize.width / 2, canvasSize.height / 2);
 
-    // Dış glow - KAPALI (GPU olmadan yavaş)
+    // Outer glow — disabled (too slow without GPU)
     if (!useOptimized) {
       final glowPaint = Paint()
         ..style = PaintingStyle.fill
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size * 0.2)
-        ..color = waveColor.withOpacity(0.12);
+        ..color = waveColor.withValues(alpha: 0.12);
       canvas.drawCircle(c, size * 0.3, glowPaint);
     }
 
-    // Koku dalgaları
+    // Fragrance waves
     _drawFragranceWaves(canvas, c, clockwise: true);
     _drawFragranceWaves(canvas, c, clockwise: false);
 
-    // Moleküller
+    // Molecules
     _drawFragranceMolecules(canvas, c);
 
-    // Şişe + sprey
+    // Bottle + spray
     _drawPerfumeBottle(canvas, c);
   }
 
@@ -170,10 +181,10 @@ class _ScentWavesPainter extends CustomPainter {
     required bool clockwise,
   }) {
     final waveCount = useOptimized
-        ? (clockwise ? 2 : 1) // 3+2 → 2+1 (kiosk)
+        ? (clockwise ? 2 : 1) // 3+2 → 2+1 waves (kiosk optimisation)
         : (clockwise ? 3 : 2);
 
-    final segments = useOptimized ? 48 : 60; // 60 → 48 (daha hızlı)
+    final segments = useOptimized ? 48 : 60; // 60 → 48 (faster on kiosk)
 
     for (int i = 0; i < waveCount; i++) {
       final offset = clockwise ? i * 0.33 : i * 0.5;
@@ -188,7 +199,7 @@ class _ScentWavesPainter extends CustomPainter {
       final rotationSpeed = clockwise ? 1.0 : -0.7;
       final rotation = t * math.pi * 2 * rotationSpeed;
 
-      // Gradient type'a göre çizim
+      // Draw based on gradient type
       switch (waveGradientType) {
         case WaveGradientType.solid:
           _drawSolidWave(
@@ -257,7 +268,7 @@ class _ScentWavesPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..color = waveColor.withOpacity(baseOpacity)
+      ..color = waveColor.withValues(alpha: baseOpacity)
       ..strokeCap = StrokeCap.round;
 
     canvas.drawPath(path, paint);
@@ -273,8 +284,8 @@ class _ScentWavesPainter extends CustomPainter {
     double strokeWidth,
     double baseOpacity,
   ) {
-    // CPU-friendly gradient: Path'i parçalara böl
-    const gradientSegments = 8; // 12 → 8 (kiosk için)
+    // CPU-friendly gradient: split path into segments
+    const gradientSegments = 8; // 12 → 8 segments (kiosk)
     final pathSegmentsPerGradient = segments ~/ gradientSegments;
 
     final hsl = HSLColor.fromColor(waveColor);
@@ -286,11 +297,11 @@ class _ScentWavesPainter extends CustomPainter {
       final colorFactor = (math.sin(colorPhase * math.pi * 2) + 1.0) / 2.0;
 
       final segmentColor = Color.lerp(
-        waveColor.withOpacity(baseOpacity * 1.1),
+        waveColor.withValues(alpha: baseOpacity * 1.1),
         hsl
             .withLightness((hsl.lightness + 0.2).clamp(0.0, 1.0))
             .toColor()
-            .withOpacity(baseOpacity * 0.6),
+            .withValues(alpha: baseOpacity * 0.6),
         colorFactor,
       )!;
 
@@ -332,8 +343,8 @@ class _ScentWavesPainter extends CustomPainter {
   }
 
   void _drawFragranceMolecules(Canvas canvas, Offset center) {
-    final particleCount = useOptimized ? 15 : 25; // 25 → 15 (kiosk)
-    final sides = useOptimized ? 4 : 6; // 6 → 4 kenar (kare daha hızlı)
+    final particleCount = useOptimized ? 15 : 25; // 25 → 15 particles (kiosk)
+    final sides = useOptimized ? 4 : 6; // 6 → 4 sides (squares render faster)
 
     for (int i = 0; i < particleCount; i++) {
       final seed = i * 137.508;
@@ -372,7 +383,7 @@ class _ScentWavesPainter extends CustomPainter {
       final color2 = moleculeColors[colorIndex2];
       final particleColor = Color.lerp(color1, color2, colorBlend)!;
 
-      // Molekül şekli
+      // Molecule shape
       final path = Path();
       for (int j = 0; j < sides; j++) {
         final a = (j / sides) * 2 * math.pi + t * math.pi;
@@ -388,16 +399,16 @@ class _ScentWavesPainter extends CustomPainter {
 
       final paint = Paint()
         ..style = PaintingStyle.fill
-        ..color = particleColor.withOpacity(opacity * 0.7);
+        ..color = particleColor.withValues(alpha: opacity * 0.7);
 
       canvas.drawPath(path, paint);
 
-      // Glow - KAPALI (kiosk için)
+      // Glow — disabled for kiosk
       if (!useOptimized) {
         final glowPaint = Paint()
           ..style = PaintingStyle.fill
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, particleSize * 2.5)
-          ..color = particleColor.withOpacity(opacity * 0.4);
+          ..color = particleColor.withValues(alpha: opacity * 0.4);
 
         canvas.drawCircle(Offset(x, y), particleSize * 0.6, glowPaint);
       }
@@ -470,17 +481,17 @@ class _ScentWavesPainter extends CustomPainter {
 
     bottlePath.close();
 
-    // Shadow - KAPALI (kiosk için)
+    // Shadow — disabled for kiosk
     if (!useOptimized) {
       canvas.drawShadow(
         bottlePath,
-        Colors.black.withOpacity(0.3),
+        Colors.black.withValues(alpha: 0.3),
         size * 0.05,
         true,
       );
     }
 
-    // Şişe gövdesi
+    // Bottle body
     final bottlePaint = Paint()
       ..style = PaintingStyle.fill
       ..shader =
@@ -488,9 +499,9 @@ class _ScentWavesPainter extends CustomPainter {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              primaryColor.withOpacity(0.7),
-              primaryColor.withOpacity(0.95),
-              primaryColor.withOpacity(0.7),
+              primaryColor.withValues(alpha: 0.7),
+              primaryColor.withValues(alpha: 0.95),
+              primaryColor.withValues(alpha: 0.7),
             ],
             stops: const [0.0, 0.5, 1.0],
           ).createShader(
@@ -506,11 +517,11 @@ class _ScentWavesPainter extends CustomPainter {
     final outlinePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = size * 0.006
-      ..color = primaryColor.withOpacity(0.4);
+      ..color = primaryColor.withValues(alpha: 0.4);
 
     canvas.drawPath(bottlePath, outlinePaint);
 
-    // Cam yansıması
+    // Glass highlight
     final highlightPath = Path();
     highlightPath.moveTo(
       center.dx - baseWidth / 2.8,
@@ -537,8 +548,8 @@ class _ScentWavesPainter extends CustomPainter {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.white.withOpacity(0.5),
-              Colors.white.withOpacity(0.1),
+              Colors.white.withValues(alpha: 0.5),
+              Colors.white.withValues(alpha: 0.1),
             ],
           ).createShader(
             Rect.fromCenter(
@@ -550,7 +561,7 @@ class _ScentWavesPainter extends CustomPainter {
 
     canvas.drawPath(highlightPath, highlightPaint);
 
-    // Sıvı seviyesi (%75 dolu)
+    // Liquid level (75% full)
     final liquidLevel = center.dy + baseHeight * 0.25;
     final liquidPath = Path()..moveTo(center.dx - baseWidth / 2, liquidLevel);
 
@@ -575,14 +586,14 @@ class _ScentWavesPainter extends CustomPainter {
 
     final liquidPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = primaryColor.withOpacity(0.85);
+      ..color = primaryColor.withValues(alpha: 0.85);
 
     canvas.drawPath(liquidPath, liquidPaint);
 
-    // Sıvı yansıması
+    // Liquid highlight
     final liquidHighlight = Paint()
       ..style = PaintingStyle.fill
-      ..color = Colors.white.withOpacity(0.15);
+      ..color = Colors.white.withValues(alpha: 0.15);
 
     canvas.drawOval(
       Rect.fromCenter(
@@ -596,7 +607,7 @@ class _ScentWavesPainter extends CustomPainter {
       liquidHighlight,
     );
 
-    // Sprey efekti
+    // Spray effect
     drawSprayEffect(
       canvas: canvas,
       origin: Offset(center.dx, center.dy - baseHeight / 1.5 - capHeight),
@@ -620,26 +631,37 @@ class _ScentWavesPainter extends CustomPainter {
   }
 }
 
-/* ===================== Configuration ===================== */
+/* ──────────────────── Configuration ──────────────────── */
 
+/// Rendering style for the fragrance wave strokes.
 enum WaveGradientType {
-  solid, // En hızlı (kiosk için önerilen)
-  sweepMultiColor, // CPU friendly gradient
-  // Diğerleri gelecekte eklenebilir
+  /// Single-colour strokes — fastest; recommended for kiosk.
+  solid,
+
+  /// CPU-friendly multi-colour gradient achieved by splitting the path
+  /// into segments.
+  sweepMultiColor,
 }
 
+/// Spray and wave configuration optimised for the A83T ARM CPU.
+///
+/// Disables blur and mist effects, reduces particle count from 18 to 10,
+/// and disables the ring layer to stay within CPU budget on low-end hardware.
 class KioskOptimizedConfig {
-  // A83T ARM CPU için optimize edilmiş ayarlar
   static const sprayConfig = SprayEffectConfig(
     particles: 10, // 18 → 10
-    blurMultiplier: 0.0, // Blur kapalı
-    mistMultiplier: 0.0, // Mist kapalı
+    blurMultiplier: 0.0, // Blur disabled
+    mistMultiplier: 0.0, // Mist disabled
     drawCore: true,
     drawRing: false,
     blurLevels: 1,
   );
 }
 
+/// Configuration for the spray particle effect emitted from the bottle nozzle.
+///
+/// Default values target a visually rich desktop experience. For kiosk
+/// deployments use [KioskOptimizedConfig.sprayConfig].
 class SprayEffectConfig {
   final int particles;
   final double speed;
@@ -692,7 +714,7 @@ class SprayEffectConfig {
   });
 }
 
-/* ===================== Spray Effect ===================== */
+/* ──────────────────── Spray Effect ───────────────────── */
 
 void drawSprayEffect({
   required Canvas canvas,
@@ -746,19 +768,19 @@ void drawSprayEffect({
     final double r = size * config.particleSize * (1.2 - smoothLife * 0.6);
 
     // Ana parçacık (blur yok)
-    bodyPaint.color = sprayColor.withOpacity(opacity);
+    bodyPaint.color = sprayColor.withValues(alpha: opacity);
     final Offset p = Offset(x, y);
     canvas.drawCircle(p, r, bodyPaint);
 
     // Parlak merkez
     if (config.drawCore) {
-      bodyPaint.color = Colors.white.withOpacity(opacity * 0.4);
+      bodyPaint.color = Colors.white.withValues(alpha: opacity * 0.4);
       canvas.drawCircle(p, r * config.coreRadiusFactor, bodyPaint);
     }
   }
 }
 
-/* ===================== Helpers ===================== */
+/* ──────────────────── Helpers ─────────────────────────── */
 
 double _fract(double x) => x - x.floorToDouble();
 

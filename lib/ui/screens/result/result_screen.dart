@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/constants/app_constants.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/viewmodel/result_view_model_with_plc.dart';
-import 'package:parfume_app/ui/screens/loading_indicator.dart';
 import 'package:provider/provider.dart';
 
 import '../../../viewmodel/app_view_model.dart';
-import '../../../common/widgets/logo_painter_widget.dart';
-import 'models/result_flow_state.dart';
+import '../../../viewmodel/result_flow_state.dart';
 import 'widgets/timeline/timeline_container.dart';
-import 'widgets/views/testers_ready_view.dart';
-import 'widgets/views/waiting_payment_view.dart';
+import 'widgets/views/gift_card_question_view.dart';
 import 'widgets/views/payment_error_view.dart';
 import 'widgets/views/perfume_ready_view.dart';
-import 'widgets/views/gift_card_question_view.dart';
+import 'widgets/views/testers_ready_view.dart';
 import 'widgets/views/thank_you_view.dart';
+import 'widgets/views/waiting_payment_view.dart';
 
+/// Displays the result workflow while root-level decorative layers remain fixed.
 class ResultScreen extends StatefulWidget {
   const ResultScreen({super.key, required this.viewModel});
 
@@ -24,15 +25,11 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late AnimationController _logoController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  late Animation<double> _logoAnimation;
   late ResultViewModelWithPLC _resultViewModel;
-
-  static bool _isFirstLoad = true;
 
   @override
   void initState() {
@@ -45,6 +42,7 @@ class _ResultScreenState extends State<ResultScreen>
     _resultViewModel.addListener(_onViewModelChanged);
   }
 
+  /// Replays the result content transition when the flow asks for animation.
   void _onViewModelChanged() {
     if (!mounted) return;
     if (_resultViewModel.shouldAnimate) {
@@ -55,9 +53,10 @@ class _ResultScreenState extends State<ResultScreen>
     }
   }
 
+  /// Initialises the result content transition animation.
   void _setupAnimations() {
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: AppConstants.resultTransitionDuration,
       vsync: this,
     );
 
@@ -71,23 +70,6 @@ class _ResultScreenState extends State<ResultScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    _logoController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-
-    _logoAnimation = CurvedAnimation(
-      parent: _logoController,
-      curve: Curves.easeInOut,
-    );
-
-    if (_isFirstLoad) {
-      _logoController.forward();
-      _isFirstLoad = false;
-    } else {
-      _logoController.value = 1.0;
-    }
-
     _controller.forward();
   }
 
@@ -96,7 +78,6 @@ class _ResultScreenState extends State<ResultScreen>
     _resultViewModel.removeListener(_onViewModelChanged);
     _resultViewModel.dispose();
     _controller.dispose();
-    _logoController.dispose();
     super.dispose();
   }
 
@@ -106,101 +87,50 @@ class _ResultScreenState extends State<ResultScreen>
       value: _resultViewModel,
       child: Consumer<ResultViewModelWithPLC>(
         builder: (context, viewModel, _) {
-
-          return Stack(
-            children: [
-              Positioned.fill(
-                child: AnimatedBuilder(
-                  animation: _logoAnimation,
-                  builder: (context, child) {
-                    return CustomPaint(
-                      painter: AnimatedLogoPainter(
-                        animationValue: _logoAnimation.value,
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 100, left: 100, right: 100),
-                child: Column(
-                  children: [
-                    TimelineContainer(messages: viewModel.messages),
-                    const SizedBox(height: 32),
-                    Expanded(
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: _buildContent(viewModel),
-                        ),
-                      ),
+          return Padding(
+            padding: const EdgeInsets.only(
+              top: AppSizes.resultScreenPaddingTop,
+              left: AppSizes.screenPaddingH,
+              right: AppSizes.screenPaddingH,
+            ),
+            child: Column(
+              children: [
+                TimelineContainer(messages: viewModel.messages),
+                Expanded(
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: _buildContent(viewModel),
                     ),
-                  ],
-                ),
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 0),
-                  child: const ScentWavesLoader(
-                    size: 600,
-                    primaryColor: Color(0xFFF18142),
-                    waveGradientType: WaveGradientType.solid,
-                    waveColor: Color.fromARGB(255, 60, 15, 119),
-                    sprayConfig: KioskOptimizedConfig.sprayConfig,
-                    useOptimizedSettings: true,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  // ✅ Tip güncellendi
+  /// Maps the current [ResultFlowState] to the appropriate content widget.
   Widget _buildContent(ResultViewModelWithPLC viewModel) {
-    // ✅ Tip değişti
-    Widget content;
-
-    switch (viewModel.currentState) {
-      case ResultFlowState.showingRecommendations:
-      case ResultFlowState.preparingTesters:
-      case ResultFlowState.preparingPerfume:
-        content = const SizedBox.shrink();
-        break;
-
-      case ResultFlowState.testersReady:
-        content = TestersReadyView(viewModel: viewModel);
-        break;
-
-      case ResultFlowState.waitingPayment:
-        content = WaitingPaymentView(viewModel: viewModel);
-        break;
-
-      case ResultFlowState.paymentError:
-        content = PaymentErrorView(viewModel: viewModel);
-        break;
-
-      case ResultFlowState.perfumeReady:
-        content = const PerfumeReadyView();
-        break;
-
-      case ResultFlowState.giftCardQuestion:
-        content = GiftCardQuestionView(viewModel: viewModel);
-        break;
-
-      case ResultFlowState.thankYou:
-        content = ThankYouView(viewModel: viewModel);
-        break;
-    }
+    final content = switch (viewModel.currentState) {
+      ResultFlowState.showingRecommendations ||
+      ResultFlowState.preparingTesters ||
+      ResultFlowState.preparingPerfume    => const SizedBox.shrink(),
+      ResultFlowState.testersReady        => TestersReadyView(viewModel: viewModel),
+      ResultFlowState.waitingPayment      => WaitingPaymentView(viewModel: viewModel),
+      ResultFlowState.paymentError        => PaymentErrorView(viewModel: viewModel),
+      ResultFlowState.perfumeReady        => const PerfumeReadyView(),
+      ResultFlowState.giftCardQuestion    => GiftCardQuestionView(viewModel: viewModel),
+      ResultFlowState.thankYou            => ThankYouView(viewModel: viewModel),
+    };
 
     return Align(
       alignment: Alignment.topCenter,
       child: SingleChildScrollView(
-        child: Padding(padding: const EdgeInsets.only(top: 40), child: content),
+        child: content
       ),
     );
   }

@@ -9,6 +9,9 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
     ├── pubspec.lock
     ├── pubspec.yaml
     └── README.md
+    ├── .claude/
+        ├── settings.json
+        └── settings.local.json
     ├── android/
         ├── .gitignore
         ├── build.gradle.kts
@@ -93,13 +96,18 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
             └── plc_registers.json
         ├── content/
             ├── kvkk_legal_01.json
-            └── survey_questions.json
+            ├── survey_questions.json
+            └── survey_questions_real.json
         ├── fonts/
             ├── Montserrat-Regular.ttf
             ├── NotoSans-Bold.ttf
             └── NotoSans-Regular.ttf
         ├── i18n/
             ├── languages.json
+            ├── plc_errors_ar.json
+            ├── plc_errors_en.json
+            ├── plc_errors_fr.json
+            ├── plc_errors_tr.json
             ├── strings_ar.json
             ├── strings_en.json
             ├── strings_fr.json
@@ -178,14 +186,19 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
         └── main.dart
         ├── common/
             ├── widgets/
-                ├── brand_ventuse_widget.dart
-                └── logo_painter_widget.dart
+                ├── app_logo_background.dart
+                ├── app_logo_painter.dart
+                ├── app_scent_wave.dart
+                └── app_ventuse_text.dart
         ├── core/
             ├── constants/
                 └── app_constants.dart
             ├── logging/
                 ├── app_logger.dart
-                └── file_log_writer.dart
+                ├── file_log_writer.dart
+                └── rotating_file_log_writer.dart
+            ├── strings/
+                └── app_strings.dart
             ├── time/
                 └── clock.dart
             ├── utils/
@@ -204,9 +217,13 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                 ├── plc/
                     └── plc_event.dart
             ├── plc/
-                └── modbus_plc_client.dart
+                ├── modbus_plc_client.dart
+                └── plc_error_asset_source.dart
             ├── repositories/
                 ├── i18n_repository.dart
+                ├── i_kvkk_repository.dart
+                ├── i_string_map_repository.dart
+                ├── i_survey_repository.dart
                 ├── kvkk_repository.dart
                 └── survey_repository.dart
         ├── domain/
@@ -216,10 +233,12 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                 └── seeded_random_scoring_engine.dart
             ├── plc/
                 ├── i_plc_client.dart
+                ├── i_plc_error_string_source.dart
                 └── plc_exceptions.dart
             ├── session/
                 ├── session_manager.dart
-                └── timeout_watcher.dart
+                ├── timeout_watcher.dart
+                └── timer_coordinator.dart
             ├── state/
                 ├── app_state.dart
                 └── app_state_machine.dart
@@ -259,7 +278,6 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                 └── app_routes.dart
             ├── screens/
                 ├── error_screen.dart
-                ├── idle_screen.dart
                 ├── loading_indicator.dart
                 ├── loading_screen.dart
                 └── question_screen.dart
@@ -271,18 +289,21 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                         ├── hidden_button.dart
                         ├── manual_control.dart
                         └── register_monitor.dart
+                ├── idle/
+                    └── idle_screen.dart
+                    ├── widgets/
+                        ├── idle_center_content.dart
+                        └── idle_greeting_text.dart
                 ├── kvkk_screen/
                     └── kvkk_screen.dart
                 ├── plc_error/
                     └── plc_error_screen.dart
                 ├── result/
-                    ├── result_screen.dart
-                    └── result_view_model_refactored.dart
+                    └── result_screen.dart
                     ├── models/
-                        ├── result_flow_state.dart
                         └── timeline_message.dart
                     ├── widgets/
-                        ├── components/
+                        ├── shared/
                             ├── countdown_timer.dart
                             └── tester_button.dart
                         ├── timeline/
@@ -297,11 +318,15 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
                             └── waiting_payment_view.dart
             ├── theme/
                 ├── app_colors.dart
+                ├── app_sizes.dart
                 ├── app_text_styles.dart
                 └── app_theme.dart
         ├── viewmodel/
             ├── app_view_model.dart
             ├── app_view_model_provider.dart
+            ├── i_result_context.dart
+            ├── result_flow_state.dart
+            ├── result_view_model.dart
             └── result_view_model_with_plc.dart
     ├── linux/
         ├── .gitignore
@@ -365,8 +390,8 @@ Project Structure for: C:\Users\Kamil\Desktop\git\parfum_demo
         ├── RunnerTests/
             └── RunnerTests.swift
     ├── test/
-        ├── plc_integration_test.dart
-        └── test_config_plc_client.dart
+        ├── ui/
+            └── app_router_test.dart
     ├── web/
         ├── favicon.png
         ├── index.html

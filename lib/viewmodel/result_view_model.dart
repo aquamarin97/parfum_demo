@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../core/strings/app_strings.dart';
 import 'i_result_context.dart';
-import '../ui/screens/result/models/result_flow_state.dart';
+import 'result_flow_state.dart';
 import '../ui/screens/result/models/timeline_message.dart';
 
 class ResultViewModel extends ChangeNotifier {
@@ -99,7 +99,7 @@ class ResultViewModel extends ChangeNotifier {
 
   @protected
   void addMessage(String text, TimelineMessageStatus status) {
-    _messages.add(TimelineMessage(text: text, status: status));
+    _messages.add(TimelineMessage.now(text: text, status: status));
     _shouldAnimate = false;
     notifyListeners();
   }

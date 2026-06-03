@@ -1,6 +1,7 @@
 // app_colors.dart file
 import 'package:flutter/material.dart';
 
+/// Centralized color palette used across the app UI.
 class AppColors {
   // Background
   static const Color background = Color(0xFFFFFDEE);
@@ -25,5 +26,11 @@ class AppColors {
   static const Color underline = Color(0xFFDFC4A5);
   static const Color success = Color(0xFF38A169); // Yeşil
 
+  // Logo painter colors
+  static const Color logoPrimary = Color(0xFFF18142);
+  static const Color logoSecondary = Color(0xFFEE741E);
 
+  // Scent wave colors
+  static const Color waveOrange = Color(0xFFF18142);
+  static const Color wavePurple = Color(0xFF3C0F77);
 }

@@ -1,54 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/constants/app_constants.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
-
+/// A selectable perfume tester button shown on the [TestersReadyView].
+///
+/// Animates in with a staggered scale effect based on [index].
+/// Transitions between selected and unselected states via [AnimatedContainer].
 class TesterButton extends StatelessWidget {
   const TesterButton({
     super.key,
     required this.index,
     required this.label,
-    required this.perfumeId,
     required this.isSelected,
     required this.onTap,
   });
-
+  /// Zero-based position used for staggered entry animation timing.
   final int index;
+
+  /// Large numeral displayed at the centre of the button (e.g. `'1'`).
   final String label;
-  final int perfumeId;
+
+  /// Whether this button is currently selected.
   final bool isSelected;
+
+  /// Called when the user taps the button.
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (index * 100)),
+      duration: Duration(
+        milliseconds: AppConstants.testerButtonBaseDelay +
+            (index * AppConstants.testerButtonStaggerDelay),
+      ),
       curve: Curves.easeOutBack,
       builder: (context, value, child) {
         return Transform.scale(
           scale: value,
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppSizes.testerButtonRadius),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              width: 180,
-              height: 180,
+              width: AppSizes.testerButtonSize,
+              height: AppSizes.testerButtonSize,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary.withOpacity(0.15)
+                    ? AppColors.primary.withValues(alpha: 0.15)
                     : AppColors.surface,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius:
+                    BorderRadius.circular(AppSizes.testerButtonRadius),
                 border: Border.all(
                   color: isSelected ? AppColors.primary : AppColors.border,
-                  width: isSelected ? 3 : 2,
+                  width: isSelected
+                      ? AppSizes.testerButtonBorderSelected
+                      : AppSizes.testerButtonBorderNormal,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 12,
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: AppSizes.testerButtonBlurRadius,
                           offset: const Offset(0, 4),
                         ),
                       ]
@@ -60,22 +75,14 @@ class TesterButton extends StatelessWidget {
                   Text(
                     label,
                     style: AppTextStyles.headline.copyWith(
-                      fontFamily: 'NotoSans',
                       fontWeight: FontWeight.bold,
-                      fontSize: 48,
+                      fontSize: AppSizes.testerButtonFontSize,
                       color: isSelected
                           ? AppColors.primary
                           : AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "No. $perfumeId",
-                    style: AppTextStyles.body.copyWith(
-                      fontFamily: 'NotoSans',
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  const SizedBox(height: AppSizes.spacingXS),
                 ],
               ),
             ),

@@ -1,0 +1,340 @@
+{
+  "perfume_survey": [
+    {
+      "id": 1,
+      "translations": {
+        "tr": {
+          "question": "Herhangi bir koku maddesine karşı alerjiniz var mı?",
+          "options": ["Narenciye", "Çiçek notaları", "Amber / reçineler", "Baharatlar", "Hayır, bildiğim bir alerjim yok"]
+        },
+        "en": {
+          "question": "Do you have an allergy to any fragrance ingredients?",
+          "options": ["Citrus", "Floral notes", "Amber / resins", "Spices", "No, I don't have any known allergies"]
+        },
+        "ar": {
+          "question": "هل لديك حساسية تجاه أي مكونات عطرية؟",
+          "options": ["الحمضيات", "نوتات زهرية", "العنبر / الراتنجات", "التوابل", "لا، ليس لدي حساسية معروفة"]
+        },
+        "fr": {
+          "question": "Avez-vous une allergie à certains ingrédients de parfum ?",
+          "options": ["Agrumes", "Notes florales", "Ambre / résines", "Épices", "Non, je n’ai pas d’allergies connues"]
+        }
+      }
+    },
+    {
+      "id": 2,
+      "translations": {
+        "tr": {
+          "question": "Bu Parfüm Kimin için?",
+          "options": ["Kendim için", "Hediye"]
+        },
+        "en": {
+          "question": "Who is this perfume for?",
+          "options": ["For myself", "A gift"]
+        },
+        "ar": {
+          "question": "لمن هذا العطر؟",
+          "options": ["لنفسي", "هدية"]
+        },
+        "fr": {
+          "question": "Pour qui est ce parfum ?",
+          "options": ["Pour moi", "Un cadeau"]
+        }
+      }
+    },
+    {
+      "id": 3,
+      "translations": {
+        "tr": {
+          "question": "Cinsiyetinizi nasıl tanımlarsınız?",
+          "options": ["Erkek", "Kadın"]
+        },
+        "en": {
+          "question": "How do you identify your gender?",
+          "options": ["Male", "Female"]
+        },
+        "ar": {
+          "question": "كيف تحدد جنسك؟",
+          "options": ["ذكر", "أنثى"]
+        },
+        "fr": {
+          "question": "Comment définissez-vous votre genre ?",
+          "options": ["Homme", "Femme"]
+        }
+      }
+    },
+    {
+      "id": 4,
+      "translations": {
+        "tr": {
+          "question": "Yaş aralığınız?",
+          "options": ["15–20", "20–30", "30–40", "40–50", "50+"]
+        },
+        "en": {
+          "question": "What is your age range?",
+          "options": ["15–20", "20–30", "30–40", "40–50", "50+"]
+        },
+        "ar": {
+          "question": "ما هي فئتك العمرية؟",
+          "options": ["١٥–٢٠", "٢٠–٣٠", "٣٠–٤٠", "٤٠–٥٠", "٥٠+"]
+        },
+        "fr": {
+          "question": "Quelle est votre tranche d’âge ?",
+          "options": ["15–20", "20–30", "30–40", "40–50", "50+"]
+        }
+      }
+    },
+    {
+      "id": 5,
+      "translations": {
+        "tr": {
+          "question": "Günlük hayatınızda kendinizi daha çok nasıl tanımlarsınız?",
+          "options": ["Öğrenci", "Çalışan", "Kendi işini yapan / işveren"]
+        },
+        "en": {
+          "question": "How do you define yourself in your daily life?",
+          "options": ["Student", "Employee", "Self-employed / Employer"]
+        },
+        "ar": {
+          "question": "كيف تصف نفسك في حياتك اليومية؟",
+          "options": ["طالب", "موظف", "صاحب عمل حر / صاحب عمل"]
+        },
+        "fr": {
+          "question": "Comment vous décrivez-vous dans votre vie quotidienne ?",
+          "options": ["Étudiant", "Employé", "Indépendant / Employeur"]
+        }
+      }
+    },
+    {
+      "id": 6,
+      "translations": {
+        "tr": {
+          "question": "Cilt tonunuz hangisine daha yakın?",
+          "options": ["Açık", "Orta / Buğday", "Esmer", "Koyu"]
+        },
+        "en": {
+          "question": "Which is closer to your skin tone?",
+          "options": ["Fair", "Medium / Wheat", "Tan", "Dark"]
+        },
+        "ar": {
+          "question": "ما هو لون بشرتك الأقرب؟",
+          "options": ["فاتح", "متوسط / حنطي", "أسمر", "داكن"]
+        },
+        "fr": {
+          "question": "Quel est votre teint de peau ?",
+          "options": ["Clair", "Moyen / hâlé", "Brun", "Foncé"]
+        }
+      }
+    },
+    {
+      "id": 7,
+      "translations": {
+        "tr": {
+          "question": "Cilt yapınız nasıl?",
+          "options": ["Yağlı", "Kuru", "Normal", "Karma"]
+        },
+        "en": {
+          "question": "What is your skin type?",
+          "options": ["Oily", "Dry", "Normal", "Combination"]
+        },
+        "ar": {
+          "question": "ما هي طبيعة بشرتك؟",
+          "options": ["دهنية", "جافة", "عادية", "مختلطة"]
+        },
+        "fr": {
+          "question": "Quel est votre type de peau ?",
+          "options": ["Grasse", "Sèche", "Normale", "Mixte"]
+        }
+      }
+    },
+    {
+      "id": 8,
+      "translations": {
+        "tr": {
+          "question": "Sizi hayatta daha çok hangisi tanımlar?",
+          "options": ["Güvende ve kontrollü hissetmek", "Yeni şeyler keşfetmek / maceraperest"]
+        },
+        "en": {
+          "question": "Which describes you better in life?",
+          "options": ["Feeling safe and in control", "Exploring new things / Adventurous"]
+        },
+        "ar": {
+          "question": "أي منهما يصفك أكثر في الحياة؟",
+          "options": ["الشعور بالأمان والسيطرة", "استكشاف أشياء جديدة / مغامر"]
+        },
+        "fr": {
+          "question": "Lequel vous décrit le mieux dans la vie ?",
+          "options": ["Se sentir en sécurité et en contrôle", "Explorer de nouvelles choses / Aventurier"]
+        }
+      }
+    },
+    {
+      "id": 9,
+      "translations": {
+        "tr": {
+          "question": "Sizi hangisi daha motive eder?",
+          "options": ["Keyifli vakit geçirmek, anın tadını çıkarmak", "Başarmak, ilerlemek, hedef koymak, planlı yaşamak"]
+        },
+        "en": {
+          "question": "What motivates you more?",
+          "options": ["Having a good time, enjoying the moment", "Achieving, progressing, setting goals, living planned"]
+        },
+        "ar": {
+          "question": "ما الذي يحفزك أكثر؟",
+          "options": ["قضاء وقت ممتع والاستمتاع باللحظة", "الإنجاز والتقدم ووضع الأهداف والعيش المخطط"]
+        },
+        "fr": {
+          "question": "Qu’est-ce qui vous motive le plus ?",
+          "options": ["Passer un bon moment, profiter de l’instant", "Réussir, progresser, se fixer des objectifs, vivre de manière planifiée"]
+        }
+      }
+    },
+    {
+      "id": 10,
+      "translations": {
+        "tr": {
+          "question": "Kendinizi daha çok hangisine yakın hissedersiniz?",
+          "options": ["Değerleri ve geleneği sürdürmek", "Yeni yollar denemek, sınırları zorlamak"]
+        },
+        "en": {
+          "question": "Which do you feel closer to?",
+          "options": ["Maintaining values and tradition", "Trying new ways, pushing boundaries"]
+        },
+        "ar": {
+          "question": "إلى أي منهما تشعر أنك أقرب؟",
+          "options": ["الحفاظ على القيم والتقاليد", "تجربة طرق جديدة وتجاوز الحدود"]
+        },
+        "fr": {
+          "question": "De quoi vous sentez-vous le plus proche ?",
+          "options": ["Préserver les valeurs et la tradition", "Essayer de nouvelles voies, repousser les limites"]
+        }
+      }
+    },
+    {
+      "id": 11,
+      "translations": {
+        "tr": {
+          "question": "Koku sizde hangi duyguyu uyandırmalı?",
+          "options": ["Mutlu", "Enerjik", "Huzurlu", "Gizemli", "Romantik / Aşk"]
+        },
+        "en": {
+          "question": "What emotion should the scent evoke in you?",
+          "options": ["Happy", "Energetic", "Peaceful", "Mysterious", "Romantic / Love"]
+        },
+        "ar": {
+          "question": "ما الشعور الذي يجب أن يثيره العطر فيك؟",
+          "options": ["سعيد", "نشيط", "هادئ", "غامض", "رومانسي / حب"]
+        },
+        "fr": {
+          "question": "Quelle émotion le parfum doit-il éveiller en vous ?",
+          "options": ["Heureux", "Énergique", "Paisible", "Mystérieux", "Romantique / Amour"]
+        }
+      }
+    },
+    {
+      "id": 12,
+      "translations": {
+        "tr": {
+          "question": "Parfümünüz nasıl fark edilmeli?",
+          "options": ["Hafif", "Dengeli", "Güçlü"]
+        },
+        "en": {
+          "question": "How should your perfume be noticed?",
+          "options": ["Light", "Balanced", "Strong"]
+        },
+        "ar": {
+          "question": "كيف يجب أن يلاحظ الآخرون عطرك؟",
+          "options": ["خفيف", "متوازن", "قوي"]
+        },
+        "fr": {
+          "question": "Comment votre parfum doit-il être remarqué ?",
+          "options": ["Léger", "Équilibré", "Intense"]
+        }
+      }
+    },
+    {
+      "id": 13,
+      "translations": {
+        "tr": {
+          "question": "Bu parfümü en çok nerede kullanmayı düşünüyorsunuz?",
+          "options": ["Günlük kullanım", "Ofis / iş ortamı", "Akşam / sosyal ortam", "Özel anlar"]
+        },
+        "en": {
+          "question": "Where do you plan to use this perfume most?",
+          "options": ["Daily use", "Office / Work environment", "Evening / Social environment", "Special moments"]
+        },
+        "ar": {
+          "question": "أين تنوي استخدام هذا العطر أكثر؟",
+          "options": ["استخدام يومي", "المكتب / بيئة العمل", "المساء / بيئة اجتماعية", "لحظات خاصة"]
+        },
+        "fr": {
+          "question": "Où comptez-vous utiliser ce parfum le plus souvent ?",
+          "options": ["Usage quotidien", "Bureau / environnement de travail", "Soirée / environnement social", "Moments spéciaux"]
+        }
+      }
+    },
+    {
+      "id": 14,
+      "translations": {
+        "tr": {
+          "question": "Hangi mevsimde daha çok kullanacaksınız?",
+          "options": ["İlkbahar", "Yaz", "Sonbahar", "Kış"]
+        },
+        "en": {
+          "question": "In which season will you use it most?",
+          "options": ["Spring", "Summer", "Autumn", "Winter"]
+        },
+        "ar": {
+          "question": "في أي فصل ستستخدمه أكثر؟",
+          "options": ["الربيع", "الصيف", "الخريف", "الشتاء"]
+        },
+        "fr": {
+          "question": "À quelle saison l’utiliserez-vous le plus ?",
+          "options": ["Printemps", "Été", "Automne", "Hiver"]
+        }
+      }
+    },
+    {
+      "id": 15,
+      "translations": {
+        "tr": {
+          "question": "Kendinizi iyi hissettiren doğal koku, hangisine daha yakın?",
+          "options": ["Deniz / yağmur / Tuz", "Orman / ağaç", "Çiçek bahçesi", "Meyve bahçesi", "Kahve", "Vanilya / tatlı", "Deri"]
+        },
+        "en": {
+          "question": "Which natural scent makes you feel good?",
+          "options": ["Sea / Rain", "Forest / Wood", "Flower garden", "Orchard", "Coffee", "Vanilla / Sweet", "Leather"]
+        },
+        "ar": {
+          "question": "أي رائحة طبيعية تجعلك تشعر بالراحة؟",
+          "options": ["البحر / المطر", "الغابة / الخشب", "حديقة الزهور", "بستان الفواكه", "القهوة", "الفانيليا / حلو", "جلدي"]
+        },
+        "fr": {
+          "question": "Quel parfum naturel vous fait vous sentir bien ?",
+          "options": ["Mer / pluie / sel", "Forêt / bois", "Jardin de fleurs", "Verger", "Café", "Vanille / sucré", "Cuir"]
+        }
+      }
+    },
+    {
+      "id": 16,
+      "translations": {
+        "tr": {
+          "question": "Özellikle hoşlanmadığınız koku türleri var mı?",
+          "options": ["Narenciye", "Çiçeksi", "Odunsu", "Baharatlı", "Oryantal / amber", "Tatlı (gourmand)", "Yok"]
+        },
+        "en": {
+          "question": "Are there any types of scents you particularly dislike?",
+          "options": ["Citrus", "Floral", "Woody", "Spicy", "Oriental / Amber", "Sweet (gourmand)", "None"]
+        },
+        "ar": {
+          "question": "هل هناك أنواع روائح لا تحبها بشكل خاص؟",
+          "options": ["الحمضيات", "زهري", "خشبي", "توابل", "شرقي / عنبر", "حلو (غورماند)", "لا يوجد"]
+        },
+        "fr": {
+          "question": "Y a-t-il des types de parfums que vous n’aimez pas particulièrement ?",
+          "options": ["Agrumes", "Floraux", "Boisés", "Épicés", "Oriental / ambre", "Sucré (gourmand)", "Aucun"]
+        }
+      }
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import 'package:parfume_app/ui/screens/plc_error/plc_error_screen.dart';
 import '../../domain/state/app_state.dart';
 import '../../viewmodel/app_view_model.dart';
 import '../screens/error_screen.dart';
-import '../screens/idle_screen.dart';
+import '../screens/idle/idle_screen.dart';
 import '../screens/kvkk_screen/kvkk_screen.dart';
 import '../screens/loading_screen.dart';
 import '../screens/question_screen.dart';
@@ -17,6 +17,11 @@ import '../screens/result/result_screen.dart';
 class AppRouter {
   const AppRouter();
 
+  /// Builds the screen widget for the current [AppViewModel.state].
+  ///
+  /// Returns [SizedBox.shrink] during [InitializingState] — the root widget
+  /// in `app.dart` guards against rendering until [AppViewModel.initialized]
+  /// is `true`, so this branch is never visible to the user.
   Widget build(AppViewModel viewModel) {
     final state = viewModel.state;
 

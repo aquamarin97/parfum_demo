@@ -4,7 +4,7 @@ import 'package:parfume_app/domain/plc/plc_exceptions.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/viewmodel/result_view_model.dart';
 
-import '../ui/screens/result/models/result_flow_state.dart';
+import 'result_flow_state.dart';
 import '../ui/screens/result/models/timeline_message.dart';
 
 /// PLC-integrated extension of [ResultViewModel].

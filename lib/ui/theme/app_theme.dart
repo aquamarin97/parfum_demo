@@ -1,10 +1,13 @@
 // app_theme.dart file
 import 'package:flutter/material.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
 
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 
+/// Builds the Material theme used by the application.
 class AppTheme {
+  /// Creates the light theme with app colors, text styles, and component styles.
   static ThemeData build() {
     return ThemeData(
       brightness: Brightness.light,
@@ -27,15 +30,18 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           textStyle: AppTextStyles.button,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.spacingL, // 32
+            vertical: AppSizes.spacingM, // 24 — 20 yerine en yakın token
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSizes.radiusM),
           ),
         ),
       ),
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith(
-          (states) => states.contains(MaterialState.selected)
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
               ? AppColors.primary
               : Colors.white,
         ),

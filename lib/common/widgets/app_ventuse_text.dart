@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
+/// Renders the Ventusé brand name with its signature Montserrat font and
+/// underline decoration.
+///
+/// Used inline within [Text.rich] spans on the idle screen.
+class AppVentuseText extends StatelessWidget {
+  const AppVentuseText({super.key, required this.text});
 
-class VentuseText extends StatelessWidget {
+  /// The brand name string to display.
   final String text;
-  const VentuseText({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +22,7 @@ class VentuseText extends StatelessWidget {
         fontWeight: FontWeight.bold,
         decoration: TextDecoration.underline,
         decorationColor: AppColors.underline,
-        decorationThickness: 1.5,
+        decorationThickness: AppSizes.underlineThickness,
       ),
     );
   }

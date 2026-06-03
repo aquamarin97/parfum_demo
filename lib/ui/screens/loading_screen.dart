@@ -1,9 +1,13 @@
-// loading_screen.dart
 import 'package:flutter/material.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
 
 import '../../viewmodel/app_view_model.dart';
 import '../theme/app_text_styles.dart';
 
+/// Shown while the recommendation engine computes results.
+///
+/// Displays a localised loading message while root-level decorative layers
+/// keep the kiosk visually active during the brief wait.
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key, required this.viewModel});
 
@@ -13,25 +17,18 @@ class LoadingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 100),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.screenPaddingH,
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // const ScentWavesLoader(
-            //   size: 1000,
-            //   primaryColor: Color(0xFFF18142),
-            //   waveGradientType: WaveGradientType.solid, // En hızlı
-            //   sprayConfig: KioskOptimizedConfig.sprayConfig,
-            //   waveColor: Color.fromARGB(255, 60, 15, 119),
-
-            //   useOptimizedSettings: true, // ÖNEMLİ!
-            // ),
-            const SizedBox(height: 28),
             Text(
               viewModel.strings.t('loading'),
               style: AppTextStyles.title,
               textAlign: TextAlign.center,
             ),
+            SizedBox(height: AppSizes.spacingMax)
           ],
         ),
       ),

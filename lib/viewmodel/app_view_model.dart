@@ -95,6 +95,9 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
   Map<int, int> _scores = {};
   Recommendation _recommendation = Recommendation(topIds: []);
 
+  int _languageVersion = 0;
+  int get languageVersion => _languageVersion;
+
   /// Guards against calling [initialize] more than once.
   bool _setupStarted = false;
 
@@ -314,6 +317,7 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
   void changeLanguage(Language language) {
     if (_language == language) return;
     _language = language;
+    _languageVersion++;
     _cachedStrings = null;
     _preferencesStore.saveLanguage(language);
     _logger.log('Language changed to ${language.code}');

@@ -1,5 +1,8 @@
-// lib/app.dart
 import 'package:flutter/material.dart';
+import 'package:parfume_app/common/widgets/app_logo_background.dart';
+import 'package:parfume_app/common/widgets/app_scent_wave.dart';
+import 'package:parfume_app/core/constants/app_constants.dart';
+import 'package:parfume_app/domain/state/app_state.dart';
 import 'package:provider/provider.dart';
 import 'package:parfume_app/ui/screens/admin/widgets/hidden_button.dart';
 import 'package:parfume_app/ui/screens/admin/admin_panel_screen.dart';
@@ -23,31 +26,105 @@ class ParfumApp extends StatelessWidget {
   }
 }
 
-class AppRoot extends StatelessWidget {
+/// Root kiosk shell that owns the shared decorative animation layers.
+///
+/// Holds the logo [AnimationController] so it survives page transitions.
+/// The logo re-animates on every [AppState] *type* change — not on every
+/// [notifyListeners] call — so intra-state updates (e.g. question index
+/// increments) do not retrigger the animation.
+///
+/// [AppScentWave] and [AppLogoBackground] are conditionally shown depending
+/// on the active state; [KvkkState], [ErrorState], and [PLCErrorState] suppress
+/// both layers for a cleaner layout.
+class AppRoot extends StatefulWidget {
   const AppRoot({super.key});
+
+  @override
+  State<AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
+  late final AnimationController _logoController;
+  late final Animation<double> _logoAnimation;
+
+  /// Tracks the *type* of the last seen state to avoid re-animating on
+  /// intra-state updates such as question index changes.
+  Type? _currentStateType;
+  int _languageVersion = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _logoController = AnimationController(
+      duration: AppConstants.logoAnimationDuration,
+      vsync: this,
+    );
+    _logoAnimation = CurvedAnimation(
+      parent: _logoController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _logoController.dispose();
+    super.dispose();
+  }
+
+  /// Replays the logo animation only when the [AppState] *type* or language changes.
+  void _reanimateLogoIfStateChanged(AppState newState, int languageVersion) {
+    final newType = newState.runtimeType;
+    if (_currentStateType == newType &&
+        _languageVersion == languageVersion) return;
+    _currentStateType = newType;
+    _languageVersion = languageVersion;
+    _logoController
+      ..reset()
+      ..forward();
+  }
+
+  /// Whether the logo background should be shown for [state].
+  bool _showLogo(AppState state) => switch (state) {
+    KvkkState()     => false,
+    ErrorState()    => false,
+    PLCErrorState() => false,
+    _               => true,
+  };
+
+  /// Whether the scent-wave animation should be shown for [state].
+  bool _showWave(AppState state) => switch (state) {
+    KvkkState()     => false,
+    ErrorState()    => false,
+    PLCErrorState() => false,
+    _               => true,
+  };
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AppViewModel>(
       builder: (context, viewModel, _) {
-        final router = const AppRouter();
-        final textDirection = RtlSupport.textDirection(viewModel.language);
-        
+        final state = viewModel.state;
+        _reanimateLogoIfStateChanged(state, viewModel.languageVersion);
+
         return Listener(
           onPointerDown: (_) => viewModel.onUserInteraction(),
           child: PopScope(
             canPop: false,
             child: Directionality(
-              textDirection: textDirection,
+              textDirection: RtlSupport.textDirection(viewModel.language),
               child: Scaffold(
                 body: Stack(
                   children: [
+                    if (_showWave(state)) const AppScentWave(),
+                    if (_showLogo(state))
+                      AppLogoBackground(animation: _logoAnimation),
                     Positioned.fill(
                       child: viewModel.initialized
-                          ? router.build(viewModel)
-                          : const Center(child: CircularProgressIndicator()),
+                          ? const AppRouter().build(viewModel)
+                          : const Center(
+                              child: CircularProgressIndicator(),
+                            ),
                     ),
-                    
                     Positioned(
                       right: 30,
                       bottom: 30,
@@ -57,8 +134,6 @@ class AppRoot extends StatelessWidget {
                         onSelect: viewModel.changeLanguage,
                       ),
                     ),
-                    
-                    // ✅ GİZLİ ADMIN BUTON (Sol alt köşe)
                     HiddenAdminButton(
                       onAccessGranted: () {
                         Navigator.of(context).push(
