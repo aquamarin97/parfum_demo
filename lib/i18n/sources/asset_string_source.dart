@@ -4,16 +4,19 @@ import 'package:flutter/services.dart';
 
 import '../string_source.dart';
 
-/// Flutter asset bundle'ından string'leri yükleyen [StringSource] implementasyonu.
+/// A [StringSource] that loads string maps from the Flutter asset bundle.
 ///
-/// Beklenen dosya yolu: `assets/i18n/strings_<languageCode>.json`
-/// Dosya bulunamazsa veya parse edilemezse `null` döner.
+/// Expected asset path: `assets/i18n/strings_<languageCode>.json`
+///
+/// Returns `null` when the asset file is missing for the requested
+/// language; parse errors are also silenced so [StringRepository] falls
+/// through to the next source.
 class AssetStringSource implements StringSource {
   const AssetStringSource();
 
-  /// [languageCode] için asset'ten string map'i yükler.
+  /// Loads the string map for [languageCode] from the asset bundle.
   ///
-  /// Returns başarılıysa string map'i, dosya yoksa veya hata varsa `null`.
+  /// Returns `null` if the asset does not exist or cannot be parsed.
   @override
   Future<Map<String, String>?> load(String languageCode) async {
     try {

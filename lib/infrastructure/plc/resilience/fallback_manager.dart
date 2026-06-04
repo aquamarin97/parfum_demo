@@ -32,7 +32,7 @@ class FallbackManager extends ChangeNotifier {
   int _degradedOperations = 0;
   int _failedOperations = 0;
   DateTime? _lastSuccessfulOperation;
-
+  DateTime? get lastSuccessfulOperation => _lastSuccessfulOperation;
   FallbackMode get currentMode => _currentMode;
   bool get isNormal => _currentMode == FallbackMode.normal;
   bool get isDegraded => _currentMode == FallbackMode.degraded;

@@ -1,14 +1,21 @@
-// recommendation.dart file
-// recommendation.dart (yeni dosya oluşturun)
+import 'package:flutter/foundation.dart';
+
+/// The result of the recommendation engine — an ordered list of perfume IDs.
+///
+/// [topIds] is sorted from most to least recommended. The UI displays
+/// up to three entries as tester options.
+@immutable
 class Recommendation {
+  const Recommendation({required this.topIds});
+
+  /// Ordered list of recommended perfume IDs, most relevant first.
   final List<int> topIds;
 
-  Recommendation({required this.topIds});
-
-  // Test için statik factory
-  factory Recommendation.mock() {
-    return Recommendation(
-      topIds: [101, 202, 303], // Mock parfüm ID'leri
-    );
-  }
+  /// Returns a mock [Recommendation] for use in debug builds and tests.
+  ///
+  /// Not intended for production use — guarded by [kDebugMode] at the
+  /// call site in [AppViewModel.goToResult].
+  factory Recommendation.mock() => const Recommendation(
+        topIds: [101, 202, 303],
+      );
 }

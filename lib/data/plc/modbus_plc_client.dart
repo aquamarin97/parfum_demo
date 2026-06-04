@@ -1,6 +1,7 @@
 // modbus_plc_client.dart - CONFIG-BASED VERSION
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:modbus/modbus.dart' as modbus;
 import 'package:parfume_app/domain/plc/i_plc_client.dart';
 import 'package:parfume_app/domain/plc/plc_exceptions.dart';
@@ -506,7 +507,7 @@ class ModbusPLCClient implements IPlcClient {
   }
 
   void _log(String message) {
-    print('[ModbusPLC] $message');
+    debugPrint('[ModbusPLC] $message');
   }
 
   @override

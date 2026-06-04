@@ -75,7 +75,9 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
   void _reanimateLogoIfStateChanged(AppState newState, int languageVersion) {
     final newType = newState.runtimeType;
     if (_currentStateType == newType &&
-        _languageVersion == languageVersion) return;
+        _languageVersion == languageVersion) {
+      return;
+    }
     _currentStateType = newType;
     _languageVersion = languageVersion;
     _logoController

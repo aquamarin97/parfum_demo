@@ -2,11 +2,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
-/// Retry stratejisi
+/// Determines how the wait interval grows between successive retry attempts.
 enum RetryStrategy {
-  fixed,           // Sabit bekleme süresi
-  exponential,     // Üstel artan bekleme
-  fibonacci,       // Fibonacci serisi
+  fixed,           // Fixed wait duration
+  exponential,     // Exponentially increasing wait
+  fibonacci,       // Fibonacci sequence
 }
 
 /// Retry policy configuration
@@ -106,7 +106,7 @@ class RetryExecutor {
       } catch (error) {
         lastError = error;
 
-        // Son deneme ise hata fırlat
+        // Last attempt — rethrow.
         if (attempt >= policy.maxAttempts) {
           debugPrint(
             '[RetryExecutor] ${operationName ?? "Operation"} - Max attempts reached',
@@ -114,7 +114,7 @@ class RetryExecutor {
           rethrow;
         }
 
-        // Retry edilebilir mi kontrol et
+        // Check if error is retryable.
         if (policy.shouldRetry != null && !policy.shouldRetry!(error)) {
           debugPrint(
             '[RetryExecutor] ${operationName ?? "Operation"} - Error not retryable',
@@ -122,21 +122,21 @@ class RetryExecutor {
           rethrow;
         }
 
-        // Bekleme süresi hesapla
+        // Calculate delay.
         final delay = policy.calculateDelay(attempt);
         debugPrint(
           '[RetryExecutor] ${operationName ?? "Operation"} - Retry after ${delay.inMilliseconds}ms',
         );
 
-        // Callback çağır
+        // Invoke retry callback.
         onRetry?.call(attempt, error, delay);
 
-        // Bekle
+        // Wait.
         await Future.delayed(delay);
       }
     }
 
-    // Bu noktaya hiç gelmemeli ama güvenlik için
+    // Should never reach here — safety fallback.
     throw lastError ?? Exception('Unknown error');
   }
 }

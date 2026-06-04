@@ -1,8 +1,6 @@
 // register_config.dart
-/// PLC Register konfigürasyon modeli
-/// 
-/// JSON'dan yüklenen register haritasını Dart object'e dönüştürür
-/// ve type-safe erişim sağlar.
+// PLC register configuration model.
+// Deserialises the register map from JSON and provides type-safe access.
 
 class PLCRegisterConfig {
   PLCRegisterConfig({
@@ -50,12 +48,12 @@ class PLCRegisterConfig {
     };
   }
 
-  /// Register adresini path string'inden al
-  /// Örnek: "recommendations.first" → 0
+  /// Returns the register address for the given dot-separated [path].
+  /// Example: `'recommendations.first'` → `0`
   int getAddress(String path) {
     final parts = path.split('.');
     if (parts.length != 2) {
-      throw ArgumentError('Geçersiz register path: $path');
+      throw ArgumentError('Invalid register path: $path');
     }
 
     final groupName = parts[0];
@@ -63,29 +61,27 @@ class PLCRegisterConfig {
 
     final group = registers.getGroup(groupName);
     if (group == null) {
-      throw ArgumentError('Register grubu bulunamadı: $groupName');
+      throw ArgumentError('Register group not found: $groupName');
     }
 
     final address = group.addresses[registerName];
     if (address == null) {
-      throw ArgumentError('Register bulunamadı: $path');
+      throw ArgumentError('Register not found: $path');
     }
 
     return address;
   }
 
-  /// Register'ın açıklamasını al
+  /// Returns the description for the register group named [groupName].
   String? getDescription(String groupName) {
     return registers.getGroup(groupName)?.description;
   }
 
-  /// Register'ın tipini al (read/write/read_write)
+  /// Returns the [RegisterType] for the register group named [groupName].
   RegisterType? getType(String groupName) {
     return registers.getGroup(groupName)?.type;
   }
 }
-
-// ============================================================================
 
 class ConnectionConfig {
   ConnectionConfig({
@@ -125,8 +121,6 @@ class ConnectionConfig {
   Duration get timeout => Duration(milliseconds: timeoutMs);
 }
 
-// ============================================================================
-
 class RegisterMap {
   RegisterMap({required this.groups});
 
@@ -134,7 +128,7 @@ class RegisterMap {
 
   factory RegisterMap.fromJson(Map<String, dynamic> json) {
     final groups = <String, RegisterGroup>{};
-    
+
     json.forEach((key, value) {
       groups[key] = RegisterGroup.fromJson(
         key,
@@ -151,10 +145,10 @@ class RegisterMap {
 
   RegisterGroup? getGroup(String name) => groups[name];
 
-  /// Tüm register adreslerini düz liste olarak al
+  /// Returns all register addresses as a flat list.
   List<RegisterAddress> getAllAddresses() {
     final result = <RegisterAddress>[];
-    
+
     groups.forEach((groupName, group) {
       group.addresses.forEach((registerName, address) {
         result.add(RegisterAddress(
@@ -171,39 +165,24 @@ class RegisterMap {
   }
 }
 
-// ============================================================================
-
 enum RegisterType {
   read,
   write,
   readWrite;
 
-  static RegisterType fromString(String value) {
-    switch (value) {
-      case 'read':
-        return RegisterType.read;
-      case 'write':
-        return RegisterType.write;
-      case 'read_write':
-        return RegisterType.readWrite;
-      default:
-        throw ArgumentError('Geçersiz register type: $value');
-    }
-  }
+  static RegisterType fromString(String value) => switch (value) {
+    'read'       => RegisterType.read,
+    'write'      => RegisterType.write,
+    'read_write' => RegisterType.readWrite,
+    _            => throw ArgumentError('Invalid register type: $value'),
+  };
 
-  String toJson() {
-    switch (this) {
-      case RegisterType.read:
-        return 'read';
-      case RegisterType.write:
-        return 'write';
-      case RegisterType.readWrite:
-        return 'read_write';
-    }
-  }
+  String toJson() => switch (this) {
+    RegisterType.read      => 'read',
+    RegisterType.write     => 'write',
+    RegisterType.readWrite => 'read_write',
+  };
 }
-
-// ============================================================================
 
 class RegisterGroup {
   RegisterGroup({
@@ -222,7 +201,7 @@ class RegisterGroup {
   final RegisterType type;
   final Map<String, int> addresses;
   final String dataType;
-  final Map<String, Map<String, String>>? values; // Enum-like değerler
+  final Map<String, Map<String, String>>? values; // Enum-like value descriptions.
   final int? minValue;
   final int? maxValue;
 
@@ -260,26 +239,24 @@ class RegisterGroup {
     };
   }
 
-  /// Değer açıklamasını al
-  /// Örnek: getValueDescription('status', 1) → "Onaylandı"
+  /// Returns the human-readable description for [value] in [registerName].
+  /// Example: `getValueDescription('status', 1)` → `'Approved'`
   String? getValueDescription(String registerName, int value) {
     if (values == null) return null;
-    
+
     final registerValues = values![registerName];
     if (registerValues == null) return null;
-    
+
     return registerValues[value.toString()];
   }
 
-  /// Değeri validate et
+  /// Returns `true` if [value] is within the configured min/max bounds.
   bool validateValue(int value) {
     if (minValue != null && value < minValue!) return false;
     if (maxValue != null && value > maxValue!) return false;
     return true;
   }
 }
-
-// ============================================================================
 
 class RegisterAddress {
   RegisterAddress({
@@ -300,15 +277,13 @@ class RegisterAddress {
 
   bool get isReadable =>
       type == RegisterType.read || type == RegisterType.readWrite;
-  
+
   bool get isWritable =>
       type == RegisterType.write || type == RegisterType.readWrite;
 
   @override
   String toString() => '$fullPath ($address)';
 }
-
-// ============================================================================
 
 class ValidationConfig {
   ValidationConfig({

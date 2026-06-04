@@ -95,7 +95,7 @@ class _ScentWavesLoaderState extends State<ScentWavesLoader>
       height: widget.size,
       child: AnimatedBuilder(
         animation: _controller,
-        builder: (_, __) {
+        builder: (_, _) {
           final tSeconds = _sw.elapsedMicroseconds / 1e6;
           return CustomPaint(
             painter: _ScentWavesPainter(

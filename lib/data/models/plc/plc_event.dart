@@ -1,12 +1,27 @@
-// lib/plc/admin/models/plc_event.dart
 import 'package:flutter/material.dart';
 
-/// PLC event types
-enum PLCEventType { connection, read, write, error, info }
+/// The category of a [PLCEvent].
+enum PLCEventType {
+  /// A connection was established or lost.
+  connection,
 
-/// PLC event modeli
+  /// A register value was read.
+  read,
+
+  /// A register value was written.
+  write,
+
+  /// An error occurred.
+  error,
+
+  /// A general informational message.
+  info,
+}
+
+/// An immutable record of a single PLC operation or state change.
 @immutable
 class PLCEvent {
+  /// Creates a [PLCEvent], defaulting [timestamp] to [DateTime.now].
   PLCEvent({
     required this.type,
     required this.message,
@@ -14,52 +29,51 @@ class PLCEvent {
     this.value,
     this.error,
     DateTime? timestamp,
-  }) : timestamp = timestamp ?? PLCEvent._currentTime();
+  }) : timestamp = timestamp ?? DateTime.now();
 
   final PLCEventType type;
+
+  /// Human-readable description of the event.
   final String message;
+
+  /// Register address involved in the event, if any.
   final int? register;
+
+  /// Register value involved in the event, if any.
   final int? value;
+
+  /// Error detail string, populated for [PLCEventType.error] events.
   final String? error;
+
+  /// When the event occurred.
   final DateTime timestamp;
 
-  static DateTime _currentTime() => DateTime.now();
+  /// UI color associated with [type].
+  ///
+  /// Note: color logic lives here for convenience; consider moving to
+  /// the UI layer if the model is ever used outside Flutter.
+  Color get color => switch (type) {
+    PLCEventType.connection => Colors.blue,
+    PLCEventType.read       => Colors.green,
+    PLCEventType.write      => Colors.orange,
+    PLCEventType.error      => Colors.red,
+    PLCEventType.info       => Colors.grey,
+  };
 
-  Color get color {
-    switch (type) {
-      case PLCEventType.connection:
-        return Colors.blue;
-      case PLCEventType.read:
-        return Colors.green;
-      case PLCEventType.write:
-        return Colors.orange;
-      case PLCEventType.error:
-        return Colors.red;
-      case PLCEventType.info:
-        return Colors.grey;
-    }
-  }
+  /// UI icon associated with [type].
+  IconData get icon => switch (type) {
+    PLCEventType.connection => Icons.link,
+    PLCEventType.read       => Icons.download,
+    PLCEventType.write      => Icons.upload,
+    PLCEventType.error      => Icons.error,
+    PLCEventType.info       => Icons.info,
+  };
 
-  IconData get icon {
-    switch (type) {
-      case PLCEventType.connection:
-        return Icons.link;
-      case PLCEventType.read:
-        return Icons.download;
-      case PLCEventType.write:
-        return Icons.upload;
-      case PLCEventType.error:
-        return Icons.error;
-      case PLCEventType.info:
-        return Icons.info;
-    }
-  }
-
-  String get formattedTime {
-    return '${timestamp.hour.toString().padLeft(2, '0')}:'
-        '${timestamp.minute.toString().padLeft(2, '0')}:'
-        '${timestamp.second.toString().padLeft(2, '0')}';
-  }
+  /// Time formatted as `HH:mm:ss`.
+  String get formattedTime =>
+      '${timestamp.hour.toString().padLeft(2, '0')}:'
+      '${timestamp.minute.toString().padLeft(2, '0')}:'
+      '${timestamp.second.toString().padLeft(2, '0')}';
 
   @override
   String toString() {
@@ -71,62 +85,63 @@ class PLCEvent {
   }
 }
 
-/// Event logger singleton
+/// In-memory circular log of [PLCEvent] entries.
+///
+/// Retains the most recent [_maxEvents] entries, discarding the oldest
+/// when the buffer is full. Events are stored newest-first.
+///
+/// TODO: replace singleton with an injected dependency to improve
+/// testability and remove the global state.
 class PLCEventLogger {
   PLCEventLogger._();
 
+  /// The global logger instance.
   static final PLCEventLogger instance = PLCEventLogger._();
 
   final List<PLCEvent> _events = [];
-  final int _maxEvents = 200;
 
+  /// Maximum number of events retained in memory.
+  static const int _maxEvents = 200;
+
+  /// An unmodifiable view of the current event list, newest first.
   List<PLCEvent> get events => List.unmodifiable(_events);
 
+  /// Appends [event] to the log, evicting the oldest entry if the
+  /// buffer exceeds [_maxEvents].
   void log(PLCEvent event) {
     _events.insert(0, event);
-    if (_events.length > _maxEvents) {
-      _events.removeLast();
-    }
-
-    // Debug print
-    debugPrint('[PLC Event] ${event.toString()}');
+    if (_events.length > _maxEvents) _events.removeLast();
+    debugPrint('[PLCEvent] $event');
   }
 
-  void logConnection(String message) {
-    log(PLCEvent(type: PLCEventType.connection, message: message));
-  }
+  /// Logs a [PLCEventType.connection] event with [message].
+  void logConnection(String message) =>
+      log(PLCEvent(type: PLCEventType.connection, message: message));
 
-  void logRead(int register, int value) {
-    log(
-      PLCEvent(
+  /// Logs a [PLCEventType.read] event for [register] returning [value].
+  void logRead(int register, int value) => log(PLCEvent(
         type: PLCEventType.read,
-        message: 'Register okuma',
+        message: 'Register read',
         register: register,
         value: value,
-      ),
-    );
-  }
+      ));
 
-  void logWrite(int register, int value) {
-    log(
-      PLCEvent(
+  /// Logs a [PLCEventType.write] event for [register] with [value].
+  void logWrite(int register, int value) => log(PLCEvent(
         type: PLCEventType.write,
-        message: 'Register yazma',
+        message: 'Register write',
         register: register,
         value: value,
-      ),
-    );
-  }
+      ));
 
-  void logError(String message, {String? error}) {
-    log(PLCEvent(type: PLCEventType.error, message: message, error: error));
-  }
+  /// Logs a [PLCEventType.error] event with optional [error] detail.
+  void logError(String message, {String? error}) =>
+      log(PLCEvent(type: PLCEventType.error, message: message, error: error));
 
-  void logInfo(String message) {
-    log(PLCEvent(type: PLCEventType.info, message: message));
-  }
+  /// Logs a [PLCEventType.info] event with [message].
+  void logInfo(String message) =>
+      log(PLCEvent(type: PLCEventType.info, message: message));
 
-  void clear() {
-    _events.clear();
-  }
+  /// Clears all events from the log.
+  void clear() => _events.clear();
 }

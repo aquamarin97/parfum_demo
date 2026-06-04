@@ -3,6 +3,11 @@ import '../local/asset_json_loader.dart';
 import '../models/kvkk_text.dart';
 import 'i_kvkk_repository.dart';
 
+/// Loads the KVKK consent text from the Flutter asset bundle.
+///
+/// Expects the asset at [AppConstants.kvkkAssetPath] to contain a JSON
+/// object with a `kvkk_text` entry that has an `id` (string) and a
+/// `translations` map keyed by BCP 47 language code.
 class KvkkRepository implements IKvkkRepository {
   KvkkRepository(this._loader);
 
@@ -14,16 +19,21 @@ class KvkkRepository implements IKvkkRepository {
     final kvkk = json['kvkk_text'] as Map<String, dynamic>;
     final id = kvkk['id'].toString();
     final translationsJson = kvkk['translations'] as Map<String, dynamic>;
-    final translations = <String, KvkkTranslation>{};
-    for (final code in translationsJson.keys) {
-      final langJson = translationsJson[code] as Map<String, dynamic>;
-      translations[code] = KvkkTranslation(
-        title: langJson['title'].toString(),
-        body: langJson['content'].toString(),
-        approvalLabel: langJson['approval_text'].toString(),
-        buttonLabel: langJson['button_text'].toString(),
-      );
-    }
+    final translations = <String, KvkkTranslation>{
+      for (final code in translationsJson.keys)
+        code: _parseTranslation(
+          translationsJson[code] as Map<String, dynamic>,
+        ),
+    };
     return KvkkText(id: id, translations: translations);
+  }
+
+  KvkkTranslation _parseTranslation(Map<String, dynamic> json) {
+    return KvkkTranslation(
+      title: json['title'].toString(),
+      body: json['content'].toString(),
+      approvalLabel: json['approval_text'].toString(),
+      buttonLabel: json['button_text'].toString(),
+    );
   }
 }

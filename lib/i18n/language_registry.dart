@@ -6,30 +6,51 @@ import 'package:path/path.dart' as p;
 
 import '../data/models/language.dart';
 
-/// Mevcut dilleri keşfeder.
-/// Önce exe yanındaki i18n/languages.json'a bakar (USB güncelleme),
-/// bulamazsa assets/i18n/languages.json'a düşer.
-/// Her iki kaynak da başarısız olursa _fallback listesiyle devam eder.
+/// Discovers the set of supported languages at runtime.
+///
+/// Sources are tried in priority order:
+/// 1. `i18n/languages.json` next to the executable (USB/manual update).
+/// 2. `assets/i18n/languages.json` bundled with the app.
+///
+/// If both sources fail, [available] remains empty and [AppViewModel]
+/// transitions to [ErrorState] — no silent fallback is used so that
+/// missing configuration is immediately visible.
+///
+/// This design allows new languages to be added without a code change or
+/// app update — simply replace the `languages.json` file on the device.
 class LanguageRegistry {
   static const _manifestAsset = 'assets/i18n/languages.json';
 
-  // Kod değişikliği olmadan yeni dil eklendiğinde bu liste hiç kullanılmaz.
-  // Yalnızca languages.json hiç okunamazsa devreye girer (ilk kurulum hatası vb.).
-  static const _fallback = [
-    Language(code: 'tr', label: 'TR'),
-    Language(code: 'en', label: 'EN'),
-    Language(code: 'ar', label: 'AR', isRtl: true),
-  ];
+  List<Language> _languages = [];
 
-  List<Language> _languages = _fallback;
-
+  /// The currently loaded language list.
+  ///
+  /// Returns an unmodifiable view. Call [load] before accessing this
+  /// to ensure the list reflects the latest source.
   List<Language> get available => List.unmodifiable(_languages);
 
-  Language findByCode(String code) =>
-      _languages.firstWhere((l) => l.code == code, orElse: () => _languages.first);
+  /// Returns the [Language] matching [code], or the first available
+  /// language if no match is found.
+  ///
+  /// Throws [StateError] if [load] has not been called or both sources
+  /// failed — callers must ensure [available] is non-empty.
+  Language findByCode(String code) {
+    if (_languages.isEmpty) {
+      throw StateError(
+        'LanguageRegistry is empty — call load() first.',
+      );
+    }
+    return _languages.firstWhere(
+      (l) => l.code == code,
+      orElse: () => _languages.first,
+    );
+  }
 
+  /// Loads the language list from the highest-priority available source.
+  ///
+  /// Safe to call multiple times — the list is replaced on each call.
   Future<void> load() async {
-    // 1. Filesystem override (USB / manuel güncelleme)
+    // 1. Filesystem override — USB or manual update next to the executable.
     try {
       final exeDir = File(Platform.resolvedExecutable).parent.path;
       final file = File(p.join(exeDir, 'i18n', 'languages.json'));
@@ -37,14 +58,17 @@ class LanguageRegistry {
         _languages = _parse(jsonDecode(await file.readAsString()) as List);
         return;
       }
-    } catch (_) {}
+    } catch (_) {
+      // Fall through to asset source.
+    }
 
-    // 2. Bundled asset
+    // 2. Bundled asset.
     try {
       final raw = await rootBundle.loadString(_manifestAsset);
       _languages = _parse(jsonDecode(raw) as List);
     } catch (_) {
-      // _fallback ile devam et
+      // Both sources failed — _languages remains empty.
+      // AppViewModel._setup() will transition to ErrorState.
     }
   }
 
