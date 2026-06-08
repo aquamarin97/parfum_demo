@@ -93,7 +93,7 @@ class _KvkkScreenState extends State<KvkkScreen> {
               ),
             ],
           ),
-          SizedBox(height: 30,)
+          SizedBox(height: 30)
         ],
       ),
     );
