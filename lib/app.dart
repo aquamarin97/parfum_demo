@@ -117,9 +117,9 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
               child: Scaffold(
                 body: Stack(
                   children: [
-                    if (_showWave(state)) const AppScentWave(),
                     if (_showLogo(state))
                       AppLogoBackground(animation: _logoAnimation),
+                    if (_showWave(state)) const AppScentWave(),
                     Positioned.fill(
                       child: viewModel.initialized
                           ? const AppRouter().build(viewModel)
@@ -138,13 +138,15 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
                     ),
                     HiddenAdminButton(
                       onAccessGranted: () {
+                        viewModel.onAdminPanelOpened();
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => AdminPanelScreen(
                               plcService: viewModel.plcService,
+                              isReadOnly: viewModel.state is! IdleState,
                             ),
                           ),
-                        );
+                        ).then((_) => viewModel.onAdminPanelClosed());
                       },
                     ),
                   ],

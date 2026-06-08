@@ -6,6 +6,8 @@ class AppSizes {
   // Spacing
   static const double spacingXS2 = 10.0; // 10 için yeni token
 
+  static const double idleTopPadding = 100.0;
+
   static const double spacingXS = 12.0;
   static const double spacingS = 16.0;
   static const double spacingM = 24.0;

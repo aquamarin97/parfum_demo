@@ -11,9 +11,11 @@ class ManualControl extends StatefulWidget {
   const ManualControl({
     super.key,
     required this.plcService,
+    this.isReadOnly = false,
   });
 
   final PLCServiceManager plcService;
+  final bool isReadOnly;
 
   @override
   State<ManualControl> createState() => _ManualControlState();
@@ -245,7 +247,7 @@ class _ManualControlState extends State<ManualControl> {
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _writeRegister,
+                  onPressed: (_isLoading || widget.isReadOnly) ? null : _writeRegister,
                   icon: const Icon(Icons.upload, size: 48),
                   label: const Text(
                     'Write',

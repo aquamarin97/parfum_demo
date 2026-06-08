@@ -107,6 +107,8 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
 
   TimeoutWatcher? _timeoutWatcher;
   late final TimerCoordinator _timerCoordinator;
+  Timer? _watchdogTimer;
+  static const _watchdogInterval = Duration(seconds: 30);
   AppStrings? _cachedStrings;
 
   /// The current application state.
@@ -231,6 +233,7 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
         timeout: AppConstants.inactivityTimeout,
         onTimeout: _handleTimeout,
       )..start();
+      _startWatchdog();
       _logger.log('App initialized');
       _initialized = true;
       _setState(const IdleState());
@@ -337,6 +340,27 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     _timerCoordinator.startLoadingSequence();
   }
 
+  void onAdminPanelOpened() {
+    _timeoutWatcher?.stop();
+    _logger.log('Admin panel opened — inactivity timeout suspended.');
+  }
+
+  void onAdminPanelClosed() {
+    _timeoutWatcher?.start();
+    _logger.log('Admin panel closed — inactivity timeout resumed.');
+  }
+
+  void _startWatchdog() {
+    _watchdogTimer?.cancel();
+    _watchdogTimer = Timer.periodic(_watchdogInterval, (_) {
+      _logger.log('Watchdog tick — state: ${_stateMachine.state.runtimeType}');
+      if (_stateMachine.state is LoadingState) {
+        _logger.log('Watchdog: stuck in LoadingState — resetting.');
+        resetToIdle();
+      }
+    });
+  }
+
   void _handleTimeout() {
     _logger.log('Inactivity timeout');
     resetToIdle();
@@ -376,6 +400,7 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     _plcService.removeListener(_onPLCStateChanged);
     _timerCoordinator.dispose();
     _timeoutWatcher?.stop();
+    _watchdogTimer?.cancel();
     super.dispose();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parfume_app/ui/components/buttons/primary_button.dart';
+import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
 /// Centred subtitle, start button, and bottom spacing for the idle screen.
@@ -38,7 +39,7 @@ class IdleCenterContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 100),
+        padding: const EdgeInsets.symmetric(horizontal: 50),
         child: FadeTransition(
           opacity: animation,
           child: SlideTransition(
@@ -58,7 +59,7 @@ class IdleCenterContent extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 100),
+                const SizedBox(height: AppSizes.idleTopPadding),
                 PrimaryButton(label: startLabel, onPressed: onStart),
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.3,

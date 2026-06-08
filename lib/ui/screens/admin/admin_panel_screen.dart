@@ -14,9 +14,14 @@ import 'widgets/register_monitor.dart';
 /// Accessed via the hidden admin button in the kiosk shell.
 /// Requires an active [PLCServiceManager] instance.
 class AdminPanelScreen extends StatefulWidget {
-  const AdminPanelScreen({super.key, required this.plcService});
+  const AdminPanelScreen({
+    super.key,
+    required this.plcService,
+    this.isReadOnly = false,
+  });
 
   final PLCServiceManager plcService;
+  final bool isReadOnly;
 
   @override
   State<AdminPanelScreen> createState() => _AdminPanelScreenState();
@@ -100,7 +105,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
             ),
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
-              child: ManualControl(plcService: widget.plcService),
+              child: ManualControl(
+                plcService: widget.plcService,
+                isReadOnly: widget.isReadOnly,
+              ),
             ),
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
