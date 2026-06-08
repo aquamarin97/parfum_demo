@@ -15,21 +15,25 @@ class PrimaryOutlinedButton extends StatelessWidget {
     required this.onPressed,
     this.fontSize = AppSizes.fontBody,
     this.enabled = true,
+    this.paddingHorizontal = AppSizes.buttonPaddingH,
+    this.paddingVertical = AppSizes.buttonPaddingV,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool enabled;
   final double fontSize;
+  final double paddingHorizontal;
+  final double paddingVertical;
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: enabled ? onPressed : null,
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.buttonPaddingH,
-          vertical: AppSizes.buttonPaddingV,
+        padding: EdgeInsets.symmetric(
+          horizontal: paddingHorizontal,
+          vertical: paddingVertical,
         ),
         shape: const StadiumBorder(),
         side: const BorderSide(

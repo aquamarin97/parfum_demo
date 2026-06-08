@@ -23,11 +23,18 @@ class AppTextStyles {
     color: AppColors.textPrimary,
   );
 
+  static const TextStyle topHeader = TextStyle(
+    fontFamily: _fontFamily,
+    fontSize: AppSizes.fontTopHeader,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+  );
+
   static const TextStyle body = TextStyle(
     fontFamily: _fontFamily,
     fontSize: AppSizes.fontBody,
     color: AppColors.textPrimary,
-    height: 1.4,
+    height: 1.2,
   );
 
   static const TextStyle label = TextStyle(

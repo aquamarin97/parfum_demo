@@ -37,14 +37,14 @@ class _KvkkScreenState extends State<KvkkScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(kvkk.title, style: AppTextStyles.title),
+          Text(kvkk.title, style: AppTextStyles.topHeader),
           const SizedBox(height: AppSizes.spacingS),
           Expanded(
             child: SingleChildScrollView(
               child: Text(kvkk.body, style: AppTextStyles.body),
             ),
           ),
-          const SizedBox(height: AppSizes.spacingXL2),
+          const SizedBox(height: AppSizes.spacingS),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -77,7 +77,8 @@ class _KvkkScreenState extends State<KvkkScreen> {
                 child: PrimaryOutlinedButton(
                   label: strings.t('cancel'),
                   onPressed: widget.viewModel.cancelToIdle,
-                  fontSize: AppSizes.fontBody,
+                  fontSize: AppSizes.fontButtonText,
+                  paddingHorizontal: AppSizes.buttonPaddingHSmall,
                 ),
               ),
               const SizedBox(width: AppSizes.spacingS),
@@ -86,11 +87,13 @@ class _KvkkScreenState extends State<KvkkScreen> {
                   label: kvkk.buttonLabel,
                   enabled: _approved,
                   onPressed: _approved ? widget.viewModel.startQuestions : null,
-                  fontSize: AppSizes.fontBody,
+                  fontSize: AppSizes.fontButtonText,
+                  paddingHorizontal: AppSizes.buttonPaddingHSmall,
                 ),
               ),
             ],
           ),
+          SizedBox(height: 30,)
         ],
       ),
     );

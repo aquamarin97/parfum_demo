@@ -43,7 +43,7 @@ class AppSizes {
   static const double errorIconContainer = 200.0;
 
   static const double spacingXL2 = 50.0; // kvkk gap
-  static const double fontBodyLarge = 40.0; // kvkk approval text
+  static const double fontBodyLarge = 25.0; // kvkk approval text
   static const double checkboxScale = 3.5; // kiosk checkbox scale
 
   // Border radius
@@ -75,6 +75,7 @@ class AppSizes {
 
   // Button
   static const double buttonPaddingH = 150.0;
+  static const double buttonPaddingHSmall = 40.0;
   static const double buttonPaddingV = 30.0;
   static const double outlinedButtonBorderWidth = 3.0;
 
@@ -113,10 +114,12 @@ class AppSizes {
   // Font sizes
   static const double fontHeadline = 100.0;
   static const double fontTitle = 80.0;
-  static const double fontBody = 50.0;
+  static const double fontBody = 40.0;
   static const double fontMainBody = 65.0;
   static const double fontLabel = 42.0;
   static const double fontButton = 100.0;
   static const double fontHint = 16.0;
   static const double fontTopBar = 50.0;
+  static const double fontTopHeader = 60.0;
+  static const double fontButtonText = 40.0;
 }
