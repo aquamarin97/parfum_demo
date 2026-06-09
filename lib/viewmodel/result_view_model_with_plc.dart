@@ -81,7 +81,9 @@ class ResultViewModelWithPLC extends ResultViewModel {
           debugPrint('[ResultVM] Tester selection sent to PLC.');
         } on PLCException catch (e) {
           // Non-fatal: log and continue so the flow is not blocked.
-          debugPrint('[ResultVM] Non-fatal PLC error on tester send: ${e.message}');
+          debugPrint(
+            '[ResultVM] Non-fatal PLC error on tester send: ${e.message}',
+          );
         }
       }
 
@@ -93,6 +95,8 @@ class ResultViewModelWithPLC extends ResultViewModel {
       });
     });
   }
+
+
 
   /// Handles payment confirmation and waits for the perfume dispenser.
   @override
@@ -110,6 +114,12 @@ class ResultViewModelWithPLC extends ResultViewModel {
       transitionToState(ResultFlowState.preparingPerfume);
       _watchPerfumeReady();
     });
+  }
+
+  @override
+  void backToTesterSelection() {
+    _plcSubscription?.cancel();
+    super.backToTesterSelection();
   }
 
   /// Restarts payment watching after a failed payment attempt.
@@ -134,7 +144,9 @@ class ResultViewModelWithPLC extends ResultViewModel {
   /// completes.
   Future<void> _sendToPLC() async {
     if (!plcService.isConnected) {
-      debugPrint('[ResultVM] PLC disconnected before send — falling back to mock.');
+      debugPrint(
+        '[ResultVM] PLC disconnected before send — falling back to mock.',
+      );
       Future.delayed(const Duration(seconds: 1), _onTestersPreparing);
       return;
     }
@@ -167,7 +179,9 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
     _plcSubscription?.cancel();
     _plcSubscription = plcService.watchTestersReady().listen(
-      (ready) { if (ready) _onTestersReady(); },
+      (ready) {
+        if (ready) _onTestersReady();
+      },
       onError: (Object error) {
         if (error is PLCException) _handlePLCError(error);
       },
@@ -216,7 +230,9 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
     _plcSubscription?.cancel();
     _plcSubscription = plcService.watchPerfumeReady().listen(
-      (ready) { if (ready) _onPerfumeReady(); },
+      (ready) {
+        if (ready) _onPerfumeReady();
+      },
       onError: (Object error) {
         if (error is PLCException) _handlePLCError(error);
       },

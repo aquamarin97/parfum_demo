@@ -31,10 +31,10 @@ class TestersReadyView extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSizes.spacingXXL),
+        const SizedBox(height: AppSizes.spacingL),
         Text(
           strings.t('please_select'),
-          style: AppTextStyles.title.copyWith(fontWeight: FontWeight.bold),
+          style: AppTextStyles.topHeader,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSizes.spacingS),

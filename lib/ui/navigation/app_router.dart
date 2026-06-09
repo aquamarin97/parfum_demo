@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:parfume_app/ui/screens/plc_error/plc_error_screen.dart';
 
@@ -10,20 +11,25 @@ import '../screens/loading/loading_screen.dart';
 import '../screens/question/question_screen.dart';
 import '../screens/result/result_screen.dart';
 
-/// Maps each [AppState] subtype to its corresponding screen widget.
-///
-/// The exhaustive switch ensures the compiler forces a router update whenever
-/// a new [AppState] subtype is added to the sealed class.
 class AppRouter {
-  const AppRouter();
+  const AppRouter({this.debugOverrideState});
 
-  /// Builds the screen widget for the current [AppViewModel.state].
+  /// Sadece debug modda geçerlidir. Belirli bir ekranı doğrudan açmak için
+  /// [AppState] subtype'ı buraya verin.
   ///
-  /// Returns [SizedBox.shrink] during [InitializingState] — the root widget
-  /// in `app.dart` guards against rendering until [AppViewModel.initialized]
-  /// is `true`, so this branch is never visible to the user.
+  /// Örnek kullanım (app.dart veya main.dart içinde):
+  /// ```dart
+  /// AppRouter(debugOverrideState: KvkkState())
+  /// AppRouter(debugOverrideState: QuestionsState())
+  /// AppRouter(debugOverrideState: ResultState())
+  /// ```
+  final AppState? debugOverrideState;
+
   Widget build(AppViewModel viewModel) {
-    final state = viewModel.state;
+    // Release modda override tamamen devre dışı kalır.
+    final state = (kDebugMode && debugOverrideState != null)
+        ? debugOverrideState!
+        : viewModel.state;
 
     return switch (state) {
       InitializingState() => const SizedBox.shrink(),

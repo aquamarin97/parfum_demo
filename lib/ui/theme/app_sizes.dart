@@ -4,7 +4,6 @@
 class AppSizes {
   static const double underlineThickness = 1.5;
 
-
   // Spacing
   static const double spacingXS = 12.0;
   static const double spacingS = 16.0;
@@ -108,7 +107,7 @@ class AppSizes {
   static const double adminDialogBodySize = 32.0;
   static const double adminDialogActionSize = 36.0;
   static const double adminTapCounterSize = 24.0;
-  
+
   // Font sizes
   static const double fontHeadline = 100.0;
   static const double fontTitle = 80.0;
@@ -120,4 +119,8 @@ class AppSizes {
   static const double fontTopBar = 50.0;
   static const double fontTopHeader = 60.0;
   static const double fontButtonText = 40.0;
+
+  static const double actionButtonFontSize = 38.0;
+  static const double actionButtonPaddingH = 32.0;
+  static const double actionButtonPaddingV = 16.0;
 }

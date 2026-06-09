@@ -39,4 +39,12 @@ class AppColors {
   // Admin Panel
   static const Color adminBackground = Color(0xFF0B1020);
   static const Color adminTabUnselected = Color(0xFFB9C0D4);
+
+  // Action colors
+  static const Color warningAmber = Color.fromARGB(255, 177, 240, 30); // geri butonu
+  static const Color warningAmberLight = Color(0xFFFEF3C7); // geri buton bg (soluk)
+  static const Color warningAmberMild = Color(0xFFFDE68A); // geri buton bg (güçlü)
+  static const Color warningAmberDark = Color.fromARGB(255, 240, 178, 7); // geri buton bg (koyu hardal)
+  static const Color dangerRed = Color(0xFFDC2626); // iptal butonu
+  static const Color dangerRedLight = Color(0xFFFEE2E2); // iptal buton bg
 }

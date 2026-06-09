@@ -54,12 +54,30 @@ class ResultViewModel extends ChangeNotifier {
 
   void onPaymentComplete() {
     cancelTimer();
-    updateLastMessage(strings.t('payment_completed'), TimelineMessageStatus.completed);
+    updateLastMessage(
+      strings.t('payment_completed'),
+      TimelineMessageStatus.completed,
+    );
     Future.delayed(const Duration(milliseconds: 500), () {
-      addMessage(strings.t('fragrance_preparing'), TimelineMessageStatus.active);
+      addMessage(
+        strings.t('fragrance_preparing'),
+        TimelineMessageStatus.active,
+      );
       transitionToState(ResultFlowState.preparingPerfume);
       Future.delayed(const Duration(seconds: 3), _onPerfumeReady);
     });
+  }
+
+  void backToTesterSelection() {
+    if (topIds.isEmpty) {
+      cancelToIdle();
+      return;
+    }
+    cancelTimer();
+    clearMessagesAfterFirst();
+    _selectedTester = null;
+    transitionToState(ResultFlowState.testersReady);
+    startTimer(timerNotifier.value);
   }
 
   void onPaymentError() {
@@ -68,8 +86,20 @@ class ResultViewModel extends ChangeNotifier {
     transitionToState(ResultFlowState.paymentError);
   }
 
+  /// Returns to tester selection, cancelling the current payment attempt.
+  ///
+  /// Guards against the race where [AppViewModel.resetToIdle] clears
+  /// [topIds] before the widget tree has had a chance to leave the result
+  /// screen (e.g. inactivity timeout fires while the user is still touching
+  /// the UI).  In that case the session is already torn down, so the correct
+  /// recovery is to complete the idle transition rather than trying to show
+  /// [TestersReadyView] with an empty recommendation list.
+
   void retryPayment() {
-    updateLastMessage(strings.t('payment_waiting'), TimelineMessageStatus.active);
+    updateLastMessage(
+      strings.t('payment_waiting'),
+      TimelineMessageStatus.active,
+    );
     transitionToState(ResultFlowState.waitingPayment);
     startTimer(300);
   }
@@ -89,6 +119,13 @@ class ResultViewModel extends ChangeNotifier {
   }
 
   // --- Protected helpers ---
+
+  @protected
+  void clearMessagesAfterFirst() {
+    while (_messages.length > 1) {
+      _messages.removeLast();
+    }
+  }
 
   @protected
   void transitionToState(ResultFlowState newState) {
@@ -135,7 +172,10 @@ class ResultViewModel extends ChangeNotifier {
   }
 
   void _onPerfumeReady() {
-    updateLastMessage(strings.t('fragrance_prepared'), TimelineMessageStatus.completed);
+    updateLastMessage(
+      strings.t('fragrance_prepared'),
+      TimelineMessageStatus.completed,
+    );
     transitionToState(ResultFlowState.perfumeReady);
     Future.delayed(const Duration(seconds: 2), () {
       transitionToState(ResultFlowState.giftCardQuestion);

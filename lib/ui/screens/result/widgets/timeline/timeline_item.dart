@@ -79,62 +79,73 @@ class _TimelineItemState extends State<TimelineItem>
           child: child,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Icon column with connector line.
-          SizedBox(
-            width: AppSizes.timelineIconSize + 8,
-            child: Column(
-              children: [
-                _buildIcon(color),
-                if (!widget.isLast)
-                  Container(
-                    width: AppSizes.timelineConnectorWidth,
-                    height: AppSizes.timelineConnectorHeight,
-                    color: color.withValues(alpha: 0.3),
-                  ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: AppSizes.spacingS),
-
-          // Message text and timestamp.
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                bottom: AppSizes.timelineConnectorHeight,
-              ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon + connector column — stretches to match content height.
+            SizedBox(
+              width: AppSizes.timelineIconSize + 8,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    message.text,
-                    style: AppTextStyles.body.copyWith(
-                      fontFamily: 'NotoSans',
-                      fontSize: AppSizes.fontBodyLarge,
-                      height: 1.3,
-                      fontWeight:
-                          widget.message.status == TimelineMessageStatus.active
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                      color: color,
+                  _buildIcon(color),
+                  if (!widget.isLast)
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          width: AppSizes.timelineConnectorWidth,
+                          color: color.withValues(alpha: 0.3),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSizes.spacingXS),
-                  Text(
-                    _formatTime(widget.message.timestamp),
-                    style: AppTextStyles.hint.copyWith(
-                      fontSize: AppSizes.fontHint * 2,
-                      color: color.withValues(alpha: 0.6),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(width: AppSizes.spacingS),
+
+            // Message text + timestamp in a row.
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  bottom: AppSizes.spacingM,
+                  top: AppSizes.spacingXS,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Message text.
+                    Expanded(
+                      child: Text(
+                        message.text,
+                        style: AppTextStyles.body.copyWith(
+                          fontSize: AppSizes.fontBodyLarge,
+                          height: 1.3,
+                          fontWeight: widget.message.status ==
+                                  TimelineMessageStatus.active
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: color,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: AppSizes.spacingS),
+
+                    // Timestamp — right-aligned.
+                    Text(
+                      _formatTime(widget.message.timestamp),
+                      style: AppTextStyles.hint.copyWith(
+                        fontSize: AppSizes.fontHint * 2,
+                        color: color.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -150,7 +161,6 @@ class _TimelineItemState extends State<TimelineItem>
             return Stack(
               alignment: Alignment.center,
               children: [
-                // Pulse glow ring.
                 Container(
                   width: AppSizes.timelineIconSize *
                       (1.0 + _pulseAnimation.value * 0.6),
@@ -163,7 +173,6 @@ class _TimelineItemState extends State<TimelineItem>
                     ),
                   ),
                 ),
-                // Spinner.
                 SizedBox(
                   width: AppSizes.timelineIconSize,
                   height: AppSizes.timelineIconSize,
@@ -183,23 +192,22 @@ class _TimelineItemState extends State<TimelineItem>
   }
 
   Color get _statusColor => switch (widget.message.status) {
-    TimelineMessageStatus.pending   => AppColors.textSecondary,
-    TimelineMessageStatus.active    => AppColors.primary,
-    TimelineMessageStatus.completed => AppColors.success,
-    TimelineMessageStatus.error     => AppColors.error,
-  };
+        TimelineMessageStatus.pending => AppColors.textSecondary,
+        TimelineMessageStatus.active => AppColors.primary,
+        TimelineMessageStatus.completed => AppColors.success,
+        TimelineMessageStatus.error => AppColors.error,
+      };
 
   IconData get _statusIcon => switch (widget.message.status) {
-    TimelineMessageStatus.pending   => Icons.radio_button_unchecked,
-    TimelineMessageStatus.active    => Icons.sync,
-    TimelineMessageStatus.completed => Icons.check_circle,
-    TimelineMessageStatus.error     => Icons.error,
-  };
+        TimelineMessageStatus.pending => Icons.radio_button_unchecked,
+        TimelineMessageStatus.active => Icons.sync,
+        TimelineMessageStatus.completed => Icons.check_circle,
+        TimelineMessageStatus.error => Icons.error,
+      };
 
   String _formatTime(DateTime time) =>
       '${time.hour.toString().padLeft(2, '0')}:'
       '${time.minute.toString().padLeft(2, '0')}';
 
-  // Convenience getter to avoid widget.message repetition.
   TimelineMessage get message => widget.message;
 }

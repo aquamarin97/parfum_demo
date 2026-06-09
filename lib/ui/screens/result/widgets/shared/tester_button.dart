@@ -8,6 +8,8 @@ import 'package:parfume_app/ui/theme/app_text_styles.dart';
 ///
 /// Animates in with a staggered scale effect based on [index].
 /// Transitions between selected and unselected states via [AnimatedContainer].
+/// Background stays white in both states so the button remains visible
+/// against the logo background.
 class TesterButton extends StatelessWidget {
   const TesterButton({
     super.key,
@@ -16,16 +18,10 @@ class TesterButton extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
   });
-  /// Zero-based position used for staggered entry animation timing.
+
   final int index;
-
-  /// Large numeral displayed at the centre of the button (e.g. `'1'`).
   final String label;
-
-  /// Whether this button is currently selected.
   final bool isSelected;
-
-  /// Called when the user taps the button.
   final VoidCallback onTap;
 
   @override
@@ -37,38 +33,40 @@ class TesterButton extends StatelessWidget {
             (index * AppConstants.testerButtonStaggerDelay),
       ),
       curve: Curves.easeOutBack,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: InkWell(
-            onTap: onTap,
+      builder: (context, value, child) => Transform.scale(
+        scale: value,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: AppSizes.testerButtonSize,
+          height: AppSizes.testerButtonSize,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppSizes.testerButtonRadius),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: AppSizes.testerButtonSize,
-              height: AppSizes.testerButtonSize,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.15)
-                    : AppColors.surface,
-                borderRadius:
-                    BorderRadius.circular(AppSizes.testerButtonRadius),
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
-                  width: isSelected
-                      ? AppSizes.testerButtonBorderSelected
-                      : AppSizes.testerButtonBorderNormal,
-                ),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: AppSizes.testerButtonBlurRadius,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : null,
-              ),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.border,
+              width: isSelected
+                  ? AppSizes.testerButtonBorderSelected
+                  : AppSizes.testerButtonBorderNormal,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: AppSizes.testerButtonBlurRadius,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          // Material + InkWell inside so ripple is visible over the decoration.
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(AppSizes.testerButtonRadius),
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(AppSizes.testerButtonRadius),
+              splashColor: AppColors.primary.withValues(alpha: 0.2),
+              highlightColor: AppColors.primary.withValues(alpha: 0.1),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -87,8 +85,8 @@ class TesterButton extends StatelessWidget {
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

@@ -104,7 +104,7 @@ class _QuestionScreenState extends State<QuestionScreen>
                       child: Text(
                         question.text,
                         key: ValueKey(question.text),
-                        style: AppTextStyles.title,
+                        style: AppTextStyles.topHeader,
                       ),
                     ),
                   ),

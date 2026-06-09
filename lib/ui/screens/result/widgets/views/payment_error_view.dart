@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/components/buttons/primary_button.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
@@ -34,12 +33,27 @@ class PaymentErrorView extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: PrimaryButton(
-                label: strings.t('retry_payment'),
+              child: OutlinedButton(
                 onPressed: viewModel.retryPayment,
-                fontSize: AppSizes.fontBody,
-                paddingHorizontal: AppSizes.spacingXL,
-                paddingVertical: AppSizes.spacingM,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppColors.warningAmberDark,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.spacingXL,
+                    vertical: AppSizes.spacingM,
+                  ),
+                  side: const BorderSide(
+                    color: AppColors.warningAmberDark,
+                    width: AppSizes.testerButtonBorderNormal,
+                  ),
+                ),
+                child: Text(
+                  strings.t('retry_payment'),
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: AppSizes.spacingL),

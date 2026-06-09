@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:parfume_app/common/widgets/app_logo_background.dart';
 import 'package:parfume_app/common/widgets/app_scent_wave.dart';
 import 'package:parfume_app/core/constants/app_constants.dart';
+import 'package:parfume_app/data/models/recommendation.dart';
 import 'package:parfume_app/domain/state/app_state.dart';
 import 'package:provider/provider.dart';
 import 'package:parfume_app/ui/screens/admin/widgets/hidden_button.dart';
 import 'package:parfume_app/ui/screens/admin/admin_panel_screen.dart';
+import 'package:flutter/foundation.dart'; // DEBUG_REMOVE
 
 import 'i18n/rtl_support.dart';
 import 'ui/components/navigation/language_switcher.dart';
@@ -63,6 +65,13 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
       parent: _logoController,
       curve: Curves.easeInOut,
     );
+    // DEBUG_REMOVE_START
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (kDebugMode) {
+        context.read<AppViewModel>().goToResult();
+      }
+    });
+    // DEBUG_REMOVE_END
   }
 
   @override
@@ -74,8 +83,7 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
   /// Replays the logo animation only when the [AppState] *type* or language changes.
   void _reanimateLogoIfStateChanged(AppState newState, int languageVersion) {
     final newType = newState.runtimeType;
-    if (_currentStateType == newType &&
-        _languageVersion == languageVersion) {
+    if (_currentStateType == newType && _languageVersion == languageVersion) {
       return;
     }
     _currentStateType = newType;
@@ -87,18 +95,18 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
 
   /// Whether the logo background should be shown for [state].
   bool _showLogo(AppState state) => switch (state) {
-    KvkkState()     => false,
-    ErrorState()    => false,
+    KvkkState() => false,
+    ErrorState() => false,
     PLCErrorState() => false,
-    _               => true,
+    _ => true,
   };
 
   /// Whether the scent-wave animation should be shown for [state].
   bool _showWave(AppState state) => switch (state) {
-    KvkkState()     => false,
-    ErrorState()    => false,
+    KvkkState() => false,
+    ErrorState() => false,
     PLCErrorState() => false,
-    _               => true,
+    _ => true,
   };
 
   @override
@@ -122,10 +130,15 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
                     if (_showWave(state)) const AppScentWave(),
                     Positioned.fill(
                       child: viewModel.initialized
-                          ? const AppRouter().build(viewModel)
-                          : const Center(
-                              child: CircularProgressIndicator(),
-                            ),
+                          // app.dart
+                          ? AppRouter(
+                              debugOverrideState: ResultState(
+                                Recommendation.mock(),
+                              ),
+                            ).build(
+                              viewModel,
+                            ) // const AppRouter().build(viewModel)
+                          : const Center(child: CircularProgressIndicator()),
                     ),
                     Positioned(
                       right: 30,
@@ -139,14 +152,16 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
                     HiddenAdminButton(
                       onAccessGranted: () {
                         viewModel.onAdminPanelOpened();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => AdminPanelScreen(
-                              plcService: viewModel.plcService,
-                              isReadOnly: viewModel.state is! IdleState,
-                            ),
-                          ),
-                        ).then((_) => viewModel.onAdminPanelClosed());
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => AdminPanelScreen(
+                                  plcService: viewModel.plcService,
+                                  isReadOnly: viewModel.state is! IdleState,
+                                ),
+                              ),
+                            )
+                            .then((_) => viewModel.onAdminPanelClosed());
                       },
                     ),
                   ],
