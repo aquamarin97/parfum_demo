@@ -49,7 +49,7 @@ class IdleGreetingText extends StatelessWidget {
     return Positioned(
       left: isRtl ? null : 130,
       right: isRtl ? 130 : null,
-      top: AppSizes.idleTopPadding,
+      top: AppSizes.screenPaddingTop,
       child: FadeTransition(
         opacity: animation,
         child: SlideTransition(

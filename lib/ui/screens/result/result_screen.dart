@@ -89,7 +89,7 @@ class _ResultScreenState extends State<ResultScreen>
         builder: (context, viewModel, _) {
           return Padding(
             padding: const EdgeInsets.only(
-              top: AppSizes.resultScreenPaddingTop,
+              top: AppSizes.screenPaddingTop,
               left: AppSizes.screenPaddingH,
               right: AppSizes.screenPaddingH,
             ),

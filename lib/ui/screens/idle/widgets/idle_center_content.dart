@@ -59,7 +59,7 @@ class IdleCenterContent extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: AppSizes.idleTopPadding),
+                const SizedBox(height: AppSizes.spacingXXL),
                 PrimaryButton(label: startLabel, onPressed: onStart),
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.3,

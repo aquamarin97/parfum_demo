@@ -1,0 +1,62 @@
+[
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "pathspec",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pathspec",
+        "description": "pathspec",
+        "detail": "pathspec",
+        "documentation": {}
+    },
+    {
+        "label": "DevelopmentHelper",
+        "importPath": "development_helper",
+        "description": "development_helper",
+        "isExtraImport": true,
+        "detail": "development_helper",
+        "documentation": {}
+    },
+    {
+        "label": "DevelopmentHelper",
+        "kind": 6,
+        "importPath": "development.development_helper",
+        "description": "development.development_helper",
+        "peekOfCode": "class DevelopmentHelper:\n    def load_gitignore_spec(startpath):\n        \"\"\".gitignore dosyasını okur ve pathspec nesnesi döner.\"\"\"\n        gitignore_path = os.path.join(startpath, '.gitignore')\n        if os.path.exists(gitignore_path):\n            with open(gitignore_path, 'r', encoding='utf-8') as f:\n                lines = f.read().splitlines()\n            # Boş satırları ve yorum satırlarını temizle\n            lines = [line for line in lines if line.strip() and not line.strip().startswith('#')]\n            return pathspec.PathSpec.from_lines('gitwildmatch', lines)",
+        "detail": "development.development_helper",
+        "documentation": {}
+    },
+    {
+        "label": "create_flutter_structure",
+        "kind": 2,
+        "importPath": "folder",
+        "description": "folder",
+        "peekOfCode": "def create_flutter_structure():\n    # Klasör yapısını tanımla\n    structure = [\n        \"assets/i18n\",\n        \"assets/content\",\n        \"assets/rules\",\n        \"lib/core/constants\",\n        \"lib/core/logging\",\n        \"lib/core/time\",\n        \"lib/core/utils\",",
+        "detail": "folder",
+        "documentation": {}
+    }
+]

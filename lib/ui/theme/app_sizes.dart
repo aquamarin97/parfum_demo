@@ -3,23 +3,21 @@
 /// Centralized size tokens used for spacing, typography, and shared widgets.
 class AppSizes {
   static const double underlineThickness = 1.5;
+
+
   // Spacing
-  static const double spacingXS2 = 10.0; // 10 için yeni token
-
-  static const double idleTopPadding = 100.0;
-
   static const double spacingXS = 12.0;
   static const double spacingS = 16.0;
   static const double spacingM = 24.0;
   static const double spacingL = 32.0;
-  static const double spacingXL = 48.0;
+  static const double spacingXL = 50.0;
   static const double spacingXXL = 100.0;
   static const double spacingMax = 1000.0;
+
   // Screen padding
   static const double screenPaddingH = 100.0;
-  static const double screenPaddingTop = 140.0;
-  static const double resultScreenPaddingTop = 100.0;
-  static const double resultContentPaddingTop = 40.0;
+  static const double screenPaddingTop = 100.0;
+  static const double screenPaddingBottom = 40.0;
 
   // Offset
   static const double thankYouSlideOffset = 20.0;
