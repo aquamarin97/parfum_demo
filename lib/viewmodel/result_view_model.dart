@@ -142,11 +142,32 @@ class ResultViewModel extends ChangeNotifier {
   }
 
   @protected
+  void addKeyedMessage(String key, TimelineMessageStatus status, {String? arg}) {
+    _messages.add(TimelineMessage.now(key: key, arg: arg, status: status));
+    _shouldAnimate = false;
+    notifyListeners();
+  }
+
+  @protected
   void updateLastMessage(String text, TimelineMessageStatus status) {
     if (_messages.isEmpty) return;
     final lastIndex = _messages.length - 1;
     _messages[lastIndex] = _messages[lastIndex].copyWith(
       text: text,
+      status: status,
+    );
+    _shouldAnimate = false;
+    notifyListeners();
+  }
+
+  @protected
+  void updateLastKeyedMessage(String key, TimelineMessageStatus status, {String? arg}) {
+    if (_messages.isEmpty) return;
+    final lastIndex = _messages.length - 1;
+    _messages[lastIndex] = _messages[lastIndex].copyWith(
+      key: key,
+      arg: arg,
+      text: null,
       status: status,
     );
     _shouldAnimate = false;

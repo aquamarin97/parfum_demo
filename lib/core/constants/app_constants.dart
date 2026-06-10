@@ -25,6 +25,10 @@ class AppConstants {
   /// How long the result screen is shown before the kiosk resets to idle.
   static const Duration resultAutoReturn = Duration(seconds: 400);
 
+  /// Delay after the thank-you screen is displayed before the kiosk
+  /// automatically resets to the idle screen.
+  static const Duration thankYouAutoReturn = Duration(seconds: 5);
+
   /// Remaining seconds below which the countdown timer switches to urgent style.
   static const int timerUrgentThreshold = 60;
 

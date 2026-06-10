@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 
@@ -11,9 +12,14 @@ import 'timeline_item.dart';
 /// Each step is rendered by [TimelineItem]; the last item's connector
 /// line is hidden via the [TimelineItem.isLast] flag.
 class TimelineContainer extends StatefulWidget {
-  const TimelineContainer({super.key, required this.messages});
+  const TimelineContainer({
+    super.key,
+    required this.messages,
+    required this.strings,
+  });
 
   final List<TimelineMessage> messages;
+  final AppStrings strings;
 
   @override
   State<TimelineContainer> createState() => _TimelineContainerState();
@@ -85,6 +91,7 @@ class _TimelineContainerState extends State<TimelineContainer>
                   TimelineItem(
                     message: widget.messages[i],
                     isLast: i == widget.messages.length - 1,
+                    strings: widget.strings,
                   ),
               ],
             ),

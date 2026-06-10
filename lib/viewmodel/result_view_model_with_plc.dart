@@ -39,16 +39,17 @@ class ResultViewModelWithPLC extends ResultViewModel {
   void _initializePLCFlow() {
     if (!plcService.isConnected) {
       debugPrint('[ResultVM] PLC not connected — using mock flow.');
-      addMessage(
-        '${strings.t('fragrance_recommendations_selected')} (Mock Mode)',
+      addKeyedMessage(
+        'fragrance_recommendations_selected',
         TimelineMessageStatus.completed,
+        arg: ' (Mock Mode)',
       );
       Future.delayed(const Duration(seconds: 2), _onTestersPreparing);
       return;
     }
 
-    addMessage(
-      strings.t('fragrance_recommendations_selected'),
+    addKeyedMessage(
+      'fragrance_recommendations_selected',
       TimelineMessageStatus.completed,
     );
     Future.delayed(const Duration(seconds: 2), _sendToPLC);
@@ -70,9 +71,10 @@ class ResultViewModelWithPLC extends ResultViewModel {
     notifyListeners();
 
     Future.delayed(const Duration(milliseconds: 500), () async {
-      addMessage(
-        "${strings.t('customer_choice')}${topIds[index]}",
+      addKeyedMessage(
+        'customer_choice',
         TimelineMessageStatus.completed,
+        arg: '${topIds[index]}',
       );
 
       if (plcService.isConnected) {
@@ -88,7 +90,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
       }
 
       Future.delayed(const Duration(milliseconds: 300), () {
-        addMessage(strings.t('payment_waiting'), TimelineMessageStatus.active);
+        addKeyedMessage('payment_waiting', TimelineMessageStatus.active);
         transitionToState(ResultFlowState.waitingPayment);
         startTimer(300);
         _watchPaymentStatus();
@@ -96,21 +98,13 @@ class ResultViewModelWithPLC extends ResultViewModel {
     });
   }
 
-
-
   /// Handles payment confirmation and waits for the perfume dispenser.
   @override
   void onPaymentComplete() {
     cancelTimer();
-    updateLastMessage(
-      strings.t('payment_completed'),
-      TimelineMessageStatus.completed,
-    );
+    updateLastKeyedMessage('payment_completed', TimelineMessageStatus.completed);
     Future.delayed(const Duration(milliseconds: 500), () {
-      addMessage(
-        strings.t('fragrance_preparing'),
-        TimelineMessageStatus.active,
-      );
+      addKeyedMessage('fragrance_preparing', TimelineMessageStatus.active);
       transitionToState(ResultFlowState.preparingPerfume);
       _watchPerfumeReady();
     });
@@ -125,10 +119,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
   /// Restarts payment watching after a failed payment attempt.
   @override
   void retryPayment() {
-    updateLastMessage(
-      strings.t('payment_waiting'),
-      TimelineMessageStatus.active,
-    );
+    updateLastKeyedMessage('payment_waiting', TimelineMessageStatus.active);
     transitionToState(ResultFlowState.waitingPayment);
     startTimer(300);
     _watchPaymentStatus();
@@ -163,7 +154,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
   /// Transitions to the tester-preparing step and starts watching for the
   /// ready signal.
   void _onTestersPreparing() {
-    addMessage(strings.t('testers_preparing'), TimelineMessageStatus.active);
+    addKeyedMessage('testers_preparing', TimelineMessageStatus.active);
     transitionToState(ResultFlowState.preparingTesters);
     _watchTestersReady();
   }
@@ -191,10 +182,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
   /// Called when the PLC confirms all testers are physically ready.
   void _onTestersReady() {
     _plcSubscription?.cancel();
-    updateLastMessage(
-      strings.t('testers_prepared'),
-      TimelineMessageStatus.completed,
-    );
+    updateLastKeyedMessage('testers_prepared', TimelineMessageStatus.completed);
     transitionToState(ResultFlowState.testersReady);
     startTimer(300);
   }
@@ -242,10 +230,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
   /// Called when the PLC confirms the perfume dispenser has finished.
   void _onPerfumeReady() {
     _plcSubscription?.cancel();
-    updateLastMessage(
-      strings.t('fragrance_prepared'),
-      TimelineMessageStatus.completed,
-    );
+    updateLastKeyedMessage('fragrance_prepared', TimelineMessageStatus.completed);
     transitionToState(ResultFlowState.perfumeReady);
     Future.delayed(const Duration(seconds: 2), () {
       transitionToState(ResultFlowState.giftCardQuestion);
@@ -253,11 +238,6 @@ class ResultViewModelWithPLC extends ResultViewModel {
   }
 
   /// Handles a [PLCException] from any watcher or send operation.
-  ///
-  /// Connection-level faults (lost / failed) are escalated to the app-level
-  /// idle reset so the kiosk recovers gracefully. All other faults append a
-  /// warning message to the timeline and allow the flow to continue with mock
-  /// behaviour.
   void _handlePLCError(PLCException error) {
     debugPrint('[ResultVM] PLC error ${error.errorCode}: ${error.message}');
 
@@ -268,7 +248,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
       return;
     }
 
-    // Non-critical: show a warning in the timeline and continue.
+    // Free-form error text — no i18n key available.
     addMessage('⚠ ${error.message}', TimelineMessageStatus.error);
     debugPrint('[ResultVM] Non-critical fault — continuing with mock flow.');
   }

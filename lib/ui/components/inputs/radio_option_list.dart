@@ -104,40 +104,45 @@ class _RadioOptionListState extends State<RadioOptionList>
         position: slideAnimation,
         child: Padding(
           padding: const EdgeInsets.all(AppSizes.radioOptionPadding),
-          child: InkWell(
-            onTap: () => widget.onSelect(index),
+          child: Material(
+            color: isSelected
+                ? AppColors.primary.withValues(alpha: 0.1)
+                : AppColors.surface,
             borderRadius: BorderRadius.circular(AppSizes.radiusL),
-            child: Container(
-              width: width,
-              constraints: const BoxConstraints(
-                minHeight: AppSizes.radioOptionMinHeight,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.radioOptionPaddingH,
-                vertical: AppSizes.radioOptionPaddingV,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.1)
-                    : AppColors.surface,
-                borderRadius: BorderRadius.circular(AppSizes.radiusL),
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
-                  width: AppSizes.radioOptionBorderWidth,
+            child: InkWell(
+              onTap: () => widget.onSelect(index),
+              borderRadius: BorderRadius.circular(AppSizes.radiusL),
+              splashColor: AppColors.primary.withValues(alpha: 0.18),
+              highlightColor: AppColors.primary.withValues(alpha: 0.10),
+              child: Container(
+                width: width,
+                constraints: const BoxConstraints(
+                  minHeight: AppSizes.radioOptionMinHeight,
                 ),
-              ),
-              child: Row(
-                mainAxisSize: isCentered ? MainAxisSize.min : MainAxisSize.max,
-                children: [
-                  _buildRadioIndicator(isSelected),
-                  const SizedBox(width: AppSizes.spacingS),
-                  Flexible(
-                    child: Text(
-                      widget.options[index],
-                      style: AppTextStyles.body,
-                    ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.radioOptionPaddingH,
+                  vertical: AppSizes.radioOptionPaddingV,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppSizes.radiusL),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.border,
+                    width: AppSizes.radioOptionBorderWidth,
                   ),
-                ],
+                ),
+                child: Row(
+                  mainAxisSize: isCentered ? MainAxisSize.min : MainAxisSize.max,
+                  children: [
+                    _buildRadioIndicator(isSelected),
+                    const SizedBox(width: AppSizes.spacingS),
+                    Flexible(
+                      child: Text(
+                        widget.options[index],
+                        style: AppTextStyles.body,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

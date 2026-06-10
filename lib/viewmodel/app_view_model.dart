@@ -314,9 +314,10 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     _setState(const IdleState());
   }
 
-  /// Changes the active language, persists the choice, and resets to idle.
+  /// Changes the active language and persists the choice.
   ///
   /// No-op if [language] is already the active language.
+  /// The current screen stays active and rebuilds with the new language.
   void changeLanguage(Language language) {
     if (_language == language) return;
     _language = language;
@@ -324,7 +325,6 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     _cachedStrings = null;
     _preferencesStore.saveLanguage(language);
     _logger.log('Language changed to ${language.code}');
-    resetToIdle();
     notifyListeners();
   }
 

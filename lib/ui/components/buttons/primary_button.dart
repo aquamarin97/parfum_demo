@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
 
@@ -30,6 +31,8 @@ class PrimaryButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: enabled ? onPressed : null,
       style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.warningAmberDark,
+        overlayColor: Colors.white.withValues(alpha: 0.25),
         padding: EdgeInsets.symmetric(
           horizontal: paddingHorizontal,
           vertical: paddingVertical,

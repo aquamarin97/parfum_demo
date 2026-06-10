@@ -47,9 +47,9 @@ class _KvkkScreenState extends State<KvkkScreen> {
           const SizedBox(height: AppSizes.spacingS),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
+            
             children: [
               Transform.scale(
-                // Scaled up for kiosk touch targets.
                 scale: AppSizes.checkboxScale,
                 child: Checkbox(
                   value: _approved,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 
 /// Status of a single step in the result flow timeline.
 enum TimelineMessageStatus {
@@ -23,24 +24,51 @@ enum TimelineMessageStatus {
 @immutable
 class TimelineMessage {
   const TimelineMessage({
-    required this.text,
+    this.text,
+    this.key,
+    this.arg,
     this.status = TimelineMessageStatus.pending,
     required this.timestamp,
-  });
+  }) : assert(text != null || key != null, 'text or key must be provided');
 
-  /// Factory that stamps the message with the current time.
+  /// Free-form text (used when no i18n key exists, e.g. error messages).
   factory TimelineMessage.now({
-    required String text,
+    String? text,
+    String? key,
+    String? arg,
     TimelineMessageStatus status = TimelineMessageStatus.pending,
-  }) => TimelineMessage(text: text, status: status, timestamp: DateTime.now());
+  }) => TimelineMessage(
+        text: text,
+        key: key,
+        arg: arg,
+        status: status,
+        timestamp: DateTime.now(),
+      );
 
-  final String text;
+  /// Translatable i18n key. When present, [resolve] uses this instead of [text].
+  final String? key;
+
+  /// Optional suffix appended after the translated string (e.g. a tester number).
+  final String? arg;
+
+  /// Fallback plain text used when [key] is null (e.g. free-form error messages).
+  final String? text;
+
   final TimelineMessageStatus status;
   final DateTime timestamp;
 
-  TimelineMessage copyWith({String? text, TimelineMessageStatus? status}) {
+  /// Returns the display string for the current locale.
+  String resolve(AppStrings strings) {
+    if (key == null) return text!;
+    final base = strings.t(key!);
+    return arg != null ? '$base$arg' : base;
+  }
+
+  TimelineMessage copyWith({String? text, String? key, String? arg, TimelineMessageStatus? status}) {
     return TimelineMessage(
       text: text ?? this.text,
+      key: key ?? this.key,
+      arg: arg ?? this.arg,
       status: status ?? this.status,
       timestamp: timestamp,
     );

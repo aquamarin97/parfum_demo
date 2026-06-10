@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
@@ -17,12 +18,12 @@ class TimelineItem extends StatefulWidget {
     super.key,
     required this.message,
     required this.isLast,
+    required this.strings,
   });
 
   final TimelineMessage message;
-
-  /// When `true` the vertical connector below the icon is hidden.
   final bool isLast;
+  final AppStrings strings;
 
   @override
   State<TimelineItem> createState() => _TimelineItemState();
@@ -117,7 +118,7 @@ class _TimelineItemState extends State<TimelineItem>
                     // Message text.
                     Expanded(
                       child: Text(
-                        message.text,
+                        message.resolve(widget.strings),
                         style: AppTextStyles.body.copyWith(
                           fontSize: AppSizes.fontBodyLarge,
                           height: 1.3,

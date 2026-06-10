@@ -30,6 +30,7 @@ class _ResultScreenState extends State<ResultScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late ResultViewModelWithPLC _resultViewModel;
+  bool _thankYouTimerStarted = false;
 
   @override
   void initState() {
@@ -43,12 +44,20 @@ class _ResultScreenState extends State<ResultScreen>
   }
 
   /// Replays the result content transition when the flow asks for animation.
+  /// Starts the auto-return countdown when the thank-you state is reached.
   void _onViewModelChanged() {
     if (!mounted) return;
     if (_resultViewModel.shouldAnimate) {
       _controller.reset();
       _controller.forward().then((_) {
         if (mounted) _resultViewModel.clearAnimationFlag();
+      });
+    }
+    if (_resultViewModel.currentState == ResultFlowState.thankYou &&
+        !_thankYouTimerStarted) {
+      _thankYouTimerStarted = true;
+      Future.delayed(AppConstants.thankYouAutoReturn, () {
+        if (mounted) widget.viewModel.resetToIdle();
       });
     }
   }
@@ -95,7 +104,10 @@ class _ResultScreenState extends State<ResultScreen>
             ),
             child: Column(
               children: [
-                TimelineContainer(messages: viewModel.messages),
+                TimelineContainer(
+                  messages: viewModel.messages,
+                  strings: viewModel.strings,
+                ),
                 Expanded(
                   child: FadeTransition(
                     opacity: _fadeAnimation,

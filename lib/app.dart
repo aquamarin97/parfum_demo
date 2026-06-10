@@ -131,13 +131,13 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
                     Positioned.fill(
                       child: viewModel.initialized
                           // app.dart
-                          ? AppRouter(
-                              debugOverrideState: ResultState(
-                                Recommendation.mock(),
-                              ),
-                            ).build(
-                              viewModel,
-                            ) // const AppRouter().build(viewModel)
+                          ? const AppRouter().build(viewModel)// ? AppRouter(
+                          //     debugOverrideState: ResultState(
+                          //       Recommendation.mock(),
+                          //     ),
+                          //   ).build(
+                          //     viewModel,
+                          //   ) 
                           : const Center(child: CircularProgressIndicator()),
                     ),
                     Positioned(
