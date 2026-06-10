@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:parfume_app/ui/components/buttons/primary_button.dart';
 import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/ui/theme/app_text_styles.dart';
@@ -19,25 +18,41 @@ class GiftCardQuestionView extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
+        const SizedBox(height: AppSizes.spacingL),
         Text(
           strings.t('gift_card_question'),
-          style: AppTextStyles.title.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: AppTextStyles.topHeader,
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: AppSizes.spacingL),
+
         Row(
           children: [
             Expanded(
-              child: PrimaryButton(
-                label: strings.t('yes'),
+              child: OutlinedButton(
                 onPressed: () => viewModel.onGiftCardAnswer(true),
-                fontSize: AppSizes.fontBody,
-                paddingHorizontal: AppSizes.spacingXL,
-                paddingVertical: AppSizes.spacingM,
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppColors.warningAmberDark,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.spacingXL,
+                    vertical: AppSizes.spacingM,
+                  ),
+                  side: const BorderSide(
+                    color: AppColors.warningAmberDark,
+                    width: AppSizes.testerButtonBorderNormal,
+                  ),
+                ),
+                child: Text(
+                  strings.t('yes'),
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: AppSizes.spacingM),
+            const SizedBox(width: AppSizes.spacingL),
             Expanded(
               child: OutlinedButton(
                 onPressed: () => viewModel.onGiftCardAnswer(false),
@@ -55,7 +70,6 @@ class GiftCardQuestionView extends StatelessWidget {
                   strings.t('no'),
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
-                    fontSize: AppSizes.fontBody,
                   ),
                 ),
               ),

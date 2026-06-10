@@ -43,7 +43,7 @@ class WaitingPaymentView extends StatelessWidget {
                   backgroundColor: AppColors.warningAmberDark,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.spacingXL,
+
                     vertical: AppSizes.spacingM,
                   ),
                   side: const BorderSide(
@@ -52,7 +52,7 @@ class WaitingPaymentView extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  strings.t('back'),
+                  strings.t('change_selection'),
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -66,7 +66,7 @@ class WaitingPaymentView extends StatelessWidget {
                 onPressed: viewModel.cancelToIdle,
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.spacingXL,
+
                     vertical: AppSizes.spacingM,
                   ),
                   side: const BorderSide(

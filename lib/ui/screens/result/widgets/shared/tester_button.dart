@@ -40,7 +40,7 @@ class TesterButton extends StatelessWidget {
           width: AppSizes.testerButtonSize,
           height: AppSizes.testerButtonSize,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: isSelected ? AppColors.warningAmberDark : AppColors.surface,
             borderRadius: BorderRadius.circular(AppSizes.testerButtonRadius),
             border: Border.all(
               color: isSelected ? AppColors.primary : AppColors.border,
@@ -76,7 +76,7 @@ class TesterButton extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: AppSizes.testerButtonFontSize,
                       color: isSelected
-                          ? AppColors.primary
+                          ? Colors.white
                           : AppColors.textPrimary,
                     ),
                   ),

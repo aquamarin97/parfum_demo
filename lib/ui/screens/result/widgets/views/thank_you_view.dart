@@ -46,21 +46,13 @@ class ThankYouView extends StatelessWidget {
                   const SizedBox(height: AppSizes.spacingL),
                   Text(
                     strings.t('thank_you_message'),
-                    style: AppTextStyles.title.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: AppSizes.fontBody,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTextStyles.topHeader,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSizes.spacingM),
                   Text(
                     strings.t('goodbye_message'),
-                    style: AppTextStyles.body.copyWith(
-                      fontSize: AppSizes.fontBodyLarge,
-                      height: 1.4,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: AppTextStyles.body,
                     textAlign: TextAlign.center,
                   ),
                 ],
