@@ -25,6 +25,7 @@ class ResultViewModel extends ChangeNotifier {
   List<int> get topIds => appViewModel.topIds;
   bool get shouldAnimate => _shouldAnimate;
   AppStrings get strings => appViewModel.strings;
+  String get priceLabel => appViewModel.priceLabel;
 
   @protected
   set selectedTester(int? value) => _selectedTester = value;
@@ -105,8 +106,20 @@ class ResultViewModel extends ChangeNotifier {
   }
 
   void onGiftCardAnswer(bool wantsCard) {
-    // todo: persist wantsCard for gift-card fulfilment flow
+    if (wantsCard) {
+      transitionToStateNoAnim(ResultFlowState.giftCardInput);
+    } else {
+      transitionToState(ResultFlowState.thankYou);
+    }
+  }
+
+  void submitGiftCardName(String recipientName) {
+    // todo: persist recipientName for gift-card fulfilment flow
     transitionToState(ResultFlowState.thankYou);
+  }
+
+  void backToGiftCardQuestion() {
+    transitionToStateNoAnim(ResultFlowState.giftCardQuestion);
   }
 
   void cancelToIdle() {
@@ -131,6 +144,13 @@ class ResultViewModel extends ChangeNotifier {
   void transitionToState(ResultFlowState newState) {
     _currentState = newState;
     _shouldAnimate = true;
+    notifyListeners();
+  }
+
+  @protected
+  void transitionToStateNoAnim(ResultFlowState newState) {
+    _currentState = newState;
+    _shouldAnimate = false;
     notifyListeners();
   }
 

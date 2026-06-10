@@ -7,5 +7,6 @@ enum ResultFlowState {
   preparingPerfume,
   perfumeReady,
   giftCardQuestion,
+  giftCardInput,
   thankYou,
 }

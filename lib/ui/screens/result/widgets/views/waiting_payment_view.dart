@@ -27,7 +27,7 @@ class WaitingPaymentView extends StatelessWidget {
       children: [
         const SizedBox(height: AppSizes.spacingM),
         Text(
-          strings.t('price_label'),
+          viewModel.priceLabel,
           style: AppTextStyles.title,
           textAlign: TextAlign.center,
         ),

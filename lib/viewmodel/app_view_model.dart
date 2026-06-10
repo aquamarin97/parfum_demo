@@ -91,6 +91,9 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
 
   /// Temporary placeholder until [_setup] resolves the persisted language.
   Language _language = const Language(code: 'tr', label: 'TR');
+
+  int _price = 490;
+  String _currency = 'TL';
   Map<int, int> _answers = {};
   Map<int, int> _scores = {};
   Recommendation _recommendation = Recommendation(topIds: []);
@@ -125,6 +128,16 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
 
   /// The [PLCServiceManager] instance, exposed for admin panel access.
   PLCServiceManager get plcService => _plcService;
+
+  /// The product price shown on the payment screen.
+  int get price => _price;
+
+  /// The currency unit shown alongside the price (e.g. `'TL'`).
+  String get currency => _currency;
+
+  /// Fully formatted price label for the active language and current settings.
+  @override
+  String get priceLabel => '${strings.t('price_prefix')}: $_price $_currency';
 
   /// Returns the localised string map for the active language.
   ///
@@ -226,6 +239,8 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
         savedCode ?? _languageRegistry.available.first.code,
       );
       await _preferencesStore.readOrCreateDeviceId();
+      _price = await _preferencesStore.readPrice();
+      _currency = await _preferencesStore.readCurrency();
       _survey = await _surveyRepository.loadSurvey();
       _kvkkText = await _kvkkRepository.loadKvkk();
       _stringMap = await _i18nRepository.loadStrings();
@@ -312,6 +327,22 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
   void resetToIdle() {
     _resetSession();
     _setState(const IdleState());
+  }
+
+  /// Updates the product price and persists the new value.
+  Future<void> setPrice(int price) async {
+    if (_price == price) return;
+    _price = price;
+    await _preferencesStore.savePrice(price);
+    notifyListeners();
+  }
+
+  /// Updates the currency unit and persists the new value.
+  Future<void> setCurrency(String currency) async {
+    if (_currency == currency) return;
+    _currency = currency;
+    await _preferencesStore.saveCurrency(currency);
+    notifyListeners();
   }
 
   /// Changes the active language and persists the choice.

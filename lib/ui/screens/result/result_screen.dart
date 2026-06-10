@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:parfume_app/core/constants/app_constants.dart';
+import 'package:parfume_app/ui/theme/app_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
+import 'package:parfume_app/ui/theme/app_text_styles.dart';
 import 'package:parfume_app/viewmodel/result_view_model_with_plc.dart';
 import 'package:provider/provider.dart';
 
 import '../../../viewmodel/app_view_model.dart';
 import '../../../viewmodel/result_flow_state.dart';
 import 'widgets/timeline/timeline_container.dart';
+import 'widgets/views/gift_card_input_view.dart';
 import 'widgets/views/gift_card_question_view.dart';
 import 'widgets/views/payment_error_view.dart';
 import 'widgets/views/perfume_ready_view.dart';
@@ -96,34 +99,61 @@ class _ResultScreenState extends State<ResultScreen>
       value: _resultViewModel,
       child: Consumer<ResultViewModelWithPLC>(
         builder: (context, viewModel, _) {
-          return Padding(
-            padding: const EdgeInsets.only(
-              top: AppSizes.screenPaddingTop,
-              left: AppSizes.screenPaddingH,
-              right: AppSizes.screenPaddingH,
-            ),
-            child: Column(
-              children: [
-                TimelineContainer(
-                  messages: viewModel.messages,
-                  strings: viewModel.strings,
+          return Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: AppSizes.screenPaddingTop,
+                  left: AppSizes.screenPaddingH,
+                  right: AppSizes.screenPaddingH,
                 ),
-                Expanded(
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: _buildContent(viewModel),
+                child: Column(
+                  children: [
+                    TimelineContainer(
+                      messages: viewModel.messages,
+                      strings: viewModel.strings,
                     ),
-                  ),
+                    Expanded(
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: _buildContent(viewModel),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Positioned(
+                left: 30,
+                bottom: 30,
+                child: _ResultCancelButton(
+                  label: viewModel.strings.t('cancel'),
+                  onPressed: _canCancel(viewModel.currentState)
+                      ? viewModel.cancelToIdle
+                      : null,
+                ),
+              ),
+            ],
           );
         },
       ),
     );
   }
+
+  bool _canCancel(ResultFlowState state) => switch (state) {
+    ResultFlowState.showingRecommendations ||
+    ResultFlowState.preparingTesters ||
+    ResultFlowState.testersReady ||
+    ResultFlowState.waitingPayment ||
+    ResultFlowState.paymentError => true,
+    ResultFlowState.preparingPerfume ||
+    ResultFlowState.perfumeReady ||
+    ResultFlowState.giftCardQuestion ||
+    ResultFlowState.giftCardInput ||
+    ResultFlowState.thankYou => false,
+  };
 
   /// Maps the current [ResultFlowState] to the appropriate content widget.
   Widget _buildContent(ResultViewModelWithPLC viewModel) {
@@ -136,6 +166,7 @@ class _ResultScreenState extends State<ResultScreen>
       ResultFlowState.paymentError        => PaymentErrorView(viewModel: viewModel),
       ResultFlowState.perfumeReady        => const PerfumeReadyView(),
       ResultFlowState.giftCardQuestion    => GiftCardQuestionView(viewModel: viewModel),
+      ResultFlowState.giftCardInput       => GiftCardInputView(viewModel: viewModel),
       ResultFlowState.thankYou            => ThankYouView(viewModel: viewModel),
     };
 
@@ -143,6 +174,63 @@ class _ResultScreenState extends State<ResultScreen>
       alignment: Alignment.topCenter,
       child: SingleChildScrollView(
         child: content
+      ),
+    );
+  }
+}
+
+class _ResultCancelButton extends StatelessWidget {
+  const _ResultCancelButton({
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSizes.radiusL),
+        border: Border.all(
+          color: enabled ? AppColors.dangerRed : AppColors.border,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowExtraLight,
+            blurRadius: AppSizes.languageSwitcherShadowBlur,
+            offset: Offset(0, AppSizes.languageSwitcherShadowOffsetY),
+          ),
+        ],
+      ),
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          foregroundColor:
+              enabled ? AppColors.dangerRed : AppColors.textSecondary,
+          disabledForegroundColor: AppColors.textSecondary.withValues(
+            alpha: 0.45,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.actionButtonPaddingH,
+            vertical: AppSizes.radioOptionPadding,
+          ),
+          textStyle: AppTextStyles.topBarAction.copyWith(
+            fontSize: AppSizes.actionButtonFontSize,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSizes.radiusL),
+          ),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ),
     );
   }

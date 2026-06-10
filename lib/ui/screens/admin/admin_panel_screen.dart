@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
+import 'package:parfume_app/viewmodel/app_view_model.dart';
 
 import 'widgets/event_log.dart';
 import 'widgets/health_status.dart';
 import 'widgets/manual_control.dart';
+import 'widgets/price_settings.dart';
 import 'widgets/register_monitor.dart';
 
 /// PLC administration panel with four tabs:
@@ -17,10 +19,12 @@ class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({
     super.key,
     required this.plcService,
+    required this.viewModel,
     this.isReadOnly = false,
   });
 
   final PLCServiceManager plcService;
+  final AppViewModel viewModel;
   final bool isReadOnly;
 
   @override
@@ -34,7 +38,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -89,6 +93,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                 _AdminTab(icon: Icons.edit, text: 'Manual'),
                 _AdminTab(icon: Icons.health_and_safety, text: 'Status'),
                 _AdminTab(icon: Icons.event_note, text: 'Log'),
+                _AdminTab(icon: Icons.sell, text: 'Settings'),
               ],
             ),
           ),
@@ -117,6 +122,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
             Padding(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
               child: const EventLog(),
+            ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSizes.adminContentPadding),
+              child: PriceSettings(viewModel: widget.viewModel),
             ),
           ],
         ),

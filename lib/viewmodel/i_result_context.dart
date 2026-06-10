@@ -23,4 +23,8 @@ abstract interface class IResultContext {
 
   /// Resets all session state and transitions directly to the idle screen.
   void resetToIdle();
+
+  /// Fully formatted price label for the active language and current price
+  /// settings (e.g. `'Fiyat: 490 TL'`).
+  String get priceLabel;
 }

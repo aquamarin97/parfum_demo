@@ -123,6 +123,7 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
             child: Directionality(
               textDirection: RtlSupport.textDirection(viewModel.language),
               child: Scaffold(
+                resizeToAvoidBottomInset: false,
                 body: Stack(
                   children: [
                     if (_showLogo(state))
@@ -131,13 +132,13 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
                     Positioned.fill(
                       child: viewModel.initialized
                           // app.dart
-                          ? const AppRouter().build(viewModel)// ? AppRouter(
-                          //     debugOverrideState: ResultState(
-                          //       Recommendation.mock(),
-                          //     ),
-                          //   ).build(
-                          //     viewModel,
-                          //   ) 
+                          ? AppRouter( //const AppRouter().build(viewModel)
+                              debugOverrideState: ResultState(
+                                Recommendation.mock(),
+                              ),
+                            ).build(
+                              viewModel,
+                            ) 
                           : const Center(child: CircularProgressIndicator()),
                     ),
                     Positioned(
@@ -157,6 +158,7 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
                               MaterialPageRoute(
                                 builder: (_) => AdminPanelScreen(
                                   plcService: viewModel.plcService,
+                                  viewModel: viewModel,
                                   isReadOnly: viewModel.state is! IdleState,
                                 ),
                               ),
