@@ -191,11 +191,13 @@ class PLCServiceManager extends ChangeNotifier {
 
   /// PAYMENT_AMOUNT (R301) yazar, ardından CMD_ACTION=3 gönderir ve ACK bekler.
   ///
-  /// [amountMinorUnits]: ödeme tutarı en küçük para birimi cinsinden
-  /// (örn. 490 TL → 49000 kuruş). 0 geçilirse yazma atlanır.
+  /// [amountMinorUnits]: ödeme tutarı TL cinsinden tam sayı
+  /// (örn. 690 TL → 690). 0 geçilirse yazma atlanır.
   Future<void> startPayment(int slot, {int amountMinorUnits = 0}) async {
     _ensureConnected();
     try {
+      // Önceki ödeme sonucunu temizle: PAY_CONFIRMED_ACK = 0
+      await _client.writeRegister(302, 0);
       if (amountMinorUnits > 0) {
         await _client.writePaymentAmount(amountMinorUnits);
         _logger.debug('PAYMENT_AMOUNT=$amountMinorUnits yazıldı');

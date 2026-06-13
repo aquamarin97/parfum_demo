@@ -7,7 +7,6 @@ import 'package:parfume_app/domain/state/app_state.dart';
 import 'package:provider/provider.dart';
 import 'package:parfume_app/ui/screens/admin/widgets/hidden_button.dart';
 import 'package:parfume_app/ui/screens/admin/admin_panel_screen.dart';
-import 'package:flutter/foundation.dart'; // DEBUG_REMOVE
 
 import 'i18n/rtl_support.dart';
 import 'ui/components/navigation/language_switcher.dart';
@@ -67,13 +66,6 @@ class _AppRootState extends State<AppRoot>
       parent: _logoController,
       curve: Curves.easeInOut,
     );
-    // DEBUG_REMOVE_START
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (kDebugMode) {
-        context.read<AppViewModel>().goToResult();
-      }
-    });
-    // DEBUG_REMOVE_END
   }
 
   @override

@@ -254,7 +254,7 @@ class ModbusPLCClient implements IPlcClient {
   Future<void> writePaymentAmount(int amountKurus) async {
     _ensureConnected();
     await writeRegister(_regPaymentAmount, amountKurus);
-    _log('→ PAYMENT_AMOUNT=$amountKurus (${(amountKurus / 100).toStringAsFixed(2)} TL)');
+    _log('→ PAYMENT_AMOUNT=$amountKurus TL');
   }
 
   @override
@@ -268,15 +268,11 @@ class ModbusPLCClient implements IPlcClient {
   Stream<int> watchPaymentStatus({
     Duration pollInterval = const Duration(seconds: 1),
   }) async* {
-    while (_isConnected && _client != null) {
-      try {
-        final status = await readRegister(_regPaymentStatus);
-        _log('← PAYMENT_STATUS=$status');
-        yield status;
-        if (status != 0) break;
-      } catch (e) {
-        _log('Ödeme durumu polling hatası: $e');
-      }
+    while (true) {
+      final status = await readRegister(_regPaymentStatus);
+      _log('← PAYMENT_STATUS=$status');
+      yield status;
+      if (status != 0) break;
       await Future.delayed(pollInterval);
     }
   }
@@ -285,20 +281,15 @@ class ModbusPLCClient implements IPlcClient {
   Stream<bool> watchSaleCompleted({
     Duration pollInterval = const Duration(milliseconds: 500),
   }) async* {
-    while (_isConnected && _client != null) {
-      try {
-        final value = await readRegister(_regSaleCompleted);
-        if (value == 1) {
-          _log('← SALE_COMPLETED=1 — sıfırlanıyor');
-          // Flutter sıfırlar (protokol gereği)
-          await writeRegister(_regSaleCompleted, 0);
-          yield true;
-          break;
-        }
-        yield false;
-      } catch (e) {
-        _log('Satış tamamlanma polling hatası: $e');
+    while (true) {
+      final value = await readRegister(_regSaleCompleted);
+      if (value == 1) {
+        _log('← SALE_COMPLETED=1 — sıfırlanıyor');
+        await writeRegister(_regSaleCompleted, 0);
+        yield true;
+        break;
       }
+      yield false;
       await Future.delayed(pollInterval);
     }
   }
@@ -510,14 +501,15 @@ class ModbusPLCClient implements IPlcClient {
   void _startHealthCheckTimer() {
     _healthCheckTimer?.cancel();
     _healthCheckTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
+      if (!_isConnected || _client == null) return;
       final healthy = await healthCheck();
       if (!healthy) {
-        _log('⚠ Bağlantı kesildi, yeniden bağlanılıyor...');
-        try {
-          await _reconnect();
-        } catch (e) {
-          _log('✗ Yeniden bağlanma başarısız: $e');
-        }
+        _log('⚠ Bağlantı kesildi — yeniden bağlanma üst katmana bırakıldı');
+        _isConnected = false;
+        _stopHealthCheckTimer();
+        _stopHeartbeatTimer();
+        try { await _client?.close(); } catch (_) {}
+        _client = null;
       }
     });
   }
@@ -544,25 +536,6 @@ class ModbusPLCClient implements IPlcClient {
   void _stopHeartbeatTimer() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
-  }
-
-  Future<void> _reconnect() async {
-    await disconnect();
-    for (int i = 0; i < reconnectAttempts; i++) {
-      try {
-        _log('Yeniden bağlanma denemesi ${i + 1}/$reconnectAttempts');
-        await Future.delayed(reconnectDelay);
-        await connect();
-        _log('✓ Yeniden bağlantı başarılı');
-        return;
-      } catch (e) {
-        _log('✗ Deneme ${i + 1} başarısız: $e');
-      }
-    }
-    throw PLCException(
-      errorCode: PLCErrorCodes.connectionLost,
-      message: 'PLC ile bağlantı yeniden kurulamadı',
-    );
   }
 
   void _log(String message) => debugPrint('[ModbusPLC] $message');

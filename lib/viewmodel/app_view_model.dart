@@ -471,6 +471,10 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
 
   void _handleTimeout() {
     _logger.log('Inactivity timeout');
+    if (state is PLCErrorState) {
+      _logger.log('Inactivity timeout ignored — PLCErrorState active, no connection.');
+      return;
+    }
     resetToIdle();
   }
 
@@ -484,7 +488,10 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
 
   void _handlePLCError(PLCException error) {
     _logger.log('PLC Error: ${error.errorCode} - ${error.message}');
+    // Already in PLCErrorState — don't rebuild the screen, background retry is running.
+    if (state is PLCErrorState) return;
     if (error.errorCode == PLCErrorCodes.connectionFailed ||
+        error.errorCode == PLCErrorCodes.connectionTimeout ||
         error.errorCode == PLCErrorCodes.connectionLost) {
       _setState(PLCErrorState(error));
     }

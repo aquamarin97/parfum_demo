@@ -16,4 +16,9 @@ Simülatörde şu registerlara çift tıkla ve değer gir:
 400202 → 0 (LAST_CMD_SEQ_ID)
 400203 → 0 (LAST_CMD_RESULT = başarılı)
 400601 → 1 (PLC_HEARTBEAT — uygulama bağlantıyı test etmek için bu kaydı okur)
-Uygulamayı çalıştır
+Uygulamayı çalıştır 
+
+
+
+
+

@@ -41,10 +41,8 @@ class AppRouter {
       PLCErrorState()     => PLCErrorScreen(
           viewModel: viewModel,
           errorCode: state.exception.errorCode,
-          languageCode: viewModel.languageCode,
-          technicalDetail: state.exception.technicalDetail,
           onRetry: () async {
-            await viewModel.plcService.reconnect();
+            await viewModel.plcService.initialize();
             if (viewModel.plcService.isConnected) {
               viewModel.resetToIdle();
             }

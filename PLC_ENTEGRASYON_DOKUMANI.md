@@ -76,7 +76,7 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 | PDU Adresi | Simülatör | Register | Yön | Açıklama |
 |---|---|---|---|---|
 | 300 | 400301 | PAYMENT_STATUS | PLC → Flutter | Ödeme durumu |
-| 301 | 400302 | PAYMENT_AMOUNT | Flutter → PLC | Ödeme tutarı (kuruş) |
+| 301 | 400302 | PAYMENT_AMOUNT | Flutter → PLC | Ödeme tutarı (TL, tam sayı) |
 | 302 | 400303 | PAYMENT_CONFIRMED_ACK | Flutter → PLC | Ödeme onay bildirimi |
 | 303 | 400304 | SALE_COMPLETED | PLC → Flutter | Satış tamamlandı |
 
@@ -89,7 +89,7 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 | 2 | Reddedildi |
 | 3 | Timeout |
 
-> `PAYMENT_AMOUNT`: Değer kuruş cinsindendir. Örnek: 590 TL → `59000`.
+> `PAYMENT_AMOUNT`: Değer TL cinsindendir. Örnek: 690 TL → `690`. Maksimum: 65535 TL.
 
 ---
 
@@ -362,7 +362,7 @@ Sistem 24 slot destekler. Slot 1–12 erkek, 13–24 kadın ürünlerine ayrılm
 | 202 | 400203 | LAST_CMD_RESULT | P→F | 0=OK 1=Hata |
 | 203 | 400204 | ACTIVE_SLOT | P→F | Aktif slot |
 | 300 | 400301 | PAYMENT_STATUS | P→F | 0=Bekl 1=OK 2=Red 3=Timeout |
-| 301 | 400302 | PAYMENT_AMOUNT | F→P | Tutar (kuruş) |
+| 301 | 400302 | PAYMENT_AMOUNT | F→P | Tutar (TL, tam sayı) |
 | 302 | 400303 | PAYMENT_CONFIRMED_ACK | F→P | 1=Onay alındı |
 | 303 | 400304 | SALE_COMPLETED | P→F | 1=Dağıtım tamam |
 | 400 | 400401 | SENSOR_PRESENCE | P→F | Müşteri varlığı |

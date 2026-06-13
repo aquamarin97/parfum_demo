@@ -141,46 +141,47 @@ class _PLCStatusDotState extends State<_PLCStatusDot>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
-    widget.plcService.addListener(_onStateChanged);
   }
 
   @override
   void dispose() {
-    widget.plcService.removeListener(_onStateChanged);
     _pulse.dispose();
     super.dispose();
   }
 
-  void _onStateChanged() => setState(() {});
-
   @override
   Widget build(BuildContext context) {
-    final state = widget.plcService.state;
-
-    final (color, animate) = switch (state) {
-      PLCConnectionState.connecting   => (Colors.orange, true),
-      PLCConnectionState.connected    => (const Color(0xFF38A169), false),
-      PLCConnectionState.error        => (Colors.red, false),
-      PLCConnectionState.disconnected => (Colors.grey, false),
-    };
-
-    return AnimatedBuilder(
-      animation: _pulse,
+    return ListenableBuilder(
+      listenable: widget.plcService,
       builder: (context, _) {
-        final opacity = animate ? (0.4 + 0.6 * _pulse.value) : 1.0;
-        return Opacity(
-          opacity: opacity,
-          child: Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6),
-              ],
-            ),
-          ),
+        final state = widget.plcService.state;
+
+        final (color, animate) = switch (state) {
+          PLCConnectionState.connecting   => (Colors.orange, true),
+          PLCConnectionState.connected    => (const Color(0xFF38A169), false),
+          PLCConnectionState.error        => (Colors.red, false),
+          PLCConnectionState.disconnected => (Colors.grey, false),
+        };
+
+        return AnimatedBuilder(
+          animation: _pulse,
+          builder: (context, _) {
+            final opacity = animate ? (0.4 + 0.6 * _pulse.value) : 1.0;
+            return Opacity(
+              opacity: opacity,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );
