@@ -9,9 +9,12 @@ import 'widgets/health_status.dart';
 import 'widgets/manual_control.dart';
 import 'widgets/price_settings.dart';
 import 'widgets/register_monitor.dart';
+import 'widgets/slot_price_settings.dart';
+import 'widgets/timeout_settings.dart';
 
-/// PLC administration panel with four tabs:
-/// Monitor, Manual Control, Health Status, and Event Log.
+/// PLC administration panel.
+///
+/// Tabs: Monitor · Manual · Status · Log · Settings · Pricing
 ///
 /// Accessed via the hidden admin button in the kiosk shell.
 /// Requires an active [PLCServiceManager] instance.
@@ -38,7 +41,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
   }
 
   @override
@@ -89,11 +92,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                 fontWeight: FontWeight.w700,
               ),
               tabs: const [
-                _AdminTab(icon: Icons.monitor, text: 'Monitor'),
-                _AdminTab(icon: Icons.edit, text: 'Manual'),
+                _AdminTab(icon: Icons.monitor,          text: 'Monitor'),
+                _AdminTab(icon: Icons.edit,              text: 'Manual'),
                 _AdminTab(icon: Icons.health_and_safety, text: 'Status'),
-                _AdminTab(icon: Icons.event_note, text: 'Log'),
-                _AdminTab(icon: Icons.sell, text: 'Settings'),
+                _AdminTab(icon: Icons.event_note,        text: 'Log'),
+                _AdminTab(icon: Icons.tune,              text: 'Settings'),
+                _AdminTab(icon: Icons.sell,              text: 'Pricing'),
               ],
             ),
           ),
@@ -104,10 +108,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
         child: TabBarView(
           controller: _tabController,
           children: [
+            // 1 — Monitor
             Padding(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
               child: RegisterMonitor(plcService: widget.plcService),
             ),
+            // 2 — Manual
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
               child: ManualControl(
@@ -115,17 +121,34 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                 isReadOnly: widget.isReadOnly,
               ),
             ),
+            // 3 — Status
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
               child: HealthStatus(plcService: widget.plcService),
             ),
+            // 4 — Log
             Padding(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
               child: const EventLog(),
             ),
+            // 5 — Settings (genel fiyat / para birimi + PLC timeout)
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
-              child: PriceSettings(viewModel: widget.viewModel),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  PriceSettings(viewModel: widget.viewModel),
+                  const SizedBox(height: 48),
+                  Divider(color: Colors.white12),
+                  const SizedBox(height: 32),
+                  TimeoutSettings(viewModel: widget.viewModel),
+                ],
+              ),
+            ),
+            // 6 — Pricing (slot bazlı fiyat override)
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSizes.adminContentPadding),
+              child: SlotPriceSettings(viewModel: widget.viewModel),
             ),
           ],
         ),

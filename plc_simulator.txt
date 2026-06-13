@@ -1,0 +1,63 @@
+PLC Simülatör Akış Rehberi
+Başlangıç değerleri (uygulama başlamadan önce bir kez gir)
+Adres (simülatör)	Register	Değer	Açıklama
+400201	STATUS_SYSTEM	1	Sistem meşgul (testerlar henüz hazır değil)
+400202	LAST_CMD_SEQ_ID	0	
+400203	LAST_CMD_RESULT	0	0 = başarılı
+400301	PAYMENT_STATUS	0	
+400304	SALE_COMPLETED	0	
+400601	PLC_HEARTBEAT	1	Bağlantı için şart, sabit kalır
+Adım 1 — Tester komutları (Flutter → PLC)
+Kullanıcı anketi bitirince Flutter 3 ayrı komut gönderir (her slot için).
+
+Her komutta 400101 (CMD_ACTION), 400102 (CMD_SLOT), 400103 (CMD_SEQ_ID) değişir.
+
+Her komuttan hemen sonra yap:
+
+400202 = CMD_SEQ_ID ile aynı değer ← Flutter'ın yazdığı 400103'ü oku, aynısını yaz
+400203 = 0 ← zaten 0 ise değiştirme
+Örnek: Flutter 400103=1 yazdı → sen 400202=1 yaz → ACK tamam.
+
+Flutter 400103=2 yazdı → sen 400202=2 yaz.
+
+Flutter 400103=3 yazdı → sen 400202=3 yaz.
+
+Adım 2 — Testerlar fiziksel olarak hazır
+ACK'dan sonra:
+400201 = 0 → STATUS_SYSTEM = idle
+Flutter "Testerlar hazırlandı" mesajını gösterir ve 3 buton belirir.
+
+Adım 3 — Ödeme başlatma (müşteri butona basar)
+Müşteri ekrandan bir tester seçer. Flutter ödeme komutu gönderir (400101=3).
+
+Komut gelince:
+
+400202 = 400103 değeri (örn. 4)
+400203 = 0
+Adım 4 — Ödeme gerçekleşti (NFC / kart simülasyonu)
+Flutter 400301 (PAYMENT_STATUS) = 0 olduğu sürece bekler.
+
+Ödemeyi simüle et:
+
+400301 = 1 → ödeme başarılı
+(2 veya 3 yazarsan hata ekranı çıkar)
+Adım 5 — Satış komutu (Flutter → PLC)
+Flutter 400303 (PAYMENT_CONFIRMED_ACK) = 1 yazar, ardından satış komutu gönderir (400101=2).
+
+Komut gelince:
+
+400202 = 400103 değeri (örn. 5)
+400203 = 0
+Adım 6 — Parfüm dağıtıldı
+Flutter 400304 (SALE_COMPLETED) = 1 olana kadar bekler.
+
+Dağıtımı simüle et:
+
+400304 = 1
+Flutter "parfüm hazırlandı" → teşekkür ekranı → idle'a döner.
+
+Debug çıktısında görünecekler
+
+[ResultVM] Önerilen testerlar: Chanel – Bleu de Chanel... (slot 3), Versace – Eros Flame... (slot 12), ...
+[ResultVM] Seçilen tester → Versace – Eros Flame EDP (slot 12)
+[ResultVM] Satış → Versace – Eros Flame EDP (slot 12)

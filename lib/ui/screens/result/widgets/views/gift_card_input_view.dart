@@ -47,6 +47,7 @@ class _GiftCardInputViewState extends State<GiftCardInputView> {
   Widget build(BuildContext context) {
     final strings = widget.viewModel.strings;
     final canConfirm = _charCount > 0;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -59,39 +60,44 @@ class _GiftCardInputViewState extends State<GiftCardInputView> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSizes.spacingL),
-        TextField(
-          controller: _controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          textAlign: TextAlign.center,
-          maxLength: _maxLength,
-          inputFormatters: [LengthLimitingTextInputFormatter(_maxLength)],
-          style: AppTextStyles.title,
-          decoration: InputDecoration(
-            hintText: strings.t('gift_card_recipient_hint'),
-            hintStyle: AppTextStyles.hint,
-            counterText: '$_charCount / $_maxLength',
-            counterStyle: AppTextStyles.hint,
-            filled: true,
-            fillColor: AppColors.surface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSizes.radiusM),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSizes.radiusM),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppSizes.radiusM),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 2,
+        TapRegion(
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
+          child: TextField(
+            controller: _controller,
+            autofocus: true,
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+            textCapitalization:
+                isRtl ? TextCapitalization.none : TextCapitalization.words,
+            textAlign: TextAlign.center,
+            maxLength: _maxLength,
+            inputFormatters: [LengthLimitingTextInputFormatter(_maxLength)],
+            style: AppTextStyles.title,
+            decoration: InputDecoration(
+              hintText: strings.t('gift_card_recipient_hint'),
+              hintStyle: AppTextStyles.hint,
+              counterText: '$_charCount / $_maxLength',
+              counterStyle: AppTextStyles.hint,
+              filled: true,
+              fillColor: AppColors.surface,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                borderSide: const BorderSide(color: AppColors.border),
               ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.spacingL,
-              vertical: AppSizes.spacingM,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSizes.radiusM),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.spacingL,
+                vertical: AppSizes.spacingM,
+              ),
             ),
           ),
         ),
@@ -127,9 +133,7 @@ class _GiftCardInputViewState extends State<GiftCardInputView> {
               child: OutlinedButton(
                 onPressed: canConfirm ? _confirm : null,
                 style: OutlinedButton.styleFrom(
-                  backgroundColor: canConfirm
-                      ? AppColors.warningAmberDark
-                      : AppColors.border,
+                  backgroundColor: AppColors.warningAmberDark,
                   foregroundColor: Colors.white,
                   disabledForegroundColor: Colors.white54,
                   padding: const EdgeInsets.symmetric(

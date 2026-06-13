@@ -194,6 +194,22 @@ class ResultViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// [fromKey] ile eşleşen son mesajı [toKey] + [status] olarak günceller.
+  ///
+  /// Mesajlar arasına başka mesajlar girmiş olsa bile doğru mesajı bulur.
+  @protected
+  void updateKeyedMessageBy(
+    String fromKey,
+    String toKey,
+    TimelineMessageStatus status,
+  ) {
+    final idx = _messages.lastIndexWhere((m) => m.key == fromKey);
+    if (idx == -1) return;
+    _messages[idx] = _messages[idx].copyWith(key: toKey, text: null, status: status);
+    _shouldAnimate = false;
+    notifyListeners();
+  }
+
   @protected
   void startTimer(int seconds) {
     _timer?.cancel();

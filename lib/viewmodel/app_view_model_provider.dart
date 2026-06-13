@@ -12,7 +12,7 @@ import '../data/local/preferences_store.dart';
 import '../data/repositories/i18n_repository.dart';
 import '../data/repositories/kvkk_repository.dart';
 import '../data/repositories/survey_repository.dart';
-import '../domain/engine/seeded_random_scoring_engine.dart';
+import '../domain/engine/rule_based_scoring_engine.dart';
 import '../domain/session/session_manager.dart';
 import '../i18n/language_registry.dart';
 import '../i18n/sources/asset_string_source.dart';
@@ -58,7 +58,7 @@ class AppViewModelProvider {
 
     final i18nRepo = I18nRepository(stringRepo, registry);
     final sessionManager = SessionManager();
-    final engine = SeededRandomScoringEngine();
+    final engine = RuleBasedScoringEngine();
 
     final plcClient = ModbusPLCClient();
     final plcService = PLCServiceManager(

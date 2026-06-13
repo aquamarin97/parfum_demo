@@ -4,7 +4,8 @@
       "Bash(dart analyze *)",
       "Bash(Get-ChildItem lib/plc -Recurse -ErrorAction SilentlyContinue)",
       "Bash(Select-Object FullName)",
-      "Bash(Remove-Item \"c:\\\\Users\\\\Kamil\\\\Desktop\\\\git\\\\parfum_demo\\\\lib\\\\ui\\\\screens\\\\idle_screen.dart\")"
+      "Bash(Remove-Item \"c:\\\\Users\\\\Kamil\\\\Desktop\\\\git\\\\parfum_demo\\\\lib\\\\ui\\\\screens\\\\idle_screen.dart\")",
+      "Bash(flutter analyze *)"
     ]
   }
 }

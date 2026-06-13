@@ -27,4 +27,18 @@ abstract interface class IResultContext {
   /// Fully formatted price label for the active language and current price
   /// settings (e.g. `'Fiyat: 490 TL'`).
   String get priceLabel;
+
+  /// Product price in major currency units (e.g. 490 for 490 TL).
+  int get price;
+
+  /// Currency code (e.g. `'TL'`, `'EUR'`).
+  String get currency;
+
+  /// Başarıyla tamamlanan satış sonrası kaydedilmiş oturumu temizler.
+  void clearSession();
+
+  /// Belirtilen slot için ürün fiyatını döner (TL, büyük birim).
+  ///
+  /// Slot için özel fiyat tanımlanmışsa onu, aksi hâlde global [price]'ı döner.
+  int priceForSlot(int slotId);
 }

@@ -1,0 +1,82 @@
+{
+  "perfume_survey": [
+    {
+      "id": 1,
+      "translations": {
+        "tr": {
+          "question": "Herhangi bir koku maddesine karşı alerjiniz var mı?",
+          "options": [
+            "Narenciye",
+            "Çiçek notaları",
+            "Amber / reçineler",
+            "Baharatlar",
+            "Hayır, bildiğim bir alerjim yok"
+          ]
+        },
+        "en": {
+          "question": "Do you have an allergy to any fragrance ingredients?",
+          "options": [
+            "Citrus",
+            "Floral notes",
+            "Amber / resins",
+            "Spices",
+            "No, I don't have any known allergies"
+          ]
+        },
+        "ar": {
+          "question": "هل لديك حساسية تجاه أي مكونات عطرية؟",
+          "options": [
+            "الحمضيات",
+            "نوتات زهرية",
+            "العنبر / الراتنجات",
+            "التوابل",
+            "لا، ليس لدي حساسية معروفة"
+          ]
+        },
+        "fr": {
+          "question": "Avez-vous une allergie à certains ingrédients de parfum ?",
+          "options": [
+            "Agrumes",
+            "Notes florales",
+            "Ambre / résines",
+            "Épices",
+            "Non, je n’ai pas d’allergies connues"
+          ]
+        }
+      }
+    },
+    {
+      "id": 2,
+      "translations": {
+        "tr": {
+          "question": "Bu Parfüm Kimin için?",
+          "options": [
+            "Kendim için",
+            "Hediye"
+          ]
+        },
+        "en": {
+          "question": "Who is this perfume for?",
+          "options": [
+            "For myself",
+            "A gift"
+          ]
+        },
+        "ar": {
+          "question": "لمن هذا العطر؟",
+          "options": [
+            "لنفسي",
+            "هدية"
+          ]
+        },
+        "fr": {
+          "question": "Pour qui est ce parfum ?",
+          "options": [
+            "Pour moi",
+            "Un cadeau"
+          ]
+        }
+      }
+    }
+  ]
+}

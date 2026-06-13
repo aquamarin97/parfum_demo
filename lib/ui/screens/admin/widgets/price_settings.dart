@@ -84,14 +84,14 @@ class _PriceSettingsState extends State<PriceSettings> {
           ),
         ),
         const SizedBox(height: 32),
-        _AdminField(
+        AdminField(
           label: 'Fiyat',
           controller: _priceController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
         const SizedBox(height: 24),
-        _AdminField(
+        AdminField(
           label: 'Para Birimi',
           controller: _currencyController,
         ),
@@ -129,8 +129,9 @@ class _PriceSettingsState extends State<PriceSettings> {
   }
 }
 
-class _AdminField extends StatelessWidget {
-  const _AdminField({
+class AdminField extends StatelessWidget {
+  const AdminField({
+    super.key,
     required this.label,
     required this.controller,
     this.keyboardType,

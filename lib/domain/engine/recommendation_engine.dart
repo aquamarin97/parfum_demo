@@ -8,9 +8,15 @@ import '../../data/models/recommendation.dart';
 /// to support future rule-based scoring strategies.
 ///
 /// See also:
-/// - [SeededRandomScoringEngine] — current placeholder implementation
-/// - [RuleBasedScoringEngine] — planned rule-based implementation
-abstract interface class RecommendationEngine {
+/// - [SeededRandomScoringEngine] — placeholder implementation (dev only)
+/// - [RuleBasedScoringEngine] — production rule-based implementation
+abstract class RecommendationEngine {
+  /// Optional async initialisation (e.g. loading rules from assets).
+  ///
+  /// Called once during app startup before the first [computeScores] call.
+  /// Default implementation is a no-op.
+  Future<void> initialize() async {}
+
   /// Computes a score map from survey [answers].
   ///
   /// [sessionId] may be used for seeding or logging.

@@ -27,6 +27,8 @@ class PLCErrorCodes {
   // Application errors (430–439)
   static const int unknownError = 430;
   static const int configurationError = 431;
+  static const int commandRejected = 432;
+  static const int systemFault = 433;
 
   /// Returns a developer-facing technical description for [errorCode].
   static String getTechnicalDescription(int errorCode) {
@@ -57,6 +59,8 @@ class PLCErrorCodes {
     motorError: 'Motor driver fault. Check inverter/driver.',
     unknownError: 'Uncategorised error. Review log files.',
     configurationError: 'Modbus settings are incorrect. Check config file.',
+    commandRejected: 'PLC rejected the command (STATUS_LAST_CMD_RESULT=1).',
+    systemFault: 'PLC system entered fault state (STATUS_SYSTEM=2).',
   };
 }
 

@@ -33,46 +33,92 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
   }
 
   void _loadWatchedRegisters() {
-    if (widget.plcService.isConnected) {
-      // Hard-coded key registers — replace with config-driven list when available.
-      _watchedRegisters = [
-        RegisterAddress(
-          group: 'recommendations',
-          name: 'first',
-          address: 0,
-          type: RegisterType.write,
-          description: 'First recommendation',
-        ),
-        RegisterAddress(
-          group: 'tester_control',
-          name: 'testers_ready',
-          address: 10,
-          type: RegisterType.readWrite,
-          description: 'Testers ready',
-        ),
-        RegisterAddress(
-          group: 'payment',
-          name: 'status',
-          address: 20,
-          type: RegisterType.readWrite,
-          description: 'Payment status',
-        ),
-        RegisterAddress(
-          group: 'perfume_dispenser',
-          name: 'ready',
-          address: 30,
-          type: RegisterType.readWrite,
-          description: 'Perfume ready',
-        ),
-        RegisterAddress(
-          group: 'system',
-          name: 'heartbeat',
-          address: 100,
-          type: RegisterType.readWrite,
-          description: 'Heartbeat',
-        ),
-      ];
-    }
+    _watchedRegisters = [
+      RegisterAddress(
+        group: 'commands',
+        name: 'action',
+        address: 100,
+        type: RegisterType.write,
+        description: 'CMD_ACTION',
+      ),
+      RegisterAddress(
+        group: 'commands',
+        name: 'sequence_id',
+        address: 102,
+        type: RegisterType.write,
+        description: 'CMD_SEQUENCE_ID',
+      ),
+      RegisterAddress(
+        group: 'system_status',
+        name: 'system',
+        address: 200,
+        type: RegisterType.read,
+        description: 'STATUS_SYSTEM',
+      ),
+      RegisterAddress(
+        group: 'system_status',
+        name: 'last_cmd_seq_id',
+        address: 201,
+        type: RegisterType.read,
+        description: 'STATUS_LAST_CMD_SEQ_ID',
+      ),
+      RegisterAddress(
+        group: 'system_status',
+        name: 'last_cmd_result',
+        address: 202,
+        type: RegisterType.read,
+        description: 'STATUS_LAST_CMD_RESULT',
+      ),
+      RegisterAddress(
+        group: 'payment',
+        name: 'status',
+        address: 300,
+        type: RegisterType.readWrite,
+        description: 'PAYMENT_STATUS',
+      ),
+      RegisterAddress(
+        group: 'payment',
+        name: 'sale_completed',
+        address: 303,
+        type: RegisterType.readWrite,
+        description: 'SALE_COMPLETED',
+      ),
+      RegisterAddress(
+        group: 'sensors',
+        name: 'presence',
+        address: 400,
+        type: RegisterType.read,
+        description: 'SENSOR_PRESENCE',
+      ),
+      RegisterAddress(
+        group: 'errors',
+        name: 'error_code',
+        address: 500,
+        type: RegisterType.read,
+        description: 'ERROR_CODE',
+      ),
+      RegisterAddress(
+        group: 'errors',
+        name: 'error_slot',
+        address: 501,
+        type: RegisterType.read,
+        description: 'ERROR_SLOT',
+      ),
+      RegisterAddress(
+        group: 'heartbeat',
+        name: 'plc_heartbeat',
+        address: 600,
+        type: RegisterType.read,
+        description: 'PLC_HEARTBEAT',
+      ),
+      RegisterAddress(
+        group: 'heartbeat',
+        name: 'flutter_heartbeat',
+        address: 601,
+        type: RegisterType.write,
+        description: 'FLUTTER_HEARTBEAT',
+      ),
+    ];
   }
 
   void _startPolling() {
@@ -95,23 +141,19 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
   Future<void> _pollRegisters() async {
     if (!widget.plcService.isConnected) return;
 
-    try {
-      // TODO: activate when direct read method is available on PLCServiceManager
-      for (final reg in _watchedRegisters) {
-        if (reg.isReadable) {
-          try {
-            // final val = await widget.plcService.readRegister(reg.address);
-            // setState(() {
-            //   _registerValues[reg.address] = val;
-            //   _lastUpdate[reg.address] = DateTime.now();
-            // });
-          } catch (e) {
-            debugPrint('Register ${reg.address} read error: $e');
-          }
+    for (final reg in _watchedRegisters) {
+      if (!reg.isReadable || !mounted) continue;
+      try {
+        final val = await widget.plcService.readRegister(reg.address);
+        if (mounted) {
+          setState(() {
+            _registerValues[reg.address] = val;
+            _lastUpdate[reg.address] = DateTime.now();
+          });
         }
+      } catch (e) {
+        debugPrint('R${reg.address} read error: $e');
       }
-    } catch (e) {
-      debugPrint('Polling error: $e');
     }
   }
 

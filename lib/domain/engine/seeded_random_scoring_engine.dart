@@ -17,7 +17,7 @@ import 'recommendation_engine.dart';
 /// See also:
 /// - [RuleBasedScoringEngine] — the planned production implementation.
 /// - [SeededRandom] — the deterministic PRNG used for picking.
-class SeededRandomScoringEngine implements RecommendationEngine {
+class SeededRandomScoringEngine extends RecommendationEngine {
   /// Computes a score for every perfume in the catalogue.
   ///
   /// Each answer contributes [AppConstants.scoringPickCount] votes,

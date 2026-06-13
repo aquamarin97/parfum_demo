@@ -1,86 +1,116 @@
-// FAZE 1.1 TEST CHECKLIST
-// 
-// Bu dosyayı main.dart'ın başına ekleyerek test edebilirsiniz
+// Register Config v1.0 — Test Checklist
+// Çalıştırmak için main.dart'a geçici olarak ekleyin:
+//   await testRegisterConfig();
 
 import 'package:flutter/material.dart';
 import 'package:parfume_app/infrastructure/plc/config/register_loader.dart';
 
-/// Test fonksiyonu - main() içinde çağırın
 Future<void> testRegisterConfig() async {
-  debugPrint('\n🧪 FAZE 1.1 TEST BAŞLIYOR...\n');
+  debugPrint('\n🧪 REGISTER CONFIG v1.0 TEST BAŞLIYOR...\n');
 
   final loader = RegisterLoader();
 
-  // ============================================================================
+  // ============================================================
   // TEST 1: Config yükleme
-  // ============================================================================
+  // ============================================================
   debugPrint('📋 TEST 1: Config Yükleme');
   try {
     final config = await loader.load();
-    debugPrint('✅ Config başarıyla yüklendi');
-    debugPrint('   Version: ${config.version}');
+    debugPrint('✅ Config yüklendi v${config.version}');
     debugPrint('   Host: ${config.connection.host}:${config.connection.port}');
+    debugPrint('   Toplam register: ${config.registers.getAllAddresses().length}');
   } catch (e) {
-    debugPrint('❌ HATA: $e');
+    debugPrint('❌ Config yüklenemedi: $e');
     return;
   }
 
-  // ============================================================================
-  // TEST 2: Register adreslerine erişim
-  // ============================================================================
-  debugPrint('\n📋 TEST 2: Register Adresleri');
   final config = loader.cachedConfig!;
-  
-  final testPaths = [
-    'recommendations.first',
-    'recommendations.second',
-    'recommendations.third',
-    'tester_control.testers_ready',
-    'tester_control.selected_tester',
-    'payment.status',
-    'perfume_dispenser.ready',
-    'system.heartbeat',
-  ];
 
-  for (final path in testPaths) {
-    try {
-      final address = config.getAddress(path);
-      debugPrint('✅ $path → Register $address');
-    } catch (e) {
-      debugPrint('❌ $path → HATA: $e');
-    }
+  // ============================================================
+  // TEST 2: Blok 1 — Komutlar (100–102)
+  // ============================================================
+  debugPrint('\n📋 TEST 2: Blok 1 — Komutlar');
+  _testPath(config, 'commands.action',      expectedAddress: 100);
+  _testPath(config, 'commands.slot',        expectedAddress: 101);
+  _testPath(config, 'commands.sequence_id', expectedAddress: 102);
+
+  // ============================================================
+  // TEST 3: Blok 2 — Sistem Durumu (200–203)
+  // ============================================================
+  debugPrint('\n📋 TEST 3: Blok 2 — Sistem Durumu');
+  _testPath(config, 'system_status.system',          expectedAddress: 200);
+  _testPath(config, 'system_status.last_cmd_seq_id', expectedAddress: 201);
+  _testPath(config, 'system_status.last_cmd_result', expectedAddress: 202);
+  _testPath(config, 'system_status.active_slot',     expectedAddress: 203);
+
+  // ============================================================
+  // TEST 4: Blok 3 — Ödeme (300–303)
+  // ============================================================
+  debugPrint('\n📋 TEST 4: Blok 3 — Ödeme');
+  _testPath(config, 'payment.status',        expectedAddress: 300);
+  _testPath(config, 'payment.amount',        expectedAddress: 301);
+  _testPath(config, 'payment.confirmed_ack', expectedAddress: 302);
+  _testPath(config, 'payment.sale_completed',expectedAddress: 303);
+
+  // ============================================================
+  // TEST 5: Blok 4 — Sensörler (400–424)
+  // ============================================================
+  debugPrint('\n📋 TEST 5: Blok 4 — Sensörler');
+  _testPath(config, 'sensors.presence', expectedAddress: 400);
+  _testPath(config, 'sensors.stock_1',  expectedAddress: 401);
+  _testPath(config, 'sensors.stock_24', expectedAddress: 424);
+
+  // ============================================================
+  // TEST 6: Blok 5 — Hata (500–501)
+  // ============================================================
+  debugPrint('\n📋 TEST 6: Blok 5 — Hata');
+  _testPath(config, 'errors.error_code', expectedAddress: 500);
+  _testPath(config, 'errors.error_slot', expectedAddress: 501);
+
+  // ============================================================
+  // TEST 7: Blok 6 — Heartbeat (600–601)
+  // ============================================================
+  debugPrint('\n📋 TEST 7: Blok 6 — Heartbeat');
+  _testPath(config, 'heartbeat.plc_heartbeat',     expectedAddress: 600);
+  _testPath(config, 'heartbeat.flutter_heartbeat', expectedAddress: 601);
+
+  // ============================================================
+  // TEST 8: Değer açıklamaları
+  // ============================================================
+  debugPrint('\n📋 TEST 8: Değer Açıklamaları');
+
+  final cmdGroup = config.registers.getGroup('commands')!;
+  debugPrint('CMD_ACTION değerleri:');
+  for (int i = 0; i <= 4; i++) {
+    final desc = cmdGroup.getValueDescription('action', i);
+    debugPrint('  $i → ${desc ?? "Tanımsız"}');
   }
 
-  // ============================================================================
-  // TEST 3: Değer açıklamaları
-  // ============================================================================
-  debugPrint('\n📋 TEST 3: Değer Açıklamaları');
-  
+  final statusGroup = config.registers.getGroup('system_status')!;
+  debugPrint('STATUS_SYSTEM değerleri:');
+  for (int i = 0; i <= 2; i++) {
+    final desc = statusGroup.getValueDescription('system', i);
+    debugPrint('  $i → ${desc ?? "Tanımsız"}');
+  }
+
   final paymentGroup = config.registers.getGroup('payment')!;
-  debugPrint('Payment Status değerleri:');
-  for (int i = 0; i <= 4; i++) {
+  debugPrint('PAYMENT_STATUS değerleri:');
+  for (int i = 0; i <= 3; i++) {
     final desc = paymentGroup.getValueDescription('status', i);
     debugPrint('  $i → ${desc ?? "Tanımsız"}');
   }
 
-  // ============================================================================
-  // TEST 4: Validation
-  // ============================================================================
-  debugPrint('\n📋 TEST 4: Validation');
-  
-  final recGroup = config.registers.getGroup('recommendations')!;
-  final testValues = [0, 1, 500, 999, 1000];
-  
-  for (final value in testValues) {
-    final isValid = recGroup.validateValue(value);
-    debugPrint('  Değer $value → ${isValid ? "✅ Geçerli" : "❌ Geçersiz"}');
+  final errorGroup = config.registers.getGroup('errors')!;
+  debugPrint('ERROR_CODE değerleri:');
+  for (int i = 0; i <= 6; i++) {
+    final desc = errorGroup.getValueDescription('error_code', i);
+    debugPrint('  $i → ${desc ?? "Tanımsız"}');
   }
 
-  // ============================================================================
-  // TEST 5: Workflow paths
-  // ============================================================================
-  debugPrint('\n📋 TEST 5: Workflow Paths');
-  
+  // ============================================================
+  // TEST 9: Workflow paths
+  // ============================================================
+  debugPrint('\n📋 TEST 9: Workflow Paths');
   config.workflows.forEach((name, steps) {
     debugPrint('Workflow: $name');
     for (final step in steps) {
@@ -93,39 +123,17 @@ Future<void> testRegisterConfig() async {
     }
   });
 
-  // ============================================================================
-  // TEST 6: Config info
-  // ============================================================================
-  debugPrint('\n📋 TEST 6: Config Info\n');
-  loader.printConfigInfo();
-
-  // ============================================================================
-  // TEST 7: Export (debug)
-  // ============================================================================
-  debugPrint('\n📋 TEST 7: Export All Registers');
-  final exported = loader.exportAllRegisters();
-  debugPrint('✅ ${exported.length} register export edildi');
-  debugPrint('İlk 5 register:');
-  exported.entries.take(5).forEach((e) {
-    debugPrint('  • ${e.key}: ${e.value}');
-  });
-
   debugPrint('\n✅ TÜM TESTLER TAMAMLANDI!\n');
 }
 
-// ============================================================================
-// KULLANIM ÖRNEĞİ - main.dart
-// ============================================================================
-/*
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // ✅ Test et
-  await testRegisterConfig();
-  
-  // Normal uygulama devam eder
-  runApp(MyApp());
+void _testPath(dynamic config, String path, {required int expectedAddress}) {
+  try {
+    final address = config.getAddress(path);
+    final ok = address == expectedAddress;
+    debugPrint(
+      '${ok ? "✅" : "⚠"} $path → R$address${ok ? "" : " (beklenen: R$expectedAddress)"}',
+    );
+  } catch (e) {
+    debugPrint('❌ $path → HATA: $e');
+  }
 }
-
-*/

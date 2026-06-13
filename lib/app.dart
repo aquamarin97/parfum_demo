@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:parfume_app/common/widgets/app_logo_background.dart';
 import 'package:parfume_app/common/widgets/app_scent_wave.dart';
 import 'package:parfume_app/core/constants/app_constants.dart';
-import 'package:parfume_app/data/models/recommendation.dart';
 import 'package:parfume_app/domain/state/app_state.dart';
 import 'package:provider/provider.dart';
 import 'package:parfume_app/ui/screens/admin/widgets/hidden_button.dart';
@@ -45,7 +45,8 @@ class AppRoot extends StatefulWidget {
   State<AppRoot> createState() => _AppRootState();
 }
 
-class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
+class _AppRootState extends State<AppRoot>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _logoController;
   late final Animation<double> _logoAnimation;
 
@@ -57,6 +58,7 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _logoController = AnimationController(
       duration: AppConstants.logoAnimationDuration,
       vsync: this,
@@ -76,8 +78,16 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _logoController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
   }
 
   /// Replays the logo animation only when the [AppState] *type* or language changes.
@@ -132,13 +142,13 @@ class _AppRootState extends State<AppRoot> with SingleTickerProviderStateMixin {
                     Positioned.fill(
                       child: viewModel.initialized
                           // app.dart
-                          ? AppRouter( //const AppRouter().build(viewModel)
-                              debugOverrideState: ResultState(
-                                Recommendation.mock(),
-                              ),
-                            ).build(
-                              viewModel,
-                            ) 
+                          ? const AppRouter().build(viewModel) // ? AppRouter(
+                          //     debugOverrideState: ResultState(
+                          //       Recommendation.mock(),
+                          //     ),
+                          //   ).build(
+                          //     viewModel,
+                          //   )
                           : const Center(child: CircularProgressIndicator()),
                     ),
                     Positioned(

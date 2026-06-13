@@ -2,26 +2,21 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:parfume_app/domain/plc/i_plc_client.dart';
 import 'package:parfume_app/domain/plc/plc_exceptions.dart';
+import 'package:parfume_app/domain/plc/plc_timings.dart';
 
 import '../../core/logging/app_logger.dart';
 
-/// Manages the PLC connection lifecycle and surfaces faults to the rest of
-/// the application.
+/// PLC bağlantı yaşam döngüsünü ve servis operasyonlarını yönetir.
 ///
-/// Wraps an [IPlcClient] implementation (injected via constructor) and adds:
-/// - connection state tracking via [PLCConnectionState]
-/// - automatic reconnect with exponential back-off up to [maxReconnectAttempts]
-/// - error propagation through the optional [onError] callback and
-///   [ChangeNotifier] so listeners can react to state changes
-///
-/// The concrete [IPlcClient] is never created inside this class (DIP).
+/// Register haritası v1.0 komut protokolünü uygular:
+///   - [sendTesterCommands] — 3 tester komutu gönderir + ACK bekler
+///   - [watchSystemIdle]   — STATUS_SYSTEM=0 olana kadar izler
+///   - [startPayment]      — ödeme_başlat komutu
+///   - [confirmPayment]    — PAYMENT_CONFIRMED_ACK=1 yazar
+///   - [sendSale]          — satış_bas komutu
+///   - [watchPaymentStatus] / [watchSaleCompleted] — durum stream'leri
+///   - [readRegister] / [writeRegister] — admin paneli için doğrudan erişim
 class PLCServiceManager extends ChangeNotifier {
-  /// Creates a [PLCServiceManager].
-  ///
-  /// [client] the PLC client implementation to use.
-  /// [logger] application logger; defaults to a debug-level logger.
-  /// [autoConnect] when `true`, [initialize] is called immediately.
-  /// [onError] optional callback invoked on every [PLCException].
   PLCServiceManager({
     required IPlcClient client,
     AppLogger? logger,
@@ -35,224 +30,405 @@ class PLCServiceManager extends ChangeNotifier {
   final IPlcClient _client;
   final AppLogger _logger;
 
-  /// Optional callback invoked whenever a [PLCException] is handled.
   final void Function(PLCException)? onError;
 
   PLCConnectionState _state = PLCConnectionState.disconnected;
   PLCException? _lastError;
   DateTime? _lastConnectedTime;
   int _reconnectAttempts = 0;
+  PLCTimings _timings = PLCTimings.defaults;
 
-  /// Maximum number of consecutive reconnect attempts before giving up.
   static const int maxReconnectAttempts = 5;
 
-  /// Current connection state.
   PLCConnectionState get state => _state;
-
-  /// The most recent [PLCException], or `null` if no error has occurred.
   PLCException? get lastError => _lastError;
-
-  /// Whether the PLC is fully connected and ready for communication.
   bool get isConnected => _state == PLCConnectionState.connected;
-
-  /// Whether a connection attempt is currently in progress.
   bool get isConnecting => _state == PLCConnectionState.connecting;
-
-  /// Whether the service is in an error state.
   bool get hasError => _state == PLCConnectionState.error;
-
-  /// The timestamp of the last successful connection, or `null`.
   DateTime? get lastConnectedTime => _lastConnectedTime;
+  PLCTimings get timings => _timings;
 
-  /// Initiates the PLC connection sequence.
+  /// Çalışma zamanında süre parametrelerini günceller.
   ///
-  /// No-op if a connection attempt is already in progress.
-  /// Updates [state] to [PLCConnectionState.connecting] then
-  /// [PLCConnectionState.connected] on success, or calls [_handleError]
-  /// on failure.
+  /// Değişiklikler bir sonraki komut/polling döngüsünde geçerli olur.
+  void updateTimings(PLCTimings t) => _timings = t;
+
+  // -------------------------------------------------------------------------
+  // Bağlantı yaşam döngüsü
+  // -------------------------------------------------------------------------
+
   Future<void> initialize() async {
     if (_state == PLCConnectionState.connecting) {
-      _logger.warning('initialize() called while already connecting — skipped.');
+      _logger.warning('initialize() çalışıyor, atlanıyor.');
       return;
     }
-
     _updateState(PLCConnectionState.connecting);
     _lastError = null;
-
     try {
-      _logger.info('Starting PLC connection...');
+      _logger.info('PLC bağlantısı başlatılıyor...');
       await _client.connect();
       _lastConnectedTime = DateTime.now();
       _reconnectAttempts = 0;
       _updateState(PLCConnectionState.connected);
-      _logger.info('PLC connection established.');
+      _logger.info('PLC bağlantısı kuruldu.');
     } on PLCException catch (e) {
-      _logger.error('Connection error ${e.errorCode}: ${e.message}');
+      _logger.error('Bağlantı hatası ${e.errorCode}: ${e.message}');
       _handleError(e);
     } catch (e) {
-      _logger.error('Unexpected error during connect: $e');
+      _logger.error('Beklenmeyen bağlantı hatası: $e');
       _handleError(PLCException(
         errorCode: PLCErrorCodes.unknownError,
-        message: 'An unexpected error occurred',
+        message: 'Beklenmeyen hata',
         technicalDetail: e.toString(),
       ));
     }
   }
 
-  /// Closes the PLC connection gracefully.
-  ///
-  /// Updates [state] to [PLCConnectionState.disconnected] on success.
-  /// Errors during disconnect are logged but not re-thrown.
   Future<void> disconnect() async {
     try {
       await _client.disconnect();
       _updateState(PLCConnectionState.disconnected);
-      _logger.info('PLC connection closed.');
+      _logger.info('PLC bağlantısı kapatıldı.');
     } catch (e) {
-      _logger.warning('Error while closing connection: $e');
+      _logger.warning('Bağlantı kapatma hatası: $e');
     }
   }
 
-  /// Attempts to re-establish the connection after a failure.
-  ///
-  /// Increments the internal attempt counter on each call. After
-  /// [maxReconnectAttempts] consecutive failures, transitions to an error
-  /// state without retrying further.
-  ///
-  /// Delay between attempts grows exponentially: `2^attempt` seconds
-  /// (2 s, 4 s, 8 s, 16 s, 32 s).
   Future<void> reconnect() async {
     _reconnectAttempts++;
-
     if (_reconnectAttempts > maxReconnectAttempts) {
-      _logger.error(
-        'Maximum reconnect attempts ($maxReconnectAttempts) exceeded.',
-      );
+      _logger.error('Maksimum yeniden bağlanma denemesi aşıldı.');
       _handleError(PLCException(
         errorCode: PLCErrorCodes.connectionFailed,
-        message: 'Maximum reconnect attempts exceeded',
-        technicalDetail: 'Attempt count: $_reconnectAttempts',
+        message: 'Maksimum bağlanma denemesi aşıldı',
+        technicalDetail: 'Deneme: $_reconnectAttempts',
       ));
       return;
     }
-
-    final delay = Duration(seconds: 1 << _reconnectAttempts); // 2, 4, 8, 16, 32 s
-    _logger.info(
-      'Reconnect attempt $_reconnectAttempts / $maxReconnectAttempts '
-      '(delay: ${delay.inSeconds} s)...',
-    );
+    final delay = Duration(seconds: 1 << _reconnectAttempts);
+    _logger.info('Yeniden bağlanma $_reconnectAttempts/$maxReconnectAttempts (${delay.inSeconds}s bekleniyor)...');
     await disconnect();
     await Future.delayed(delay);
     await initialize();
   }
 
-  /// Writes the top-three perfume recommendation IDs to the PLC registers.
-  ///
-  /// Throws [PLCException] if the write fails; the error is also forwarded
-  /// to [_handleError] before re-throwing.
-  Future<void> sendRecommendations(List<int> perfumeIds) async {
-    _ensureConnected();
-    try {
-      _logger.debug('Sending recommendations: $perfumeIds');
-      await _client.sendRecommendation(perfumeIds);
-      _logger.debug('Recommendations sent successfully.');
-    } on PLCException catch (e) {
-      _logger.error('Send recommendations failed (${e.errorCode}): ${e.message}');
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  /// Returns a stream that emits `true` once all testers are physically ready.
-  ///
-  /// Throws [PLCException] on stream error; the error is also forwarded to
-  /// [_handleError] before re-throwing.
-  Stream<bool> watchTestersReady() async* {
-    _ensureConnected();
-    try {
-      yield* _client.watchTestersReady();
-    } on PLCException catch (e) {
-      _logger.error('watchTestersReady error (${e.errorCode}): ${e.message}');
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  /// Sends the user's tester selection to the PLC.
-  ///
-  /// [testerNumber] must be in the range 1–3.
-  /// Throws [PLCException] if the write fails.
-  Future<void> sendSelectedTester(int testerNumber) async {
-    _ensureConnected();
-    try {
-      _logger.debug('Sending selected tester: $testerNumber');
-      await _client.sendSelectedTester(testerNumber);
-      _logger.debug('Tester selection sent.');
-    } on PLCException catch (e) {
-      _logger.error('sendSelectedTester failed (${e.errorCode}): ${e.message}');
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  /// Returns a stream that emits the payment status register value whenever
-  /// it changes from zero.
-  ///
-  /// Throws [PLCException] on stream error.
-  Stream<int> watchPaymentStatus() async* {
-    _ensureConnected();
-    try {
-      yield* _client.watchPaymentStatus();
-    } on PLCException catch (e) {
-      _logger.error('watchPaymentStatus error (${e.errorCode}): ${e.message}');
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  /// Returns a stream that emits `true` once the perfume dispenser is ready.
-  ///
-  /// Throws [PLCException] on stream error.
-  Stream<bool> watchPerfumeReady() async* {
-    _ensureConnected();
-    try {
-      yield* _client.watchPerfumeReady();
-    } on PLCException catch (e) {
-      _logger.error('watchPerfumeReady error (${e.errorCode}): ${e.message}');
-      _handleError(e);
-      rethrow;
-    }
-  }
-
-  /// Performs a heartbeat read to verify the connection is still alive.
-  ///
-  /// Returns `false` immediately if [isConnected] is `false`.
   Future<bool> checkHealth() async {
     if (!isConnected) return false;
     try {
       return await _client.healthCheck();
     } catch (e) {
-      _logger.warning('Health check failed: $e');
+      _logger.warning('Health check hatası: $e');
       return false;
     }
   }
 
-  // ---------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Tester hazırlama — Blok 1/2
+  // -------------------------------------------------------------------------
+
+  /// Her slot için CMD_ACTION=1 (tester_bas) gönderir ve ACK bekler.
+  ///
+  /// Tüm ACK'lar alındıktan sonra döner; fiziksel hazırlık için
+  /// [watchSystemIdle] kullanılmalıdır.
+  Future<void> sendTesterCommands(List<int> slotIds) async {
+    _ensureConnected();
+    try {
+      for (final slotId in slotIds) {
+        _logger.debug('Tester komutu → slot=$slotId');
+        final seqId = await _client.sendCommand(PLCCommandAction.testerPress, slotId);
+        final ok = await _client.waitForCommandAck(
+          seqId,
+          timeout: Duration(seconds: _timings.commandAckTimeoutSec),
+        );
+        if (!ok) {
+          throw PLCException(
+            errorCode: PLCErrorCodes.commandRejected,
+            message: 'Tester komutu reddedildi',
+            technicalDetail: 'slot=$slotId seqId=$seqId',
+          );
+        }
+        _logger.debug('Tester ACK ✓ slot=$slotId');
+      }
+    } on PLCException catch (e) {
+      _logger.error('Tester komutları başarısız: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  /// STATUS_SYSTEM (R200) = 0 (boşta) olana kadar her 500 ms'de bir okur.
+  ///
+  /// Testerlar fiziksel olarak hazır olduğunda `true` emit eder.
+  Stream<bool> watchSystemIdle() async* {
+    _ensureConnected();
+    try {
+      // PLC'nin STATUS_SYSTEM'i 1'e çekmesi için kısa bekleme
+      await Future.delayed(Duration(milliseconds: _timings.systemIdlePollMs));
+      while (true) {
+        final status = await _client.readSystemStatus();
+        if (status == 2) {
+          throw PLCException(
+            errorCode: PLCErrorCodes.systemFault,
+            message: 'PLC sistem hatası',
+            technicalDetail: 'STATUS_SYSTEM=2',
+          );
+        }
+        final idle = status == 0;
+        yield idle;
+        if (idle) break;
+        await Future.delayed(Duration(milliseconds: _timings.systemIdlePollMs));
+      }
+    } on PLCException catch (e) {
+      _logger.error('watchSystemIdle hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Ödeme — Blok 3
+  // -------------------------------------------------------------------------
+
+  /// PAYMENT_AMOUNT (R301) yazar, ardından CMD_ACTION=3 gönderir ve ACK bekler.
+  ///
+  /// [amountMinorUnits]: ödeme tutarı en küçük para birimi cinsinden
+  /// (örn. 490 TL → 49000 kuruş). 0 geçilirse yazma atlanır.
+  Future<void> startPayment(int slot, {int amountMinorUnits = 0}) async {
+    _ensureConnected();
+    try {
+      if (amountMinorUnits > 0) {
+        await _client.writePaymentAmount(amountMinorUnits);
+        _logger.debug('PAYMENT_AMOUNT=$amountMinorUnits yazıldı');
+      }
+      _logger.debug('Ödeme başlatılıyor → slot=$slot');
+      final seqId = await _client.sendCommand(PLCCommandAction.startPayment, slot);
+      final ok = await _client.waitForCommandAck(
+        seqId,
+        timeout: Duration(seconds: _timings.commandAckTimeoutSec),
+      );
+      if (!ok) {
+        throw PLCException(
+          errorCode: PLCErrorCodes.commandRejected,
+          message: 'Ödeme başlatma komutu reddedildi',
+        );
+      }
+      _logger.debug('Ödeme başlatma ACK ✓');
+    } on PLCException catch (e) {
+      _logger.error('startPayment hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  /// PAYMENT_CONFIRMED_ACK (R302) = 1 yazar; PLC sıfırlar.
+  Future<void> confirmPayment() async {
+    _ensureConnected();
+    try {
+      await _client.writePaymentConfirmedAck();
+      _logger.debug('Ödeme onayı yazıldı (R302=1)');
+    } on PLCException catch (e) {
+      _logger.error('confirmPayment hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  /// CMD_ACTION=2 (satış_bas) gönderir ve ACK bekler.
+  Future<void> sendSale(int slot) async {
+    _ensureConnected();
+    try {
+      _logger.debug('Satış komutu → slot=$slot');
+      final seqId = await _client.sendCommand(PLCCommandAction.salePress, slot);
+      final ok = await _client.waitForCommandAck(
+        seqId,
+        timeout: Duration(seconds: _timings.commandAckTimeoutSec),
+      );
+      if (!ok) {
+        throw PLCException(
+          errorCode: PLCErrorCodes.commandRejected,
+          message: 'Satış komutu reddedildi',
+          technicalDetail: 'slot=$slot',
+        );
+      }
+      _logger.debug('Satış ACK ✓ slot=$slot');
+    } on PLCException catch (e) {
+      _logger.error('sendSale hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  /// PAYMENT_STATUS (R300) stream'i — 0=bekliyor, 1=onay, 2=ret, 3=timeout.
+  Stream<int> watchPaymentStatus() async* {
+    _ensureConnected();
+    try {
+      yield* _client.watchPaymentStatus(
+        pollInterval: Duration(milliseconds: _timings.paymentStatusPollMs),
+      );
+    } on PLCException catch (e) {
+      _logger.error('watchPaymentStatus hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  /// SALE_COMPLETED (R303) stream'i — `true` emit edilince satış tamamdır.
+  Stream<bool> watchSaleCompleted() async* {
+    _ensureConnected();
+    try {
+      yield* _client.watchSaleCompleted(
+        pollInterval: Duration(milliseconds: _timings.saleCompletedPollMs),
+      );
+    } on PLCException catch (e) {
+      _logger.error('watchSaleCompleted hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Sensörler — Blok 4
+  // -------------------------------------------------------------------------
+
+  /// SENSOR_STOCK_1..24 (R401–R424) batch okur.
+  ///
+  /// Index 0 = slot-1, index 23 = slot-24. 0=boş, 1=dolu.
+  Future<List<int>> readStockSensors() async {
+    _ensureConnected();
+    try {
+      return await _client.readStockSensors();
+    } on PLCException catch (e) {
+      _logger.error('readStockSensors hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Hata — Blok 5
+  // -------------------------------------------------------------------------
+
+  /// İki hata slotunu okur: birincil (R500/R501) + ikincil (R502/R503).
+  Future<({int code, int slot, int code2, int slot2})> readErrors() async {
+    _ensureConnected();
+    try {
+      return await _client.readErrors();
+    } on PLCException catch (e) {
+      _logger.error('readErrors hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Admin: doğrudan register erişimi
+  // -------------------------------------------------------------------------
+
+  /// Herhangi bir holding register'ı okur (admin paneli için).
+  Future<int> readRegister(int address) async {
+    _ensureConnected();
+    try {
+      return await _client.readRegister(address);
+    } on PLCException catch (e) {
+      _logger.error('readRegister($address) hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  /// Herhangi bir holding register'a yazar (admin paneli için).
+  Future<void> writeRegister(int address, int value) async {
+    _ensureConnected();
+    try {
+      await _client.writeRegister(address, value);
+    } on PLCException catch (e) {
+      _logger.error('writeRegister($address, $value) hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Sistem sıfırlama
+  // -------------------------------------------------------------------------
+
+  /// CMD_ACTION=5 (oturumu_iptal_et) gönderir.
+  ///
+  /// Tester basımı veya ödeme akışı sırasında kullanıcı geri dönerse
+  /// PLC'ye güvenli durma sinyali verir. ACK beklenmez.
+  Future<void> abortSession() async {
+    if (!isConnected) return;
+    try {
+      _logger.debug('Oturum iptal ediliyor...');
+      await _client.sendCommand(PLCCommandAction.abortSession, 0);
+      _logger.debug('Abort komutu gönderildi');
+    } on PLCException catch (e) {
+      _logger.warning('abortSession hatası (görmezden geliniyor): ${e.message}');
+    }
+  }
+
+  /// ERROR_ACK (R504) = 1 yazar; PLC hata registerlarını temizler.
+  Future<void> acknowledgeError() async {
+    if (!isConnected) return;
+    try {
+      await _client.writeErrorAck();
+      _logger.debug('ERROR_ACK=1 yazıldı');
+    } on PLCException catch (e) {
+      _logger.warning('acknowledgeError hatası: ${e.message}');
+    }
+  }
+
+  /// CMD_ACTION=4 (sistem_sıfırla) gönderir.
+  Future<void> resetSystem() async {
+    _ensureConnected();
+    try {
+      _logger.info('Sistem sıfırlanıyor...');
+      final seqId = await _client.sendCommand(PLCCommandAction.systemReset, 0);
+      await _client.waitForCommandAck(
+        seqId,
+        timeout: Duration(seconds: _timings.commandAckTimeoutSec),
+      );
+      _logger.info('Sistem sıfırlama ACK ✓');
+    } on PLCException catch (e) {
+      _logger.error('resetSystem hatası: ${e.message}');
+      _handleError(e);
+      rethrow;
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Private helpers
-  // ---------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
 
   void _ensureConnected() {
     if (!isConnected) {
       throw PLCException(
         errorCode: PLCErrorCodes.connectionLost,
-        message: 'PLC not connected',
+        message: 'PLC bağlı değil',
       );
     }
   }
 
+  /// Bağlantı kopukluğu hatası mı? (401–405)
+  ///
+  /// Komut hatası (414 timeout, 432 rejected, 433 systemFault) bağlantıyı
+  /// error state'e çevirmemeli; PLC TCP bağlantısı hâlâ sağlıklı olabilir.
+  bool _isConnectionError(PLCException e) {
+    const connectionCodes = {
+      PLCErrorCodes.connectionFailed,
+      PLCErrorCodes.connectionTimeout,
+      PLCErrorCodes.connectionLost,
+      PLCErrorCodes.invalidHost,
+      PLCErrorCodes.portNotAvailable,
+    };
+    return connectionCodes.contains(e.errorCode);
+  }
+
   void _handleError(PLCException error) {
     _lastError = error;
-    _updateState(PLCConnectionState.error);
+    if (_isConnectionError(error)) {
+      _updateState(PLCConnectionState.error);
+    }
     onError?.call(error);
   }
 
@@ -270,17 +446,9 @@ class PLCServiceManager extends ChangeNotifier {
   }
 }
 
-/// Represents the lifecycle state of the PLC connection.
 enum PLCConnectionState {
-  /// No connection has been attempted or the connection was explicitly closed.
   disconnected,
-
-  /// A connection attempt is currently in progress.
   connecting,
-
-  /// The connection is established and the PLC is ready for communication.
   connected,
-
-  /// A fault has occurred; inspect [PLCServiceManager.lastError] for details.
   error,
 }

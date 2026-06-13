@@ -51,20 +51,14 @@ class _ManualControlState extends State<ManualControl> {
     });
 
     try {
-      // TODO: call direct read method
-      // mock for now
-      await Future.delayed(const Duration(milliseconds: 500));
-      const value = 42;
-
+      final value = await widget.plcService.readRegister(register);
       setState(() {
-        _lastResult = 'Register R$register = $value';
+        _lastResult = 'R$register = $value';
       });
-
-      PLCEventLogger.instance.logRead(register, value);
     } catch (e) {
       _showError('Read error: $e');
       PLCEventLogger.instance
-          .logError('Register $register read error', error: e.toString());
+          .logError('R$register read error', error: e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -152,19 +146,14 @@ class _ManualControlState extends State<ManualControl> {
     });
 
     try {
-      // TODO: call direct write method
-      // mock for now
-      await Future.delayed(const Duration(milliseconds: 500));
-
+      await widget.plcService.writeRegister(register, value);
       setState(() {
-        _lastResult = 'Register R$register = $value (written)';
+        _lastResult = 'R$register = $value (written)';
       });
-
-      PLCEventLogger.instance.logWrite(register, value);
     } catch (e) {
       _showError('Write error: $e');
       PLCEventLogger.instance
-          .logError('Register $register write error', error: e.toString());
+          .logError('R$register write error', error: e.toString());
     } finally {
       setState(() {
         _isLoading = false;
@@ -324,24 +313,40 @@ class _ManualControlState extends State<ManualControl> {
             runSpacing: 12,
             children: [
               _QuickActionChip(
-                label: 'R0 (Suggestion 1)',
-                onTap: () => setState(() => _registerController.text = '0'),
-              ),
-              _QuickActionChip(
-                label: 'R10 (Tester)',
-                onTap: () => setState(() => _registerController.text = '10'),
-              ),
-              _QuickActionChip(
-                label: 'R20 (Payment)',
-                onTap: () => setState(() => _registerController.text = '20'),
-              ),
-              _QuickActionChip(
-                label: 'R30 (Perfume)',
-                onTap: () => setState(() => _registerController.text = '30'),
-              ),
-              _QuickActionChip(
-                label: 'R100 (Heartbeat)',
+                label: 'R100 CMD_ACTION',
                 onTap: () => setState(() => _registerController.text = '100'),
+              ),
+              _QuickActionChip(
+                label: 'R200 STATUS_SYSTEM',
+                onTap: () => setState(() => _registerController.text = '200'),
+              ),
+              _QuickActionChip(
+                label: 'R201 LAST_CMD_SEQ',
+                onTap: () => setState(() => _registerController.text = '201'),
+              ),
+              _QuickActionChip(
+                label: 'R300 PAYMENT_STATUS',
+                onTap: () => setState(() => _registerController.text = '300'),
+              ),
+              _QuickActionChip(
+                label: 'R303 SALE_COMPLETED',
+                onTap: () => setState(() => _registerController.text = '303'),
+              ),
+              _QuickActionChip(
+                label: 'R400 PRESENCE',
+                onTap: () => setState(() => _registerController.text = '400'),
+              ),
+              _QuickActionChip(
+                label: 'R500 ERROR_CODE',
+                onTap: () => setState(() => _registerController.text = '500'),
+              ),
+              _QuickActionChip(
+                label: 'R600 PLC_HB',
+                onTap: () => setState(() => _registerController.text = '600'),
+              ),
+              _QuickActionChip(
+                label: 'R601 FLUTTER_HB',
+                onTap: () => setState(() => _registerController.text = '601'),
               ),
             ],
           ),

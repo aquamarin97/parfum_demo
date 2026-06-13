@@ -7,6 +7,7 @@ import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import '../core/constants/app_constants.dart';
 import '../core/logging/app_logger.dart';
 import '../core/strings/app_strings.dart';
+import '../domain/plc/plc_timings.dart';
 import '../domain/session/timer_coordinator.dart';
 import 'i_result_context.dart';
 import '../data/models/kvkk_text.dart';
@@ -20,6 +21,7 @@ import '../data/repositories/i_survey_repository.dart';
 import '../data/local/preferences_store.dart';
 import '../domain/engine/recommendation_engine.dart';
 import '../domain/session/session_manager.dart';
+import '../domain/session/session_snapshot.dart';
 import '../domain/session/timeout_watcher.dart';
 import '../domain/state/app_state.dart';
 import '../domain/state/app_state_machine.dart';
@@ -94,12 +96,22 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
 
   int _price = 490;
   String _currency = 'TL';
+  PLCTimings _timings = PLCTimings.defaults;
+  Map<int, int> _slotPrices = {};
   Map<int, int> _answers = {};
   Map<int, int> _scores = {};
   Recommendation _recommendation = Recommendation(topIds: []);
 
   int _languageVersion = 0;
   int get languageVersion => _languageVersion;
+
+  SessionSnapshot? _recoverableSession;
+
+  /// Kurtarılabilir geçerli bir oturum varsa `true`.
+  bool get hasRecoverableSession => _recoverableSession != null;
+
+  /// Kurtarılabilir oturumun önerileri (IdleScreen kartı için).
+  SessionSnapshot? get recoverableSession => _recoverableSession;
 
   /// Guards against calling [initialize] more than once.
   bool _setupStarted = false;
@@ -130,10 +142,24 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
   PLCServiceManager get plcService => _plcService;
 
   /// The product price shown on the payment screen.
+  @override
   int get price => _price;
 
   /// The currency unit shown alongside the price (e.g. `'TL'`).
+  @override
   String get currency => _currency;
+
+  /// Aktif PLC zaman aşımı / polling parametreleri.
+  PLCTimings get timings => _timings;
+
+  /// Slot bazlı fiyat haritası (salt okunur kopi).
+  Map<int, int> get slotPrices => Map.unmodifiable(_slotPrices);
+
+  /// Belirtilen slot için ürün fiyatını döner (TL).
+  ///
+  /// [_slotPrices]'da tanımlıysa slot fiyatı, aksi hâlde global [_price].
+  @override
+  int priceForSlot(int slotId) => _slotPrices[slotId] ?? _price;
 
   /// Fully formatted price label for the active language and current settings.
   @override
@@ -241,9 +267,14 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
       await _preferencesStore.readOrCreateDeviceId();
       _price = await _preferencesStore.readPrice();
       _currency = await _preferencesStore.readCurrency();
+      _timings = await _preferencesStore.readTimings();
+      _slotPrices = await _preferencesStore.readSlotPrices();
+      _plcService.updateTimings(_timings);
+      await _scoringEngine.initialize();
       _survey = await _surveyRepository.loadSurvey();
       _kvkkText = await _kvkkRepository.loadKvkk();
       _stringMap = await _i18nRepository.loadStrings();
+      _recoverableSession = await _preferencesStore.readSession();
       _timeoutWatcher = TimeoutWatcher(
         timeout: AppConstants.inactivityTimeout,
         onTimeout: _handleTimeout,
@@ -329,6 +360,30 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     _setState(const IdleState());
   }
 
+  /// Kaydedilmiş oturumu kullanarak doğrudan [ResultState]'e geçer.
+  ///
+  /// Kullanıcının soruları yeniden yanıtlaması gerekmez.
+  void recoverSession() {
+    final snap = _recoverableSession;
+    if (snap == null || !snap.isValid) return;
+    _recommendation = Recommendation(topIds: snap.topIds);
+    _recoverableSession = null;
+    _setState(ResultState(_recommendation));
+  }
+
+  /// Kaydedilmiş oturumu iptal eder (kullanıcı kartı kapattı).
+  void dismissRecovery() {
+    _recoverableSession = null;
+    _preferencesStore.clearSession();
+    notifyListeners();
+  }
+
+  @override
+  void clearSession() {
+    _recoverableSession = null;
+    _preferencesStore.clearSession();
+  }
+
   /// Updates the product price and persists the new value.
   Future<void> setPrice(int price) async {
     if (_price == price) return;
@@ -342,6 +397,28 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     if (_currency == currency) return;
     _currency = currency;
     await _preferencesStore.saveCurrency(currency);
+    notifyListeners();
+  }
+
+  /// PLC timing parametrelerini günceller, PLC service'e uygular ve kaydeder.
+  Future<void> setTimings(PLCTimings t) async {
+    _timings = t;
+    _plcService.updateTimings(t);
+    await _preferencesStore.saveTimings(t);
+    notifyListeners();
+  }
+
+  /// Belirli bir slot için fiyat override'ı tanımlar ve kaydeder.
+  Future<void> setSlotPrice(int slot, int price) async {
+    _slotPrices = Map.of(_slotPrices)..[slot] = price;
+    await _preferencesStore.saveSlotPrices(_slotPrices);
+    notifyListeners();
+  }
+
+  /// Slot fiyat override'ını siler (global fiyata geri döner).
+  Future<void> clearSlotPrice(int slot) async {
+    _slotPrices = Map.of(_slotPrices)..remove(slot);
+    await _preferencesStore.saveSlotPrices(_slotPrices);
     notifyListeners();
   }
 
@@ -423,6 +500,14 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
       return;
     }
     _logger.log('State → ${next.runtimeType}');
+    if (next is ResultState && next.recommendation.topIds.isNotEmpty) {
+      _preferencesStore.saveSession(
+        SessionSnapshot(
+          topIds: next.recommendation.topIds,
+          savedAt: DateTime.now(),
+        ),
+      );
+    }
     notifyListeners();
   }
 
