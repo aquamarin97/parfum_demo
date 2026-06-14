@@ -25,8 +25,8 @@ class HelpButton extends StatelessWidget {
     }
 
     return Positioned(
-      left: 272,
-      bottom: 16,
+      left: 150,
+      bottom: 24,
       child: GestureDetector(
         onTap: () => _showDialog(context),
         child: Container(

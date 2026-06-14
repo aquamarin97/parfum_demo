@@ -1,5 +1,5 @@
 # Parfüm Kiosk — PLC Entegrasyon Dokümanı
-**Register Haritası v1.1 · 2026-06-13**
+**Register Haritası v1.1 · 2026-06-14**
 
 ---
 
@@ -12,10 +12,16 @@
 | Port | `502` |
 | Slave ID | `1` |
 | Bağlantı Timeout | 3000 ms |
-| Retry Sayısı | 3 |
+| Yanıt Timeout | 2000 ms |
 | Register Türü | Holding Registers (4x) |
 
 > IP adresi `assets/config/plc_registers.json` üzerinden yapılandırılabilir.
+
+**Bağlantı kurulurken uygulama şu adımları uygular:**
+1. TCP bağlantısı açılır (3000 ms timeout).
+2. Bağlantı testi olarak `PLC_HEARTBEAT` (R600) bir kez okunur.
+3. Her 10 saniyede bir `PLC_HEARTBEAT` okunarak bağlantı sağlık kontrolü yapılır.
+4. Bağlantı koptuğunda uygulama ekranda hata gösterir ve yeniden bağlanmayı 5 kez dener (üstel gecikme: 2 s, 4 s, 8 s, 16 s, 32 s).
 
 ---
 
@@ -89,15 +95,15 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 | 2 | Reddedildi |
 | 3 | Timeout |
 
-> `PAYMENT_AMOUNT`: Değer TL cinsindendir. Örnek: 690 TL → `690`. Maksimum: 65535 TL.
+> `PAYMENT_AMOUNT`: Değer **TL cinsinden tam sayı**dır. Örnek: 690 TL → `690`. Maksimum: 65535 TL.
 
 **Register temizleme sorumlulukları:**
 
 | Register | Kim temizler? | Ne zaman? |
 |---|---|---|
 | `PAYMENT_STATUS` (R300) | PLC | Yeni `Ödeme Başlat` komutu kabul edildiğinde `0` yapar. Ödeme sonucu oluşunca `1`, `2` veya `3` yazar. Oturum iptali ve sistem sıfırlamada tekrar `0` yapar. |
-| `PAYMENT_CONFIRMED_ACK` (R302) | Flutter + PLC | Flutter yeni ödeme başlatmadan önce `0` yazar. Ödeme onaylandıktan sonra Flutter `1` yazar. PLC bu `1` değerini okuduktan sonra tekrar `0` yapar. Oturum iptali ve sistem sıfırlamada PLC `0` yapar. |
-| `SALE_COMPLETED` (R303) | Flutter + PLC | PLC dağıtım tamamlanınca `1` yazar. Flutter `1` değerini okuduktan sonra bir sonraki oturum için `0` yazar. PLC yeni satış komutu, oturum iptali ve sistem sıfırlamada bu register'ı `0` kabul edecek şekilde temizler. |
+| `PAYMENT_CONFIRMED_ACK` (R302) | Flutter + PLC | Flutter yeni ödeme başlatmadan önce `0` yazar. Ödeme onaylandıktan sonra Flutter `1` yazar. PLC bu `1` değerini okuyunca tekrar `0` yapar. Oturum iptali ve sistem sıfırlamada PLC `0` yapar. |
+| `SALE_COMPLETED` (R303) | Flutter + PLC | PLC dağıtım tamamlanınca `1` yazar. Flutter `1` değerini okuyunca sıfırlamayı kendisi yapar (`R303 = 0`). PLC yeni satış komutu, oturum iptali ve sistem sıfırlamada bu register'ı `0` kabul edecek şekilde temizler. |
 
 > Flutter oturum iptalinde registerları tek tek temizlemez; yalnızca `CMD_ACTION=5` komutunu gönderir. İptal sonrası güvenli register temizliği PLC'nin sorumluluğundadır.
 
@@ -116,6 +122,8 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 |---|---|
 | 0 | Boş / Kullanıcı Yok |
 | 1 | Dolu / Kullanıcı Var |
+
+> Flutter stok registerlarını **tek sorguda toplu okur** (Modbus FC03, 24 register, R401–R424).
 
 ---
 
@@ -141,6 +149,8 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 | 5 | Ödeme Timeout |
 | 6 | Aşırı Isınma |
 
+> İkincil hata yoksa `ERROR_CODE_2 = 0` olmalıdır.
+
 ---
 
 ### Blok 6 — Heartbeat · Çift Yönlü
@@ -150,8 +160,9 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 | 600 | 400601 | PLC_HEARTBEAT | PLC → Flutter | PLC sağlık sinyali |
 | 601 | 400602 | FLUTTER_HEARTBEAT | Flutter → PLC | Uygulama sağlık sinyali |
 
-> Her iki taraf da kendi heartbeat değerini her saniye 1 artırır (0–65535 döngüsel).  
-> Flutter, `PLC_HEARTBEAT` değişmezse bağlantıyı kesilmiş kabul eder.
+> Her iki taraf da kendi heartbeat değerini her saniye `1` artırır (0–65535, döngüsel).  
+> Flutter, `PLC_HEARTBEAT` değişmezse bağlantıyı kesilmiş kabul eder.  
+> Flutter, `FLUTTER_HEARTBEAT`'i her saniye yazar; PLC bu değerin artmadığını görürse uygulamanın kilitlendiğini anlayabilir.
 
 ---
 
@@ -160,10 +171,10 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 Flutter her komut gönderiminde şu sırayı izler:
 
 ```
-1. Flutter yazar:
+1. Flutter yazar (sırayla):
    CMD_SLOT     (R101) ← hedef slot
-   CMD_ACTION   (R100) ← komut türü      ← PLC bu yazmayı trigger noktası olarak alır
-   CMD_SEQ_ID   (R102) ← sıra numarası
+   CMD_ACTION   (R100) ← komut türü
+   CMD_SEQ_ID   (R102) ← sıra numarası  ← PLC'nin trigger noktası (son yazılan)
 
 2. PLC komutları işler ve yazar:
    LAST_CMD_SEQ_ID  (R201) ← Flutter'ın gönderdiği CMD_SEQ_ID değerini yazar
@@ -174,7 +185,7 @@ Flutter her komut gönderiminde şu sırayı izler:
    R201 != CMD_SEQ_ID → bekle (max. 30 saniye, sonra timeout hatası)
 ```
 
-**Önemli:** PLC, `CMD_SEQ_ID` yazılana kadar komutu işlememeli; `CMD_SEQ_ID` yazıldığında tüm komut verisi (`ACTION` + `SLOT`) hazır demektir.
+**Önemli:** PLC için gerçek tetikleyici `CMD_SEQ_ID` (R102) yazılmasıdır — bu register en son yazılır. R102 yazıldığında hem `CMD_ACTION` hem `CMD_SLOT` verileri zaten hazırdır; PLC komutu bu noktada işlemeye başlamalıdır.
 
 ---
 
@@ -188,7 +199,7 @@ Müşteri anketi tamamladığında uygulama 3 parfüm önerir ve her biri için 
 Flutter → PLC (slot A için):
   R101 = <slotId_A>
   R100 = 1  (Tester Bas)
-  R102 = N  (sıra numarası)
+  R102 = N  (sıra numarası — son yazılan, trigger)
 
 PLC → Flutter (ACK):
   R201 = N
@@ -215,11 +226,11 @@ Müşteri bir tester seçtiğinde:
 
 ```
 Flutter → PLC:
-  R302 = 0             (PAYMENT_CONFIRMED_ACK sıfırlanmış olmalı)
-  R301 = <tutar_kurus> (Örn: 59000 → 590 TL)
+  R302 = 0                  (PAYMENT_CONFIRMED_ACK önceden sıfırlanır)
+  R301 = <tutar_tl>         (Örn: 690 TL → 690)
   R101 = <seçilen_slotId>
-  R100 = 2             (Ödeme Başlat)
-  R102 = N+1
+  R100 = 2                  (Ödeme Başlat)
+  R102 = N+1                (trigger)
 
 PLC → Flutter (ACK):
   R201 = N+1
@@ -252,7 +263,7 @@ Flutter → PLC:
 Flutter → PLC:
   R101 = <seçilen_slotId>
   R100 = 3  (Satış Bas)
-  R102 = N+2
+  R102 = N+2  (trigger)
 
 PLC → Flutter (ACK):
   R201 = N+2
@@ -271,6 +282,8 @@ Flutter → PLC (bir sonraki oturum için sıfırla):
   R303 = 0
 ```
 
+> `R303 = 0` yazma işlemi **Flutter tarafından** yapılır, PLC beklememelidir.
+
 ---
 
 ## 5. Hata Yönetimi
@@ -285,23 +298,27 @@ R501 = <hata_slotu>
 R200 = 2  (STATUS_SYSTEM = Hata)
 ```
 
-Flutter R200 = 2 gördüğünde kullanıcıya "Cihaz Hizmet Dışı" ekranı gösterir.
+Flutter `R200 = 2` gördüğünde kullanıcıya "Cihaz Hizmet Dışı" ekranı gösterir.
 
 Flutter hatayı işledikten sonra:
 ```
 R504 = 1  (ERROR_ACK)
 ```
 
+> `ERROR_ACK = 1` yazıldıktan sonra PLC hata registerlarını temizlemeli ve `STATUS_SYSTEM`'i `0`'a döndürmelidir.
+
 ### Flutter Kaynaklı Oturum İptali
 
-Kullanıcı işlemi iptal ederse:
+Kullanıcı işlemi iptal ederse veya inaktivite timeout'u dolduğunda:
 
 ```
 Flutter → PLC:
   R101 = 0
   R100 = 5  (Oturumu İptal Et)
-  R102 = N+1
+  R102 = N+1  (trigger)
 ```
+
+> Bu komut için Flutter ACK beklemez. PLC tüm aktif işlemleri durdurup registerları temizlemelidir.
 
 ### Sistem Sıfırlama
 
@@ -309,7 +326,7 @@ Flutter → PLC:
 Flutter → PLC:
   R101 = 0
   R100 = 4  (Sistem Sıfırla)
-  R102 = N+1
+  R102 = N+1  (trigger)
 ```
 
 ---
@@ -324,10 +341,29 @@ Flutter → PLC:
 | SALE_COMPLETED polling aralığı | 500 ms | Evet (admin paneli) |
 | Heartbeat yazma aralığı | 1 saniye | Hayır |
 | Bağlantı health check aralığı | 10 saniye | Hayır |
+| Bağlantı timeout | 3000 ms | Hayır |
+| Modbus yanıt timeout | 2000 ms | Hayır |
 
 ---
 
-## 7. Slot — Parfüm Eşlemesi
+## 7. Devreye Alma Kontrol Listesi
+
+PLC programı yazımı tamamlandığında aşağıdaki adımları sırayla test edin:
+
+- [ ] **Bağlantı**: Uygulama açıldığında PLC IP'sine bağlanıyor, sol altta yeşil dot görünüyor.
+- [ ] **Heartbeat**: `R600 (PLC_HEARTBEAT)` her saniye artıyor; `R601 (FLUTTER_HEARTBEAT)` her saniye artıyor.
+- [ ] **Tester komutu**: Anket tamamlandığında `R100=1, R101=<slot>, R102=N` yazılıyor; PLC `R201=N, R202=0` ile ACK gönderiyor.
+- [ ] **Sistem boşta**: Testerlar fiziksel olarak hazırlandıktan sonra `R200=0` yazılıyor.
+- [ ] **Ödeme başlatma**: `R302=0, R301=<tutar_tl>, R100=2, R102=N+1` yazılıyor; PLC ACK gönderiyor.
+- [ ] **Ödeme onayı**: Ödeme terminali onaylayınca `R300=1`; Flutter `R302=1` yazıyor; PLC `R302=0` yapıyor.
+- [ ] **Satış**: `R100=3, R102=N+2` gönderiliyor; PLC ACK sonrası dağıtım tamamlandığında `R303=1` yazıyor; Flutter `R303=0` yazıyor.
+- [ ] **İptal**: Kullanıcı geri döndüğünde `R100=5` gönderiliyor; PLC tüm registerları temizliyor.
+- [ ] **Hata bildirimi**: `R200=2, R500=<kod>` yazıldığında uygulama hata ekranı gösteriyor; Flutter `R504=1` yazıyor.
+- [ ] **Kablo kesme**: PLC kablosu çekildiğinde uygulama en fazla 10 saniye içinde bağlantı hata ekranına geçiyor.
+
+---
+
+## 8. Slot — Parfüm Eşlemesi
 
 Sistem 24 slot destekler. Slot 1–12 erkek, 13–24 kadın ürünlerine ayrılmıştır.
 
@@ -360,13 +396,13 @@ Sistem 24 slot destekler. Slot 1–12 erkek, 13–24 kadın ürünlerine ayrılm
 
 ---
 
-## 8. Özet Register Tablosu
+## 9. Özet Register Tablosu
 
 | PDU | Simülatör | Register | Yön | Açıklama |
 |---|---|---|---|---|
 | 100 | 400101 | CMD_ACTION | F→P | Komut türü |
 | 101 | 400102 | CMD_SLOT | F→P | Hedef slot (1–24) |
-| 102 | 400103 | CMD_SEQ_ID | F→P | Sıra numarası (0–255) |
+| 102 | 400103 | CMD_SEQ_ID | F→P | Sıra numarası (0–255) — **trigger** |
 | 200 | 400201 | STATUS_SYSTEM | P→F | 0=Boşta 1=Meşgul 2=Hata |
 | 201 | 400202 | LAST_CMD_SEQ_ID | P→F | Son işlenen komut sıra no |
 | 202 | 400203 | LAST_CMD_RESULT | P→F | 0=OK 1=Hata |
@@ -389,5 +425,3 @@ Sistem 24 slot destekler. Slot 1–12 erkek, 13–24 kadın ürünlerine ayrılm
 **P→F:** PLC yazar, Flutter okur
 
 ---
-
-*Sorularınız için yazılım ekibiyle iletişime geçin.*

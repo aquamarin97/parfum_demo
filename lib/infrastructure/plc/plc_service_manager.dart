@@ -37,8 +37,10 @@ class PLCServiceManager extends ChangeNotifier {
   DateTime? _lastConnectedTime;
   int _reconnectAttempts = 0;
   PLCTimings _timings = PLCTimings.defaults;
+  Timer? _connectionMonitor;
 
   static const int maxReconnectAttempts = 5;
+  static const _monitorInterval = Duration(seconds: 5);
 
   PLCConnectionState get state => _state;
   PLCException? get lastError => _lastError;
@@ -70,6 +72,7 @@ class PLCServiceManager extends ChangeNotifier {
       _lastConnectedTime = DateTime.now();
       _reconnectAttempts = 0;
       _updateState(PLCConnectionState.connected);
+      _startConnectionMonitor();
       _logger.info('PLC bağlantısı kuruldu.');
     } on PLCException catch (e) {
       _logger.error('Bağlantı hatası ${e.errorCode}: ${e.message}');
@@ -85,6 +88,8 @@ class PLCServiceManager extends ChangeNotifier {
   }
 
   Future<void> disconnect() async {
+    _connectionMonitor?.cancel();
+    _connectionMonitor = null;
     try {
       await _client.disconnect();
       _updateState(PLCConnectionState.disconnected);
@@ -422,6 +427,21 @@ class PLCServiceManager extends ChangeNotifier {
     }
   }
 
+  void _startConnectionMonitor() {
+    _connectionMonitor?.cancel();
+    _connectionMonitor = Timer.periodic(_monitorInterval, (_) async {
+      if (_state != PLCConnectionState.connected) return;
+      final healthy = await checkHealth();
+      if (!healthy) {
+        _logger.warning('Bağlantı monitörü: PLC yanıt vermiyor — hata bildiriliyor.');
+        _handleError(PLCException(
+          errorCode: PLCErrorCodes.connectionLost,
+          message: 'PLC bağlantısı kesildi',
+        ));
+      }
+    });
+  }
+
   /// Bağlantı kopukluğu hatası mı? (401–405)
   ///
   /// Komut hatası (414 timeout, 432 rejected, 433 systemFault) bağlantıyı
@@ -454,6 +474,7 @@ class PLCServiceManager extends ChangeNotifier {
 
   @override
   void dispose() {
+    _connectionMonitor?.cancel();
     _client.disconnect().ignore();
     super.dispose();
   }
