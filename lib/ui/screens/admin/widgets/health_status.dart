@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 
@@ -11,9 +12,11 @@ class HealthStatus extends StatefulWidget {
   const HealthStatus({
     super.key,
     required this.plcService,
+    required this.adminStrings,
   });
 
   final PLCServiceManager plcService;
+  final AppStrings adminStrings;
 
   @override
   State<HealthStatus> createState() => _HealthStatusState();
@@ -27,6 +30,8 @@ class _HealthStatusState extends State<HealthStatus> {
   DateTime? _lastCheckTime;
   Duration _uptime = Duration.zero;
   DateTime? _connectedSince;
+
+  AppStrings get _s => widget.adminStrings;
 
   @override
   void initState() {
@@ -89,9 +94,9 @@ class _HealthStatusState extends State<HealthStatus> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'PLC Status',
-            style: TextStyle(
+          Text(
+            _s.t('admin_health_title'),
+            style: const TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w900,
               color: AdminColors.primaryText,
@@ -104,7 +109,7 @@ class _HealthStatusState extends State<HealthStatus> {
             children: [
               Expanded(
                 child: _StatusCard(
-                  title: 'Connection',
+                  title: _s.t('admin_health_connection'),
                   value: _getConnectionStatus(),
                   color: connColor,
                   icon: isConnected ? Icons.check_circle : Icons.error,
@@ -113,7 +118,7 @@ class _HealthStatusState extends State<HealthStatus> {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatusCard(
-                  title: 'Health Check',
+                  title: _s.t('admin_health_check'),
                   value: _getHealthStatus(),
                   color: healthColor,
                   icon: _lastHealthCheck == true
@@ -136,27 +141,27 @@ class _HealthStatusState extends State<HealthStatus> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _StatRow(
-                    label: 'State',
+                    label: _s.t('admin_health_state'),
                     value: state.toString().split('.').last.toUpperCase(),
                   ),
                   const Divider(color: AdminColors.divider, thickness: 1.5),
                   _StatRow(
-                    label: 'Uptime',
+                    label: _s.t('admin_health_uptime'),
                     value: _formatDuration(_uptime),
                   ),
                   const Divider(color: AdminColors.divider, thickness: 1.5),
                   _StatRow(
-                    label: 'Successful Checks',
+                    label: _s.t('admin_health_successful_checks'),
                     value: _successfulChecks.toString(),
                   ),
                   const Divider(color: AdminColors.divider, thickness: 1.5),
                   _StatRow(
-                    label: 'Failed Checks',
+                    label: _s.t('admin_health_failed_checks'),
                     value: _failedChecks.toString(),
                   ),
                   const Divider(color: AdminColors.divider, thickness: 1.5),
                   _StatRow(
-                    label: 'Last Check',
+                    label: _s.t('admin_health_last_check'),
                     value: _lastCheckTime != null
                         ? _formatTime(_lastCheckTime!)
                         : '--',
@@ -174,9 +179,9 @@ class _HealthStatusState extends State<HealthStatus> {
                 child: ElevatedButton.icon(
                   onPressed: isConnected ? null : () => _reconnect(),
                   icon: const Icon(Icons.refresh, size: 46),
-                  label: const Text(
-                    'Reconnect',
-                    style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900),
+                  label: Text(
+                    _s.t('admin_health_reconnect'),
+                    style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -194,9 +199,9 @@ class _HealthStatusState extends State<HealthStatus> {
                 child: ElevatedButton.icon(
                   onPressed: () => _performHealthCheck(),
                   icon: const Icon(Icons.health_and_safety, size: 46),
-                  label: const Text(
-                    'Run Health Check',
-                    style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900),
+                  label: Text(
+                    _s.t('admin_health_run_check'),
+                    style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -216,12 +221,14 @@ class _HealthStatusState extends State<HealthStatus> {
   }
 
   String _getConnectionStatus() {
-    return widget.plcService.isConnected ? 'CONNECTED' : 'DISCONNECTED';
+    return widget.plcService.isConnected
+        ? _s.t('admin_health_connected')
+        : _s.t('admin_health_disconnected');
   }
 
   String _getHealthStatus() {
-    if (_lastHealthCheck == null) return 'PENDING';
-    return _lastHealthCheck! ? 'HEALTHY' : 'UNHEALTHY';
+    if (_lastHealthCheck == null) return _s.t('admin_health_pending');
+    return _lastHealthCheck! ? _s.t('admin_health_healthy') : _s.t('admin_health_unhealthy');
   }
 
   String _formatDuration(Duration duration) {

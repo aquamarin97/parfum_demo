@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/domain/plc/plc_timings.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
@@ -12,9 +13,14 @@ import 'price_settings.dart';
 /// Her alan için minimum değer zorunludur; değişiklikler [AppViewModel.setTimings]
 /// üzerinden hem PLC service'e hem de [PreferencesStore]'a kaydedilir.
 class TimeoutSettings extends StatefulWidget {
-  const TimeoutSettings({super.key, required this.viewModel});
+  const TimeoutSettings({
+    super.key,
+    required this.viewModel,
+    required this.adminStrings,
+  });
 
   final AppViewModel viewModel;
+  final AppStrings adminStrings;
 
   @override
   State<TimeoutSettings> createState() => _TimeoutSettingsState();
@@ -26,6 +32,8 @@ class _TimeoutSettingsState extends State<TimeoutSettings> {
   late final TextEditingController _payCtrl;
   late final TextEditingController _saleCtrl;
   bool _saving = false;
+
+  AppStrings get _s => widget.adminStrings;
 
   @override
   void initState() {
@@ -52,10 +60,10 @@ class _TimeoutSettingsState extends State<TimeoutSettings> {
     final pay  = int.tryParse(_payCtrl.text.trim());
     final sale = int.tryParse(_saleCtrl.text.trim());
 
-    if (ack == null || ack < 5)  { _err('ACK zaman aşımı en az 5 saniye olmalı'); return; }
-    if (idle == null || idle < 100) { _err('Sistem polling en az 100 ms olmalı'); return; }
-    if (pay == null || pay < 200)   { _err('Ödeme polling en az 200 ms olmalı'); return; }
-    if (sale == null || sale < 100) { _err('Satış polling en az 100 ms olmalı'); return; }
+    if (ack == null || ack < 5)    { _err(_s.t('admin_timeout_ack_error')); return; }
+    if (idle == null || idle < 100) { _err(_s.t('admin_timeout_idle_error')); return; }
+    if (pay == null || pay < 200)   { _err(_s.t('admin_timeout_payment_error')); return; }
+    if (sale == null || sale < 100) { _err(_s.t('admin_timeout_sale_error')); return; }
 
     setState(() => _saving = true);
     await widget.viewModel.setTimings(PLCTimings(
@@ -65,7 +73,7 @@ class _TimeoutSettingsState extends State<TimeoutSettings> {
       saleCompletedPollMs:  sale,
     ));
     setState(() => _saving = false);
-    _snack('Kaydedildi');
+    _snack(_s.t('admin_saved'));
   }
 
   void _err(String msg) => _snack(msg, isError: true);
@@ -85,7 +93,7 @@ class _TimeoutSettingsState extends State<TimeoutSettings> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'PLC Zaman Aşımı Ayarları',
+          _s.t('admin_timeout_title'),
           style: TextStyle(
             fontSize: AppSizes.adminAppBarTitleSize,
             fontWeight: FontWeight.w800,
@@ -94,7 +102,7 @@ class _TimeoutSettingsState extends State<TimeoutSettings> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Değişiklikler anında uygulanır — devam eden işlemleri etkilemez.',
+          _s.t('admin_timeout_subtitle'),
           style: TextStyle(
             fontSize: AppSizes.adminDialogBodySize - 2,
             color: AdminColors.secondaryText,
@@ -102,28 +110,28 @@ class _TimeoutSettingsState extends State<TimeoutSettings> {
         ),
         const SizedBox(height: 28),
         AdminField(
-          label: 'Komut ACK Bekleme (saniye)',
+          label: _s.t('admin_timeout_ack_label'),
           controller: _ackCtrl,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
         const SizedBox(height: 20),
         AdminField(
-          label: 'Sistem Boşta Polling (ms)',
+          label: _s.t('admin_timeout_idle_label'),
           controller: _idleCtrl,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
         const SizedBox(height: 20),
         AdminField(
-          label: 'Ödeme Durumu Polling (ms)',
+          label: _s.t('admin_timeout_payment_label'),
           controller: _payCtrl,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
         const SizedBox(height: 20),
         AdminField(
-          label: 'Satış Tamamlanma Polling (ms)',
+          label: _s.t('admin_timeout_sale_label'),
           controller: _saleCtrl,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -148,9 +156,9 @@ class _TimeoutSettingsState extends State<TimeoutSettings> {
                     child: CircularProgressIndicator(
                         strokeWidth: 3, color: Colors.white),
                   )
-                : const Text(
-                    'Kaydet',
-                    style: TextStyle(
+                : Text(
+                    _s.t('admin_save'),
+                    style: const TextStyle(
                       fontSize: AppSizes.adminDialogActionSize,
                       fontWeight: FontWeight.w700,
                     ),

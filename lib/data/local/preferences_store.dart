@@ -27,6 +27,8 @@ class PreferencesStore {
   static const _keyTimingPayPollMs     = 'pref_timing_pay_poll_ms';
   static const _keyTimingSalePollMs    = 'pref_timing_sale_poll_ms';
   static const _keySlotPrices          = 'pref_slot_prices';
+  static const _keySupportName         = 'pref_support_name';
+  static const _keySupportPhone        = 'pref_support_phone';
 
   static const _defaultPrice = 490;
   static const _defaultCurrency = 'TL';
@@ -154,6 +156,30 @@ class PreferencesStore {
     final prefs = await _prefs;
     final encoded = jsonEncode(prices.map((k, v) => MapEntry(k.toString(), v)));
     await prefs.setString(_keySlotPrices, encoded);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Support Contact
+  // ---------------------------------------------------------------------------
+
+  Future<String> readSupportName() async {
+    final prefs = await _prefs;
+    return prefs.getString(_keySupportName) ?? '';
+  }
+
+  Future<void> saveSupportName(String name) async {
+    final prefs = await _prefs;
+    await prefs.setString(_keySupportName, name);
+  }
+
+  Future<String> readSupportPhone() async {
+    final prefs = await _prefs;
+    return prefs.getString(_keySupportPhone) ?? '';
+  }
+
+  Future<void> saveSupportPhone(String phone) async {
+    final prefs = await _prefs;
+    await prefs.setString(_keySupportPhone, phone);
   }
 
   /// Returns the device ID, creating and persisting a new UUID v4 if

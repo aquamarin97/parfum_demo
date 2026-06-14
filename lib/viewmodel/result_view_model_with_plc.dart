@@ -28,16 +28,28 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
   final PLCServiceManager plcService;
 
+  static const Duration _testerReadyTimeout = Duration(seconds: 90);
+  static const Duration _saleCompletedTimeout = Duration(seconds: 180);
+
   StreamSubscription? _plcSubscription;
+  Timer? _flowTimer;
+  Timer? _testerReadyTimeoutTimer;
+  Timer? _saleCompletedTimeoutTimer;
 
   int? _selectedSlot;
   int _paymentAmountTL = 0;
+  bool _disposed = false;
+  bool _saleCommandStarted = false;
+  bool _flowCompleted = false;
+
+  bool get _isActive => !_disposed;
 
   // -------------------------------------------------------------------------
   // Başlatma
   // -------------------------------------------------------------------------
 
   void _initializePLCFlow() {
+    if (!_isActive) return;
     addKeyedMessage(
       'fragrance_recommendations_selected',
       TimelineMessageStatus.completed,
@@ -46,7 +58,9 @@ class ResultViewModelWithPLC extends ResultViewModel {
     final names = topIds.map((id) => '${PerfumeCatalogue.nameOf(id)} (slot $id)').join(', ');
     debugPrint('[ResultVM] Önerilen testerlar: $names');
 
-    Future.delayed(const Duration(seconds: 2), _sendTesterCommandsToPLC);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (_isActive) _sendTesterCommandsToPLC();
+    });
   }
 
   // -------------------------------------------------------------------------
@@ -54,16 +68,19 @@ class ResultViewModelWithPLC extends ResultViewModel {
   // -------------------------------------------------------------------------
 
   Future<void> _sendTesterCommandsToPLC() async {
+    if (!_isActive || topIds.isEmpty) return;
     try {
       await plcService.sendTesterCommands(topIds);
+      if (!_isActive) return;
       debugPrint('[ResultVM] Tester komutları ACK ✓');
       _onTestersPreparing();
     } on PLCException catch (e) {
-      _handlePLCError(e);
+      plcService.reportFault(e);
     }
   }
 
   void _onTestersPreparing() {
+    if (!_isActive) return;
     addKeyedMessage('testers_preparing', TimelineMessageStatus.active);
     transitionToState(ResultFlowState.preparingTesters);
     _watchSystemIdle();
@@ -74,18 +91,22 @@ class ResultViewModelWithPLC extends ResultViewModel {
   // -------------------------------------------------------------------------
 
   void _watchSystemIdle() {
+    if (!_isActive) return;
     _plcSubscription?.cancel();
+    _startTesterReadyTimeout();
     _plcSubscription = plcService.watchSystemIdle().listen(
       (idle) {
-        if (idle) _onTestersReady();
+        if (_isActive && idle) _onTestersReady();
       },
       onError: (Object e) {
-        if (e is PLCException) _handlePLCError(e);
+        if (_isActive && e is PLCException) plcService.reportFault(e);
       },
     );
   }
 
   void _onTestersReady() {
+    if (!_isActive) return;
+    _testerReadyTimeoutTimer?.cancel();
     _plcSubscription?.cancel();
     updateLastKeyedMessage('testers_prepared', TimelineMessageStatus.completed);
     transitionToState(ResultFlowState.testersReady);
@@ -98,11 +119,13 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
   @override
   void onTesterSelected(int index) {
+    if (!_isActive || index < 0 || index >= topIds.length) return;
     selectedTester = index;
     shouldAnimate = false;
     notifyListeners();
 
     Future.delayed(const Duration(milliseconds: 500), () async {
+      if (!_isActive || index < 0 || index >= topIds.length) return;
       final slotId = topIds[index];
       addKeyedMessage(
         'customer_choice',
@@ -116,13 +139,21 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
       try {
         await plcService.startPayment(slotId, amountMinorUnits: _paymentAmountTL);
+        if (!_isActive) return;
         debugPrint('[ResultVM] Ödeme başlatma ACK ✓');
       } on PLCException catch (e) {
-        _handlePLCError(e);
+        if (e.errorCode == PLCErrorCodes.connectionLost ||
+            e.errorCode == PLCErrorCodes.connectionFailed ||
+            e.errorCode == PLCErrorCodes.connectionTimeout) {
+          _handlePLCError(e);
+        } else {
+          onPaymentError();
+        }
         return;
       }
 
       Future.delayed(const Duration(milliseconds: 300), () {
+        if (!_isActive) return;
         addKeyedMessage('payment_waiting', TimelineMessageStatus.active);
         transitionToState(ResultFlowState.waitingPayment);
         startTimer(300);
@@ -136,9 +167,11 @@ class ResultViewModelWithPLC extends ResultViewModel {
   // -------------------------------------------------------------------------
 
   void _watchPaymentStatus() {
+    if (!_isActive) return;
     _plcSubscription?.cancel();
     _plcSubscription = plcService.watchPaymentStatus().listen(
       (status) {
+        if (!_isActive) return;
         switch (status) {
           case 1:
             onPaymentComplete();
@@ -148,7 +181,14 @@ class ResultViewModelWithPLC extends ResultViewModel {
         }
       },
       onError: (Object e) {
-        if (e is PLCException) _handlePLCError(e);
+        if (!_isActive || e is! PLCException) return;
+        if (e.errorCode == PLCErrorCodes.connectionLost ||
+            e.errorCode == PLCErrorCodes.connectionFailed ||
+            e.errorCode == PLCErrorCodes.connectionTimeout) {
+          _handlePLCError(e);
+        } else {
+          onPaymentError();
+        }
       },
     );
   }
@@ -159,6 +199,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
 
   @override
   void onPaymentComplete() {
+    if (!_isActive) return;
     cancelTimer();
     _plcSubscription?.cancel();
     updateLastKeyedMessage('payment_completed', TimelineMessageStatus.completed);
@@ -166,12 +207,23 @@ class ResultViewModelWithPLC extends ResultViewModel {
     transitionToState(ResultFlowState.preparingPerfume);
 
     Future.delayed(const Duration(milliseconds: 500), () async {
+      if (!_isActive) return;
       try {
         await plcService.confirmPayment();
+        if (!_isActive) return;
         debugPrint('[ResultVM] Ödeme onayı yazıldı.');
-        final saleSlot = topIds[selectedTester!];
+        final saleSlot = _selectedSlot;
+        if (saleSlot == null) {
+          _handlePLCError(PLCException(
+            errorCode: PLCErrorCodes.unknownError,
+            message: 'Satış için seçili slot bulunamadı',
+          ));
+          return;
+        }
         debugPrint('[ResultVM] Satış → ${PerfumeCatalogue.nameOf(saleSlot)} (slot $saleSlot)');
+        _saleCommandStarted = true;
         await plcService.sendSale(saleSlot);
+        if (!_isActive) return;
         debugPrint('[ResultVM] Satış komutu ACK ✓');
       } on PLCException catch (e) {
         if (e.errorCode == PLCErrorCodes.connectionLost ||
@@ -182,9 +234,11 @@ class ResultViewModelWithPLC extends ResultViewModel {
         }
         // ACK timeout veya geçici hata: PLC komutu almış olabilir, izlemeye devam et.
         debugPrint('[ResultVM] Satış ACK alınamadı, izlemeye devam: ${e.message}');
+        if (!_isActive) return;
         addMessage('⚠ ${e.message}', TimelineMessageStatus.error);
       }
 
+      if (!_isActive) return;
       _watchSaleCompleted();
     });
   }
@@ -194,20 +248,25 @@ class ResultViewModelWithPLC extends ResultViewModel {
   // -------------------------------------------------------------------------
 
   void _watchSaleCompleted() {
+    if (!_isActive) return;
     _plcSubscription?.cancel();
+    _startSaleCompletedTimeout();
     _plcSubscription = plcService.watchSaleCompleted().listen(
       (completed) {
-        if (completed) _onPerfumeReady();
+        if (_isActive && completed) _onPerfumeReady();
       },
       onError: (Object e) {
-        if (e is PLCException) _handlePLCError(e);
+        if (_isActive && e is PLCException) plcService.reportFault(e);
       },
     );
   }
 
   void _onPerfumeReady() {
+    if (!_isActive) return;
+    _saleCompletedTimeoutTimer?.cancel();
     _plcSubscription?.cancel();
     appViewModel.clearSession();
+    _flowCompleted = true;
     updateKeyedMessageBy(
       'fragrance_preparing',
       'fragrance_prepared',
@@ -215,6 +274,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
     );
     transitionToState(ResultFlowState.perfumeReady);
     Future.delayed(const Duration(seconds: 2), () {
+      if (!_isActive) return;
       transitionToState(ResultFlowState.giftCardQuestion);
     });
   }
@@ -226,24 +286,68 @@ class ResultViewModelWithPLC extends ResultViewModel {
   @override
   void backToTesterSelection() {
     _plcSubscription?.cancel();
-    plcService.abortSession();
+    _cancelOperationTimeouts();
+    _abortSessionIfSafe();
     super.backToTesterSelection();
   }
 
   @override
   void retryPayment() {
+    if (!_isActive) return;
+    _plcSubscription?.cancel();
     updateLastKeyedMessage('payment_waiting', TimelineMessageStatus.active);
     transitionToState(ResultFlowState.waitingPayment);
     startTimer(300);
 
     final slot = _selectedSlot;
-    if (slot == null) return;
+    if (slot == null) {
+      onPaymentError();
+      return;
+    }
 
     plcService.startPayment(slot, amountMinorUnits: _paymentAmountTL)
-        .then((_) => _watchPaymentStatus())
+        .then((_) {
+      if (_isActive) _watchPaymentStatus();
+    })
         .catchError((Object e) {
-      if (e is PLCException) _handlePLCError(e);
+      if (_isActive && e is PLCException) _handlePLCError(e);
     });
+  }
+
+  @override
+  void cancelToIdle() {
+    _plcSubscription?.cancel();
+    cancelTimer();
+    _cancelOperationTimeouts();
+    _abortSessionIfSafe();
+    super.cancelToIdle();
+  }
+
+  @override
+  void startTimer(int seconds) {
+    _flowTimer?.cancel();
+    timerNotifier.value = seconds;
+    _flowTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!_isActive) {
+        timer.cancel();
+        return;
+      }
+
+      timerNotifier.value--;
+      if (timerNotifier.value > 0) return;
+
+      timer.cancel();
+      _plcSubscription?.cancel();
+      _cancelOperationTimeouts();
+      _abortSessionIfSafe();
+      appViewModel.resetToIdle();
+    });
+  }
+
+  @override
+  void cancelTimer() {
+    _flowTimer?.cancel();
+    _flowTimer = null;
   }
 
   // -------------------------------------------------------------------------
@@ -251,6 +355,7 @@ class ResultViewModelWithPLC extends ResultViewModel {
   // -------------------------------------------------------------------------
 
   void _handlePLCError(PLCException error) {
+    if (!_isActive) return;
     debugPrint('[ResultVM] PLC hatası ${error.errorCode}: ${error.message}');
 
     if (error.errorCode == PLCErrorCodes.connectionLost ||
@@ -262,8 +367,72 @@ class ResultViewModelWithPLC extends ResultViewModel {
     addMessage('⚠ ${error.message}', TimelineMessageStatus.error);
   }
 
+  void _startTesterReadyTimeout() {
+    _testerReadyTimeoutTimer?.cancel();
+    _testerReadyTimeoutTimer = Timer(_testerReadyTimeout, () {
+      if (!_isActive) return;
+      _plcSubscription?.cancel();
+      _abortSessionIfSafe();
+      plcService.reportFault(PLCException(
+        errorCode: PLCErrorCodes.responseTimeout,
+        message: 'Tester hazırlama zaman aşımı',
+        technicalDetail:
+            'STATUS_SYSTEM=0 ${_testerReadyTimeout.inSeconds}s içinde gelmedi.',
+      ));
+    });
+  }
+
+  void _startSaleCompletedTimeout() {
+    _saleCompletedTimeoutTimer?.cancel();
+    _saleCompletedTimeoutTimer = Timer(_saleCompletedTimeout, () {
+      if (!_isActive) return;
+      _plcSubscription?.cancel();
+      plcService.reportFault(PLCException(
+        errorCode: PLCErrorCodes.systemFault,
+        message: 'Satış tamamlanma zaman aşımı',
+        technicalDetail:
+            'SALE_COMPLETED=1 ${_saleCompletedTimeout.inSeconds}s içinde gelmedi. '
+            'slot=$_selectedSlot amount=$_paymentAmountTL',
+      ));
+    });
+  }
+
+  void _cancelOperationTimeouts() {
+    _testerReadyTimeoutTimer?.cancel();
+    _testerReadyTimeoutTimer = null;
+    _saleCompletedTimeoutTimer?.cancel();
+    _saleCompletedTimeoutTimer = null;
+  }
+
+  bool get _canAbortPLCSession {
+    if (_flowCompleted || _saleCommandStarted) return false;
+    return switch (currentState) {
+      ResultFlowState.showingRecommendations ||
+      ResultFlowState.preparingTesters ||
+      ResultFlowState.testersReady ||
+      ResultFlowState.waitingPayment ||
+      ResultFlowState.paymentError => true,
+      ResultFlowState.preparingPerfume ||
+      ResultFlowState.perfumeReady ||
+      ResultFlowState.giftCardQuestion ||
+      ResultFlowState.giftCardInput ||
+      ResultFlowState.thankYou => false,
+    };
+  }
+
+  void _abortSessionIfSafe() {
+    if (!_canAbortPLCSession) return;
+    plcService.abortSession();
+  }
+
   @override
   void dispose() {
+    if (_canAbortPLCSession) {
+      plcService.abortSession();
+    }
+    _disposed = true;
+    cancelTimer();
+    _cancelOperationTimeouts();
     _plcSubscription?.cancel();
     super.dispose();
   }

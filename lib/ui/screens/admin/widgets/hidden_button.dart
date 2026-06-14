@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:parfume_app/core/constants/app_constants.dart';
+import 'package:parfume_app/core/strings/admin_strings.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 
@@ -14,6 +16,7 @@ class HiddenAdminButton extends StatefulWidget {
   const HiddenAdminButton({
     super.key,
     required this.onAccessGranted,
+    this.localeCode = 'en',
     this.requiredTaps = 4,
     this.tapWindowSeconds = 2,
     this.password = AppConstants.adminPassword,
@@ -21,6 +24,9 @@ class HiddenAdminButton extends StatefulWidget {
 
   /// Called when the correct password is entered.
   final VoidCallback onAccessGranted;
+
+  /// BCP 47 locale code used to load the admin panel strings ('tr' or 'en').
+  final String localeCode;
 
   /// Number of taps required within [tapWindowSeconds] to trigger the dialog.
   final int requiredTaps;
@@ -38,6 +44,18 @@ class HiddenAdminButton extends StatefulWidget {
 class _HiddenAdminButtonState extends State<HiddenAdminButton> {
   int _tapCount = 0;
   Timer? _resetTimer;
+  AppStrings? _s;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStrings();
+  }
+
+  Future<void> _loadStrings() async {
+    final s = await loadAdminStrings(widget.localeCode);
+    if (mounted) setState(() => _s = s);
+  }
 
   void _handleTap() {
     setState(() => _tapCount++);
@@ -56,15 +74,18 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
   }
 
   void _showPasswordDialog() {
+    final s = _s;
+    if (s == null) return;
+
     final controller = TextEditingController();
 
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (context) => AlertDialog(
-        title: const Text(
-          'Admin Access',
-          style: TextStyle(
+        title: Text(
+          s.t('admin_access_title'),
+          style: const TextStyle(
             fontSize: AppSizes.adminDialogTitleSize,
             fontWeight: FontWeight.bold,
           ),
@@ -72,9 +93,9 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Enter password:',
-              style: TextStyle(fontSize: AppSizes.adminDialogBodySize),
+            Text(
+              s.t('admin_access_password_prompt'),
+              style: const TextStyle(fontSize: AppSizes.adminDialogBodySize),
             ),
             const SizedBox(height: AppSizes.spacingS),
             TextField(
@@ -91,23 +112,23 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
                 hintText: '****',
                 counterText: '',
               ),
-              onSubmitted: (value) => _checkPassword(context, value),
+              onSubmitted: (value) => _checkPassword(context, value, s),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(fontSize: AppSizes.adminDialogActionSize),
+            child: Text(
+              s.t('admin_cancel'),
+              style: const TextStyle(fontSize: AppSizes.adminDialogActionSize),
             ),
           ),
           ElevatedButton(
-            onPressed: () => _checkPassword(context, controller.text),
-            child: const Text(
-              'Enter',
-              style: TextStyle(fontSize: AppSizes.adminDialogActionSize),
+            onPressed: () => _checkPassword(context, controller.text, s),
+            child: Text(
+              s.t('admin_access_enter'),
+              style: const TextStyle(fontSize: AppSizes.adminDialogActionSize),
             ),
           ),
         ],
@@ -115,19 +136,19 @@ class _HiddenAdminButtonState extends State<HiddenAdminButton> {
     );
   }
 
-  void _checkPassword(BuildContext context, String password) {
+  void _checkPassword(BuildContext context, String password, AppStrings s) {
     if (password == widget.password) {
       Navigator.pop(context);
       widget.onAccessGranted();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Incorrect password.',
-            style: TextStyle(fontSize: AppSizes.adminDialogBodySize),
+            s.t('admin_access_wrong_password'),
+            style: const TextStyle(fontSize: AppSizes.adminDialogBodySize),
           ),
           backgroundColor: AdminColors.danger,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
     }

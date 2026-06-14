@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/viewmodel/app_view_model.dart';
@@ -9,9 +10,14 @@ import 'package:parfume_app/viewmodel/app_view_model.dart';
 /// Her slot için global fiyat yerine geçen bir override tanımlanabilir.
 /// Override tanımlanmamış slotlar için [AppViewModel.price] kullanılır.
 class SlotPriceSettings extends StatefulWidget {
-  const SlotPriceSettings({super.key, required this.viewModel});
+  const SlotPriceSettings({
+    super.key,
+    required this.viewModel,
+    required this.adminStrings,
+  });
 
   final AppViewModel viewModel;
+  final AppStrings adminStrings;
 
   static const int _slotCount = 24;
 
@@ -20,6 +26,8 @@ class SlotPriceSettings extends StatefulWidget {
 }
 
 class _SlotPriceSettingsState extends State<SlotPriceSettings> {
+  AppStrings get _s => widget.adminStrings;
+
   @override
   Widget build(BuildContext context) {
     final globalPrice = widget.viewModel.price;
@@ -30,7 +38,7 @@ class _SlotPriceSettingsState extends State<SlotPriceSettings> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Slot Fiyatları',
+          _s.t('admin_slot_title'),
           style: TextStyle(
             fontSize: AppSizes.adminAppBarTitleSize,
             fontWeight: FontWeight.w800,
@@ -39,7 +47,9 @@ class _SlotPriceSettingsState extends State<SlotPriceSettings> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Tanımlanmayan slotlar için genel fiyat ($globalPrice $currency) kullanılır.',
+          _s.t('admin_slot_subtitle')
+              .replaceAll('{price}', '$globalPrice')
+              .replaceAll('{currency}', currency),
           style: TextStyle(
             fontSize: AppSizes.adminDialogBodySize - 2,
             color: AdminColors.secondaryText,
@@ -52,6 +62,7 @@ class _SlotPriceSettingsState extends State<SlotPriceSettings> {
             globalPrice: globalPrice,
             currency: currency,
             priceOverride: slotPrices[slot],
+            adminStrings: _s,
             onEdit: () => _showEditDialog(context, slot, slotPrices[slot]),
             onClear: slotPrices.containsKey(slot)
                 ? () => widget.viewModel.clearSlotPrice(slot)
@@ -80,6 +91,7 @@ class _SlotPriceSettingsState extends State<SlotPriceSettings> {
         controller: controller,
         currency: widget.viewModel.currency,
         globalPrice: widget.viewModel.price,
+        adminStrings: _s,
       ),
     );
 
@@ -105,6 +117,7 @@ class _SlotRow extends StatelessWidget {
     required this.globalPrice,
     required this.currency,
     required this.priceOverride,
+    required this.adminStrings,
     required this.onEdit,
     required this.onClear,
   });
@@ -113,6 +126,7 @@ class _SlotRow extends StatelessWidget {
   final int globalPrice;
   final String currency;
   final int? priceOverride;
+  final AppStrings adminStrings;
   final VoidCallback onEdit;
   final VoidCallback? onClear;
 
@@ -121,7 +135,7 @@ class _SlotRow extends StatelessWidget {
     final hasOverride = priceOverride != null;
     final priceLabel  = hasOverride
         ? '${priceOverride!} $currency'
-        : '$globalPrice $currency (genel)';
+        : '$globalPrice $currency ${adminStrings.t('admin_slot_default_suffix')}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
@@ -130,7 +144,7 @@ class _SlotRow extends StatelessWidget {
           SizedBox(
             width: 80,
             child: Text(
-              'Slot $slot',
+              '${adminStrings.t('admin_slot_label')} $slot',
               style: TextStyle(
                 fontSize: AppSizes.adminDialogBodySize,
                 fontWeight: FontWeight.w600,
@@ -152,14 +166,14 @@ class _SlotRow extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.edit, size: 22),
             color: Colors.white70,
-            tooltip: 'Düzenle',
+            tooltip: adminStrings.t('admin_slot_edit_tooltip'),
             onPressed: onEdit,
           ),
           if (onClear != null)
             IconButton(
               icon: const Icon(Icons.clear, size: 22),
               color: Colors.red.shade300,
-              tooltip: 'Sıfırla (genel fiyata dön)',
+              tooltip: adminStrings.t('admin_slot_reset_tooltip'),
               onPressed: onClear,
             )
           else
@@ -180,19 +194,22 @@ class _SlotEditDialog extends StatelessWidget {
     required this.controller,
     required this.currency,
     required this.globalPrice,
+    required this.adminStrings,
   });
 
   final int slot;
   final TextEditingController controller;
   final String currency;
   final int globalPrice;
+  final AppStrings adminStrings;
 
   @override
   Widget build(BuildContext context) {
+    final s = adminStrings;
     return AlertDialog(
       backgroundColor: AdminColors.background,
       title: Text(
-        'Slot $slot Fiyatı',
+        '${s.t('admin_slot_label')} $slot ${s.t('admin_slot_price_suffix')}',
         style: TextStyle(
           color: AdminColors.primaryText,
           fontSize: AppSizes.adminDialogBodySize + 2,
@@ -204,7 +221,9 @@ class _SlotEditDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Genel fiyat: $globalPrice $currency\nBoş bırakırsanız genel fiyat kullanılır.',
+            s.t('admin_slot_dialog_content')
+                .replaceAll('{price}', '$globalPrice')
+                .replaceAll('{currency}', currency),
             style: TextStyle(
               color: AdminColors.secondaryText,
               fontSize: AppSizes.adminDialogBodySize - 2,
@@ -246,13 +265,13 @@ class _SlotEditDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('İptal',
+          child: Text(s.t('admin_cancel'),
               style: TextStyle(color: AdminColors.secondaryText)),
         ),
         if (controller.text.isNotEmpty)
           TextButton(
             onPressed: () => Navigator.of(context).pop(0),
-            child: Text('Sıfırla',
+            child: Text(s.t('admin_slot_reset'),
                 style: TextStyle(color: Colors.red.shade300)),
           ),
         ElevatedButton(
@@ -267,8 +286,8 @@ class _SlotEditDialog extends StatelessWidget {
               Navigator.of(context).pop(0);
             }
           },
-          child: const Text('Kaydet',
-              style: TextStyle(color: Colors.white)),
+          child: Text(s.t('admin_save'),
+              style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

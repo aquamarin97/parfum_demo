@@ -91,6 +91,16 @@ Adres notasyonu: **PDU adresi** (0-tabanlı). Simülatörde 400001 formatına ç
 
 > `PAYMENT_AMOUNT`: Değer TL cinsindendir. Örnek: 690 TL → `690`. Maksimum: 65535 TL.
 
+**Register temizleme sorumlulukları:**
+
+| Register | Kim temizler? | Ne zaman? |
+|---|---|---|
+| `PAYMENT_STATUS` (R300) | PLC | Yeni `Ödeme Başlat` komutu kabul edildiğinde `0` yapar. Ödeme sonucu oluşunca `1`, `2` veya `3` yazar. Oturum iptali ve sistem sıfırlamada tekrar `0` yapar. |
+| `PAYMENT_CONFIRMED_ACK` (R302) | Flutter + PLC | Flutter yeni ödeme başlatmadan önce `0` yazar. Ödeme onaylandıktan sonra Flutter `1` yazar. PLC bu `1` değerini okuduktan sonra tekrar `0` yapar. Oturum iptali ve sistem sıfırlamada PLC `0` yapar. |
+| `SALE_COMPLETED` (R303) | Flutter + PLC | PLC dağıtım tamamlanınca `1` yazar. Flutter `1` değerini okuduktan sonra bir sonraki oturum için `0` yazar. PLC yeni satış komutu, oturum iptali ve sistem sıfırlamada bu register'ı `0` kabul edecek şekilde temizler. |
+
+> Flutter oturum iptalinde registerları tek tek temizlemez; yalnızca `CMD_ACTION=5` komutunu gönderir. İptal sonrası güvenli register temizliği PLC'nin sorumluluğundadır.
+
 ---
 
 ### Blok 4 — Sensörler · PLC → Flutter (Yalnızca PLC yazar)
@@ -208,7 +218,7 @@ Flutter → PLC:
   R302 = 0             (PAYMENT_CONFIRMED_ACK sıfırlanmış olmalı)
   R301 = <tutar_kurus> (Örn: 59000 → 590 TL)
   R101 = <seçilen_slotId>
-  R100 = 3             (Ödeme Başlat)
+  R100 = 2             (Ödeme Başlat)
   R102 = N+1
 
 PLC → Flutter (ACK):
@@ -241,7 +251,7 @@ Flutter → PLC:
 ```
 Flutter → PLC:
   R101 = <seçilen_slotId>
-  R100 = 2  (Satış Bas)
+  R100 = 3  (Satış Bas)
   R102 = N+2
 
 PLC → Flutter (ACK):
@@ -258,7 +268,7 @@ PLC → Flutter (parfüm dağıtımı tamamlandı):
   R303 = 1
 
 Flutter → PLC (bir sonraki oturum için sıfırla):
-  (PLC, R303'ü bir sonraki satışa kadar 0'a çekmeli)
+  R303 = 0
 ```
 
 ---

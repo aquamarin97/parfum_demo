@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/admin_strings.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
@@ -10,6 +12,7 @@ import 'widgets/manual_control.dart';
 import 'widgets/price_settings.dart';
 import 'widgets/register_monitor.dart';
 import 'widgets/slot_price_settings.dart';
+import 'widgets/support_settings.dart';
 import 'widgets/timeout_settings.dart';
 
 /// PLC administration panel.
@@ -37,11 +40,18 @@ class AdminPanelScreen extends StatefulWidget {
 class _AdminPanelScreenState extends State<AdminPanelScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  AppStrings? _s;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
+    _loadStrings();
+  }
+
+  Future<void> _loadStrings() async {
+    final s = await loadAdminStrings(widget.viewModel.strings.localeCode);
+    if (mounted) setState(() => _s = s);
   }
 
   @override
@@ -52,6 +62,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
 
   @override
   Widget build(BuildContext context) {
+    final s = _s;
+    if (s == null) {
+      return const Scaffold(
+        backgroundColor: AdminColors.background,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: AppSizes.adminAppBarHeight,
@@ -63,9 +81,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'PLC Admin Panel',
-          style: TextStyle(
+        title: Text(
+          s.t('admin_panel_title'),
+          style: const TextStyle(
             fontSize: AppSizes.adminAppBarTitleSize,
             fontWeight: FontWeight.w900,
             height: 1.0,
@@ -91,13 +109,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
                 fontSize: AppSizes.adminTabUnselectedFontSize,
                 fontWeight: FontWeight.w700,
               ),
-              tabs: const [
-                _AdminTab(icon: Icons.monitor,          text: 'Monitor'),
-                _AdminTab(icon: Icons.edit,              text: 'Manual'),
-                _AdminTab(icon: Icons.health_and_safety, text: 'Status'),
-                _AdminTab(icon: Icons.event_note,        text: 'Log'),
-                _AdminTab(icon: Icons.tune,              text: 'Settings'),
-                _AdminTab(icon: Icons.sell,              text: 'Pricing'),
+              tabs: [
+                _AdminTab(icon: Icons.monitor,           text: s.t('admin_tab_monitor')),
+                _AdminTab(icon: Icons.edit,               text: s.t('admin_tab_manual')),
+                _AdminTab(icon: Icons.health_and_safety,  text: s.t('admin_tab_status')),
+                _AdminTab(icon: Icons.event_note,         text: s.t('admin_tab_log')),
+                _AdminTab(icon: Icons.tune,               text: s.t('admin_tab_settings')),
+                _AdminTab(icon: Icons.sell,               text: s.t('admin_tab_pricing')),
+                _AdminTab(icon: Icons.support_agent,      text: s.t('admin_tab_support')),
               ],
             ),
           ),
@@ -111,7 +130,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
             // 1 — Monitor
             Padding(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
-              child: RegisterMonitor(plcService: widget.plcService),
+              child: RegisterMonitor(
+                plcService: widget.plcService,
+                adminStrings: s,
+              ),
             ),
             // 2 — Manual
             SingleChildScrollView(
@@ -119,17 +141,21 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
               child: ManualControl(
                 plcService: widget.plcService,
                 isReadOnly: widget.isReadOnly,
+                adminStrings: s,
               ),
             ),
             // 3 — Status
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
-              child: HealthStatus(plcService: widget.plcService),
+              child: HealthStatus(
+                plcService: widget.plcService,
+                adminStrings: s,
+              ),
             ),
             // 4 — Log
             Padding(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
-              child: const EventLog(),
+              child: EventLog(adminStrings: s),
             ),
             // 5 — Settings (genel fiyat / para birimi + PLC timeout)
             SingleChildScrollView(
@@ -137,18 +163,35 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PriceSettings(viewModel: widget.viewModel),
+                  PriceSettings(
+                    viewModel: widget.viewModel,
+                    adminStrings: s,
+                  ),
                   const SizedBox(height: 48),
                   Divider(color: Colors.white12),
                   const SizedBox(height: 32),
-                  TimeoutSettings(viewModel: widget.viewModel),
+                  TimeoutSettings(
+                    viewModel: widget.viewModel,
+                    adminStrings: s,
+                  ),
                 ],
               ),
             ),
             // 6 — Pricing (slot bazlı fiyat override)
             SingleChildScrollView(
               padding: const EdgeInsets.all(AppSizes.adminContentPadding),
-              child: SlotPriceSettings(viewModel: widget.viewModel),
+              child: SlotPriceSettings(
+                viewModel: widget.viewModel,
+                adminStrings: s,
+              ),
+            ),
+            // 7 — Support (destek iletişim bilgileri)
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSizes.adminContentPadding),
+              child: SupportSettings(
+                viewModel: widget.viewModel,
+                adminStrings: s,
+              ),
             ),
           ],
         ),

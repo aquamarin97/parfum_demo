@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/data/models/plc/plc_event.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 
@@ -8,7 +9,9 @@ import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 /// Refreshes every second and supports per-type filtering via chip buttons.
 /// Entries can be cleared via the delete button in the header.
 class EventLog extends StatefulWidget {
-  const EventLog({super.key});
+  const EventLog({super.key, required this.adminStrings});
+
+  final AppStrings adminStrings;
 
   @override
   State<EventLog> createState() => _EventLogState();
@@ -19,10 +22,11 @@ class _EventLogState extends State<EventLog> {
   PLCEventType? _filterType;
   final _scrollController = ScrollController();
 
+  AppStrings get _s => widget.adminStrings;
+
   @override
   void initState() {
     super.initState();
-    // Refresh every second.
     _refreshTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -54,9 +58,9 @@ class _EventLogState extends State<EventLog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Event Log',
-                style: TextStyle(
+              Text(
+                _s.t('admin_event_log_title'),
+                style: const TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.w900,
                   color: AdminColors.primaryText,
@@ -65,7 +69,7 @@ class _EventLogState extends State<EventLog> {
               Row(
                 children: [
                   Text(
-                    '${events.length} event',
+                    '${events.length}${_s.t('admin_event_count_suffix')}',
                     style: const TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
@@ -78,7 +82,7 @@ class _EventLogState extends State<EventLog> {
                     color: AdminColors.primaryText,
                     icon: const Icon(Icons.delete_sweep),
                     onPressed: () => _clearLogs(),
-                    tooltip: 'Clear',
+                    tooltip: _s.t('admin_event_clear_tooltip'),
                   ),
                 ],
               ),
@@ -92,7 +96,7 @@ class _EventLogState extends State<EventLog> {
             child: Row(
               children: [
                 _BigFilterChip(
-                  label: 'ALL',
+                  label: _s.t('admin_event_filter_all'),
                   selected: _filterType == null,
                   onSelected: () => setState(() => _filterType = null),
                 ),
@@ -115,10 +119,10 @@ class _EventLogState extends State<EventLog> {
 
           Expanded(
             child: events.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
-                      'No events yet',
-                      style: TextStyle(
+                      _s.t('admin_event_empty'),
+                      style: const TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.w700,
                         color: AdminColors.secondaryText,
@@ -154,16 +158,14 @@ class _EventLogState extends State<EventLog> {
           fontWeight: FontWeight.w600,
           color: AdminColors.secondaryText,
         ),
-        title: const Text('Clear Log'),
-        content: const Text(
-          'All event logs will be deleted.\nAre you sure?',
-        ),
+        title: Text(_s.t('admin_event_clear_title')),
+        content: Text(_s.t('admin_event_clear_body')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
+            child: Text(
+              _s.t('admin_cancel'),
+              style: const TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
                 color: AdminColors.secondaryText,
@@ -183,7 +185,7 @@ class _EventLogState extends State<EventLog> {
               textStyle:
                   const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
             ),
-            child: const Text('Clear'),
+            child: Text(_s.t('admin_event_clear_confirm')),
           ),
         ],
       ),
@@ -208,7 +210,6 @@ class _BigFilterChip extends StatelessWidget {
     return FilterChip(
       selected: selected,
       onSelected: (_) => onSelected(),
-      // Hide checkmark — unnecessary on kiosk.
       showCheckmark: false,
       backgroundColor: AdminColors.cardBackground,
       selectedColor: AdminColors.accent,

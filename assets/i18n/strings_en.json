@@ -38,5 +38,9 @@
   "yes": "Yes",
   "no": "No",
   "thank_you_message": "Enjoy your fragrance",
-  "goodbye_message": "Your custom fragrance is ready!\nHave a wonderful day..."
+  "goodbye_message": "Your custom fragrance is ready!\nHave a wonderful day...",
+  "help_button_label": "Help",
+  "help_dialog_title": "Support",
+  "help_dialog_body": "If you need assistance, please contact us at:",
+  "help_dialog_close": "OK"
 }

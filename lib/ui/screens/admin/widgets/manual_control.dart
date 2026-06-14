@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/data/models/plc/plc_event.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
@@ -11,10 +12,12 @@ class ManualControl extends StatefulWidget {
   const ManualControl({
     super.key,
     required this.plcService,
+    required this.adminStrings,
     this.isReadOnly = false,
   });
 
   final PLCServiceManager plcService;
+  final AppStrings adminStrings;
   final bool isReadOnly;
 
   @override
@@ -27,21 +30,23 @@ class _ManualControlState extends State<ManualControl> {
   String? _lastResult;
   bool _isLoading = false;
 
+  AppStrings get _s => widget.adminStrings;
+
   Future<void> _readRegister() async {
     if (!widget.plcService.isConnected) {
-      _showError('PLC not connected');
+      _showError(_s.t('admin_manual_not_connected'));
       return;
     }
 
     final registerStr = _registerController.text.trim();
     if (registerStr.isEmpty) {
-      _showError('Enter register address');
+      _showError(_s.t('admin_manual_enter_register'));
       return;
     }
 
     final register = int.tryParse(registerStr);
     if (register == null || register < 0 || register > 65535) {
-      _showError('Invalid register address (0–65535)');
+      _showError(_s.t('admin_manual_invalid_register'));
       return;
     }
 
@@ -56,7 +61,7 @@ class _ManualControlState extends State<ManualControl> {
         _lastResult = 'R$register = $value';
       });
     } catch (e) {
-      _showError('Read error: $e');
+      _showError('${_s.t('admin_manual_read_error_prefix')}$e');
       PLCEventLogger.instance
           .logError('R$register read error', error: e.toString());
     } finally {
@@ -68,7 +73,7 @@ class _ManualControlState extends State<ManualControl> {
 
   Future<void> _writeRegister() async {
     if (!widget.plcService.isConnected) {
-      _showError('PLC not connected');
+      _showError(_s.t('admin_manual_not_connected'));
       return;
     }
 
@@ -76,7 +81,7 @@ class _ManualControlState extends State<ManualControl> {
     final valueStr = _valueController.text.trim();
 
     if (registerStr.isEmpty || valueStr.isEmpty) {
-      _showError('Enter register and value');
+      _showError(_s.t('admin_manual_enter_reg_and_value'));
       return;
     }
 
@@ -84,12 +89,12 @@ class _ManualControlState extends State<ManualControl> {
     final value = int.tryParse(valueStr);
 
     if (register == null || register < 0 || register > 65535) {
-      _showError('Invalid register address (0–65535)');
+      _showError(_s.t('admin_manual_invalid_register'));
       return;
     }
 
     if (value == null || value < 0 || value > 65535) {
-      _showError('Invalid value (0–65535)');
+      _showError(_s.t('admin_manual_invalid_value'));
       return;
     }
 
@@ -107,16 +112,18 @@ class _ManualControlState extends State<ManualControl> {
           fontWeight: FontWeight.w600,
           color: AdminColors.secondaryText,
         ),
-        title: const Text('Write Confirmation'),
+        title: Text(_s.t('admin_manual_write_confirm_title')),
         content: Text(
-          'Value $value will be written to register R$register.\nAre you sure?',
+          _s.t('admin_manual_write_confirm_body')
+              .replaceAll('{value}', '$value')
+              .replaceAll('{register}', '$register'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(
+            child: Text(
+              _s.t('admin_cancel'),
+              style: const TextStyle(
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
                 color: AdminColors.secondaryText,
@@ -132,7 +139,7 @@ class _ManualControlState extends State<ManualControl> {
               textStyle:
                   const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
             ),
-            child: const Text('Write'),
+            child: Text(_s.t('admin_manual_write')),
           ),
         ],
       ),
@@ -148,10 +155,10 @@ class _ManualControlState extends State<ManualControl> {
     try {
       await widget.plcService.writeRegister(register, value);
       setState(() {
-        _lastResult = 'R$register = $value (written)';
+        _lastResult = 'R$register = $value ${_s.t('admin_manual_written_suffix')}';
       });
     } catch (e) {
-      _showError('Write error: $e');
+      _showError('${_s.t('admin_manual_write_error_prefix')}$e');
       PLCEventLogger.instance
           .logError('R$register write error', error: e.toString());
     } finally {
@@ -187,9 +194,9 @@ class _ManualControlState extends State<ManualControl> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Manual Control',
-            style: TextStyle(
+          Text(
+            _s.t('admin_manual_title'),
+            style: const TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w900,
               color: AdminColors.primaryText,
@@ -200,7 +207,7 @@ class _ManualControlState extends State<ManualControl> {
 
           _BigField(
             controller: _registerController,
-            labelText: 'Register Address (0–65535)',
+            labelText: _s.t('admin_manual_register_label'),
             prefixText: 'R',
           ),
 
@@ -208,7 +215,7 @@ class _ManualControlState extends State<ManualControl> {
 
           _BigField(
             controller: _valueController,
-            labelText: 'Value (0–65535)',
+            labelText: _s.t('admin_manual_value_label'),
           ),
 
           const SizedBox(height: 22),
@@ -219,9 +226,9 @@ class _ManualControlState extends State<ManualControl> {
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _readRegister,
                   icon: const Icon(Icons.download, size: 48),
-                  label: const Text(
-                    'Read',
-                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                  label: Text(
+                    _s.t('admin_manual_read'),
+                    style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -238,9 +245,9 @@ class _ManualControlState extends State<ManualControl> {
                 child: ElevatedButton.icon(
                   onPressed: (_isLoading || widget.isReadOnly) ? null : _writeRegister,
                   icon: const Icon(Icons.upload, size: 48),
-                  label: const Text(
-                    'Write',
-                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
+                  label: Text(
+                    _s.t('admin_manual_write'),
+                    style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900),
                   ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 20),
@@ -297,9 +304,9 @@ class _ManualControlState extends State<ManualControl> {
 
           const SizedBox(height: 26),
 
-          const Text(
-            'Quick Actions:',
-            style: TextStyle(
+          Text(
+            _s.t('admin_manual_quick_actions'),
+            style: const TextStyle(
               fontSize: 34,
               fontWeight: FontWeight.w900,
               color: AdminColors.primaryText,

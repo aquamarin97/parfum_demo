@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/infrastructure/plc/plc_service_manager.dart';
 import 'package:parfume_app/infrastructure/plc/config/register_config.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
@@ -8,11 +9,15 @@ import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 ///
 /// Polls watched registers every second while [_isPolling] is true.
 /// Polling is paused automatically when the PLC is disconnected.
-/// Register reads are currently mocked pending direct client access.
 class RegisterMonitor extends StatefulWidget {
-  const RegisterMonitor({super.key, required this.plcService});
+  const RegisterMonitor({
+    super.key,
+    required this.plcService,
+    required this.adminStrings,
+  });
 
   final PLCServiceManager plcService;
+  final AppStrings adminStrings;
 
   @override
   State<RegisterMonitor> createState() => _RegisterMonitorState();
@@ -24,6 +29,8 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
   final Map<int, DateTime> _lastUpdate = {};
   List<RegisterAddress> _watchedRegisters = [];
   bool _isPolling = false;
+
+  AppStrings get _s => widget.adminStrings;
 
   @override
   void initState() {
@@ -173,9 +180,9 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Register Monitor',
-                style: TextStyle(
+              Text(
+                _s.t('admin_monitor_title'),
+                style: const TextStyle(
                   fontSize: 42,
                   fontWeight: FontWeight.w900,
                   color: AdminColors.primaryText,
@@ -184,7 +191,7 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
               Row(
                 children: [
                   Text(
-                    _isPolling ? '● LIVE' : '○ STOPPED',
+                    _isPolling ? _s.t('admin_monitor_live') : _s.t('admin_monitor_stopped'),
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
@@ -214,10 +221,10 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
 
         Expanded(
           child: _watchedRegisters.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'PLC not connected or no registers found',
-                    style: TextStyle(
+                    _s.t('admin_monitor_empty'),
+                    style: const TextStyle(
                       fontSize: 40,
                       color: AdminColors.secondaryText,
                       fontWeight: FontWeight.w600,
@@ -323,9 +330,9 @@ class _RegisterMonitorState extends State<RegisterMonitor> {
     final diff = now.difference(time);
 
     if (diff.inSeconds < 60) {
-      return '${diff.inSeconds}s ago';
+      return '${diff.inSeconds}${_s.t('admin_monitor_sec_ago')}';
     } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m ago';
+      return '${diff.inMinutes}${_s.t('admin_monitor_min_ago')}';
     } else {
       return '${time.hour.toString().padLeft(2, '0')}:'
           '${time.minute.toString().padLeft(2, '0')}:'

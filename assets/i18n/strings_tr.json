@@ -36,5 +36,9 @@
   "yes": "Evet",
   "no": "Hayır",
   "thank_you_message": "Güzel günlerde kullanın",
-  "goodbye_message": "Size özel esans hazır!\nİyi günler dileriz..."
+  "goodbye_message": "Size özel esans hazır!\nİyi günler dileriz...",
+  "help_button_label": "Yardım",
+  "help_dialog_title": "Destek",
+  "help_dialog_body": "Sorun yaşıyorsanız aşağıdaki numaradan bize ulaşabilirsiniz:",
+  "help_dialog_close": "Tamam"
 }

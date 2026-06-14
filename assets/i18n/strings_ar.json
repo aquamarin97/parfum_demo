@@ -38,5 +38,9 @@
   "yes": "نعم",
   "no": "لا",
   "thank_you_message": "نتمنى أن تستمتع بعطرك",
-  "goodbye_message": "عطرك الخاص جاهز!\nنتمنى لك يوماً سعيداً..."
+  "goodbye_message": "عطرك الخاص جاهز!\nنتمنى لك يوماً سعيداً...",
+  "help_button_label": "مساعدة",
+  "help_dialog_title": "الدعم",
+  "help_dialog_body": "إذا كنت بحاجة إلى مساعدة، يرجى التواصل معنا:",
+  "help_dialog_close": "حسناً"
 }

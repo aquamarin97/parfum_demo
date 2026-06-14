@@ -122,6 +122,17 @@ class PLCServiceManager extends ChangeNotifier {
     }
   }
 
+  /// Promotes a non-connection operational PLC fault to the shared error state.
+  ///
+  /// Use this when the TCP connection is alive but the machine failed to reach
+  /// an expected physical state, such as tester-ready or sale-completed timeout.
+  void reportFault(PLCException error) {
+    _logger.error('PLC operasyon hatası ${error.errorCode}: ${error.message}');
+    _lastError = error;
+    _updateState(PLCConnectionState.error);
+    onError?.call(error);
+  }
+
   // -------------------------------------------------------------------------
   // Tester hazırlama — Blok 1/2
   // -------------------------------------------------------------------------

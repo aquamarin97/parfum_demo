@@ -98,6 +98,8 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
   String _currency = 'TL';
   PLCTimings _timings = PLCTimings.defaults;
   Map<int, int> _slotPrices = {};
+  String _supportName = '';
+  String _supportPhone = '';
   Map<int, int> _answers = {};
   Map<int, int> _scores = {};
   Recommendation _recommendation = Recommendation(topIds: []);
@@ -154,6 +156,15 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
 
   /// Slot bazlı fiyat haritası (salt okunur kopi).
   Map<int, int> get slotPrices => Map.unmodifiable(_slotPrices);
+
+  /// Admin tarafından girilen destek personeli adı.
+  String get supportName => _supportName;
+
+  /// Admin tarafından girilen destek telefon numarası.
+  String get supportPhone => _supportPhone;
+
+  /// Hem [supportName] hem [supportPhone] doluysa `true` döner.
+  bool get hasSupportContact => _supportName.isNotEmpty && _supportPhone.isNotEmpty;
 
   /// Belirtilen slot için ürün fiyatını döner (TL).
   ///
@@ -269,6 +280,8 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
       _currency = await _preferencesStore.readCurrency();
       _timings = await _preferencesStore.readTimings();
       _slotPrices = await _preferencesStore.readSlotPrices();
+      _supportName = await _preferencesStore.readSupportName();
+      _supportPhone = await _preferencesStore.readSupportPhone();
       _plcService.updateTimings(_timings);
       await _scoringEngine.initialize();
       _survey = await _surveyRepository.loadSurvey();
@@ -282,7 +295,11 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
       _startWatchdog();
       _logger.log('App initialized');
       _initialized = true;
-      _setState(const IdleState());
+      if (state is! PLCErrorState) {
+        _setState(const IdleState());
+      } else {
+        notifyListeners();
+      }
     } catch (error) {
       _logger.log('Initialization failed: $error');
       // Set to true even on failure so the UI exits the loading screen.
@@ -422,6 +439,22 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     notifyListeners();
   }
 
+  /// Destek personeli adını günceller ve kaydeder.
+  Future<void> setSupportName(String name) async {
+    if (_supportName == name) return;
+    _supportName = name;
+    await _preferencesStore.saveSupportName(name);
+    notifyListeners();
+  }
+
+  /// Destek telefon numarasını günceller ve kaydeder.
+  Future<void> setSupportPhone(String phone) async {
+    if (_supportPhone == phone) return;
+    _supportPhone = phone;
+    await _preferencesStore.saveSupportPhone(phone);
+    notifyListeners();
+  }
+
   /// Changes the active language and persists the choice.
   ///
   /// No-op if [language] is already the active language.
@@ -492,7 +525,9 @@ class AppViewModel extends ChangeNotifier implements IResultContext {
     if (state is PLCErrorState) return;
     if (error.errorCode == PLCErrorCodes.connectionFailed ||
         error.errorCode == PLCErrorCodes.connectionTimeout ||
-        error.errorCode == PLCErrorCodes.connectionLost) {
+        error.errorCode == PLCErrorCodes.connectionLost ||
+        error.errorCode == PLCErrorCodes.responseTimeout ||
+        error.errorCode == PLCErrorCodes.systemFault) {
       _setState(PLCErrorState(error));
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:parfume_app/core/strings/app_strings.dart';
 import 'package:parfume_app/ui/theme/app_admin_colors.dart';
 import 'package:parfume_app/ui/theme/app_sizes.dart';
 import 'package:parfume_app/viewmodel/app_view_model.dart';
@@ -9,9 +10,14 @@ import 'package:parfume_app/viewmodel/app_view_model.dart';
 /// Changes are persisted immediately via [AppViewModel.setPrice] and
 /// [AppViewModel.setCurrency] when the save button is pressed.
 class PriceSettings extends StatefulWidget {
-  const PriceSettings({super.key, required this.viewModel});
+  const PriceSettings({
+    super.key,
+    required this.viewModel,
+    required this.adminStrings,
+  });
 
   final AppViewModel viewModel;
+  final AppStrings adminStrings;
 
   @override
   State<PriceSettings> createState() => _PriceSettingsState();
@@ -21,6 +27,8 @@ class _PriceSettingsState extends State<PriceSettings> {
   late final TextEditingController _priceController;
   late final TextEditingController _currencyController;
   bool _saving = false;
+
+  AppStrings get _s => widget.adminStrings;
 
   @override
   void initState() {
@@ -43,11 +51,11 @@ class _PriceSettingsState extends State<PriceSettings> {
     final currency = _currencyController.text.trim();
 
     if (price == null || price <= 0) {
-      _showSnackBar('Geçerli bir fiyat girin', isError: true);
+      _showSnackBar(_s.t('admin_price_invalid'), isError: true);
       return;
     }
     if (currency.isEmpty) {
-      _showSnackBar('Para birimi boş olamaz', isError: true);
+      _showSnackBar(_s.t('admin_currency_empty'), isError: true);
       return;
     }
 
@@ -56,7 +64,7 @@ class _PriceSettingsState extends State<PriceSettings> {
     await widget.viewModel.setCurrency(currency);
     setState(() => _saving = false);
 
-    _showSnackBar('Kaydedildi');
+    _showSnackBar(_s.t('admin_saved'));
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
@@ -76,7 +84,7 @@ class _PriceSettingsState extends State<PriceSettings> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Fiyat Ayarları',
+          _s.t('admin_price_title'),
           style: TextStyle(
             fontSize: AppSizes.adminAppBarTitleSize,
             fontWeight: FontWeight.w800,
@@ -85,14 +93,14 @@ class _PriceSettingsState extends State<PriceSettings> {
         ),
         const SizedBox(height: 32),
         AdminField(
-          label: 'Fiyat',
+          label: _s.t('admin_price_label'),
           controller: _priceController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         ),
         const SizedBox(height: 24),
         AdminField(
-          label: 'Para Birimi',
+          label: _s.t('admin_currency_label'),
           controller: _currencyController,
         ),
         const SizedBox(height: 40),
@@ -115,9 +123,9 @@ class _PriceSettingsState extends State<PriceSettings> {
                     child: CircularProgressIndicator(
                         strokeWidth: 3, color: Colors.white),
                   )
-                : const Text(
-                    'Kaydet',
-                    style: TextStyle(
+                : Text(
+                    _s.t('admin_save'),
+                    style: const TextStyle(
                       fontSize: AppSizes.adminDialogActionSize,
                       fontWeight: FontWeight.w700,
                     ),

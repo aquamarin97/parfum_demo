@@ -5,6 +5,7 @@ import 'package:parfume_app/common/widgets/app_scent_wave.dart';
 import 'package:parfume_app/core/constants/app_constants.dart';
 import 'package:parfume_app/domain/state/app_state.dart';
 import 'package:provider/provider.dart';
+import 'package:parfume_app/common/widgets/help_button.dart';
 import 'package:parfume_app/ui/screens/admin/widgets/hidden_button.dart';
 import 'package:parfume_app/ui/screens/admin/admin_panel_screen.dart';
 
@@ -111,6 +112,15 @@ class _AppRootState extends State<AppRoot>
     _ => true,
   };
 
+  /// Whether the help button should be visible for [state].
+  bool _showHelp(AppState state) => switch (state) {
+    IdleState()   => true,
+    ResultState() => true,
+    ErrorState()  => true,
+    PLCErrorState() => true,
+    _ => false,
+  };
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppViewModel>(
@@ -152,7 +162,14 @@ class _AppRootState extends State<AppRoot>
                         onSelect: viewModel.changeLanguage,
                       ),
                     ),
+                    if (_showHelp(state))
+                      HelpButton(
+                        supportName: viewModel.supportName,
+                        supportPhone: viewModel.supportPhone,
+                        strings: viewModel.strings,
+                      ),
                     HiddenAdminButton(
+                      localeCode: viewModel.languageCode,
                       onAccessGranted: () {
                         viewModel.onAdminPanelOpened();
                         Navigator.of(context)

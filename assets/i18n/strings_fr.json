@@ -38,5 +38,9 @@
   "yes": "Oui",
   "no": "Non",
   "thank_you_message": "Profitez de votre parfum",
-  "goodbye_message": "Votre parfum personnalisé est prêt !\nPassez une excellente journée..."
+  "goodbye_message": "Votre parfum personnalisé est prêt !\nPassez une excellente journée...",
+  "help_button_label": "Aide",
+  "help_dialog_title": "Assistance",
+  "help_dialog_body": "Si vous avez besoin d'aide, veuillez nous contacter :",
+  "help_dialog_close": "OK"
 }

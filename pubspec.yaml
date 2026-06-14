@@ -32,6 +32,7 @@ flutter:
     - assets/rules/
     - assets/fonts/ # Klasörü genel olarak eklemek de iyidir
     - assets/config/
+    - assets/admin/
 
   fonts:
     - family: NotoSans
